@@ -1,4 +1,4 @@
-# Project Title
+# Databricks Maven Plugin
 
 _This is the maven databricks plugin, which uses the databricks rest api._
 
