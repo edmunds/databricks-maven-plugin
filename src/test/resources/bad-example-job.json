@@ -1,0 +1,36 @@
+[
+  {
+    "name": "My test job",
+    "new_cluster": {
+      "spark_version": "4.0.x-scala2.11",
+      "aws_attributes": {
+        "first_on_demand": 1,
+        "availability": "SPOT_WITH_FALLBACK",
+        "zone_id": "us-east-1c",
+        "instance_profile_arn": null,
+        "spot_bid_price_percent": 100,
+        "ebs_volume_type": "GENERAL_PURPOSE_SSD",
+        "ebs_volume_count": 1,
+        "ebs_volume_size": 100
+      },
+      "node_type_id": "m4.large",
+      "num_workers": 1,
+      "autotermination_minutes": 0,
+      "enable_elastic_disk": false
+    },
+    "existing_cluster_id": null,
+    "timeout_seconds": 0,
+    "spark_submit_task": {
+      "parameters": [
+        "--class",
+        "com.edmunds.HelloWorld",
+        "s3://bucket-name/artifacts/${groupId}/${artifactId}/latest/${artifactId}.jar",
+        "${foo}"
+      ]
+    },
+    "retry_on_timeout": false,
+    "max_retries": 0,
+    "min_retry_interval_millis": 0,
+    "max_concurrent_runs": 1
+  }
+]

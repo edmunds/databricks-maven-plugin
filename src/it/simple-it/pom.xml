@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~  Copyright 2018 Edmunds.com, Inc.
+  ~
+  ~      Licensed under the Apache License, Version 2.0 (the "License");
+  ~      you may not use this file except in compliance with the License.
+  ~      You may obtain a copy of the License at
+  ~
+  ~          http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~      Unless required by applicable law or agreed to in writing, software
+  ~      distributed under the License is distributed on an "AS IS" BASIS,
+  ~      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~      See the License for the specific language governing permissions and
+  ~      limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.edmunds.bde.tools.integration-test</groupId>
+    <artifactId>databricks-maven-plugin-stream-it</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <checkstyle.skip>true</checkstyle.skip>
+        <pmd.skip>true</pmd.skip>
+        <cpd.skip>true</cpd.skip>
+        <skipTests>true</skipTests>
+    </properties>
+
+    <build>
+        <plugins>
+            <!-- ${maven.build.timestamp} varies by mvn version, so, this workaround is needed see: https://stackoverflow.com/a/35578881/27657 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>build.time</name>
+                            <pattern>MM/dd/yyyy hhmm</pattern>
+                            <locale>en_US</locale>
+                            <timeZone>PST</timeZone>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>@project.groupId@</groupId>
+                <artifactId>@project.artifactId@</artifactId>
+                <version>@project.version@</version>
+                <executions>
+                    <execution>
+                        <id>prepackage</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>prepare-db-resources</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>deploy-version</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>upsert-job</goal>
+                            <goal>job</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>import-workspace</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>import-workspace</goal>
+                        </goals>
+                        <configuration>
+                            <workspaceCommand>IMPORT</workspaceCommand>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>export-workspace</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>workspace-tool</goal>
+                        </goals>
+                        <configuration>
+                            <workspaceCommand>EXPORT</workspaceCommand>
+                            <sourceWorkspacePath>${project.build.directory}/export</sourceWorkspacePath>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

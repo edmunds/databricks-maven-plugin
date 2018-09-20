@@ -1,0 +1,40 @@
+[
+  // Full example: Be careful when editing the full example, it is used for default!
+  {
+    "name": "${groupWithoutCompany}/${artifactId}/${environment}",
+    "new_cluster": {
+      "spark_version": "4.2.x-scala2.11",
+      "aws_attributes": {
+        "first_on_demand": 1,
+        "availability": "SPOT_WITH_FALLBACK",
+        "instance_profile_arn": null,
+        "spot_bid_price_percent": 100,
+        "ebs_volume_type": "GENERAL_PURPOSE_SSD",
+        "ebs_volume_count": 1,
+        "ebs_volume_size": 100
+      },
+      "node_type_id": "m4.large",
+      "num_workers": 1,
+      //"autotermination_minutes": 30,  autotermination is currently not working  at 2018.06.25
+      "enable_elastic_disk": false
+    },
+    "libraries": [
+      {
+        "jar": "s3://${projectProperties['databricks.repo']}/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
+      }
+    ],
+    "email_notifications": {
+    },
+    "spark_jar_task": {
+      "main_class_name": "",
+      "parameters": []
+    },
+    "timeout_seconds": 1800,
+    // If streaming job, timeout_seconds should override to 0
+    "retry_on_timeout": false,
+    "max_retries": 0,
+    //0 : never retry, -1: indefinitely
+    "min_retry_interval_millis": 120000,
+    "max_concurrent_runs": 1
+  }
+]
