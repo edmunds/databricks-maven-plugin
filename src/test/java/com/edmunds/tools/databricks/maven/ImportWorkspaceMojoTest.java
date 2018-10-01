@@ -17,7 +17,6 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
-import com.edmunds.tools.databricks.maven.util.Environment;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -36,7 +35,7 @@ public class ImportWorkspaceMojoTest extends BaseDatabricksMojoTest {
         super.init();
 
         underTest.setDatabricksServiceFactory(databricksServiceFactory);
-        underTest.setEnvironment(Environment.QA);
+        underTest.setEnvironment("QA");
     }
 
     @Test

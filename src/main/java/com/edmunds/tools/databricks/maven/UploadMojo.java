@@ -49,7 +49,7 @@ public class UploadMojo extends AbstractMojo {
     @Parameter(property = "secretKey")
     private String secretKey;
 
-    @Parameter(property = "bucketName")
+    @Parameter(property = "bucketName", required = true)
     private String bucketName;
 
     @Parameter(property = "file", required = true, defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")

@@ -16,7 +16,6 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
-import com.edmunds.tools.databricks.maven.util.Environment;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.maven.project.MavenProject;
 
@@ -37,7 +36,7 @@ public class JobTemplateModel {
     private String groupId;
     private String artifactId;
     private String version;
-    private Environment environment;
+    private String environment;
     private String groupWithoutCompany;
 
     /**
@@ -79,11 +78,11 @@ public class JobTemplateModel {
         return version;
     }
 
-    public Environment getEnvironment() {
+    public String getEnvironment() {
         return environment;
     }
 
-    public void setEnvironment(Environment environment) {
+    public void setEnvironment(String environment) {
         this.environment = environment;
     }
 

@@ -20,7 +20,6 @@ import com.edmunds.rest.databricks.DTO.JobDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.JobsDTO;
 import com.edmunds.rest.databricks.DTO.NewClusterDTO;
-import com.edmunds.tools.databricks.maven.util.Environment;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import java.io.File;
 import java.util.Map;
@@ -62,7 +61,7 @@ public class UpsertJobMojoTest extends BaseDatabricksMojoTest {
         underTest.setDbJobFile(new File(classLoader.getResource(DEFAULT_JOB_JSON).getFile()));
         underTest.setFailOnDuplicateJobName(true);
         underTest.setJobTemplateModelFile(new File(""));
-        underTest.setEnvironment(Environment.QA);
+        underTest.setEnvironment("QA");
     }
 
     @Test

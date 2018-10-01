@@ -80,7 +80,7 @@ public class JobMojo extends BaseDatabricksJobMojo {
 
         Long jobId = getJobId(jobName);
         if (jobId != null) {
-            getLog().info(String.format("Preparing to run command: [%s] on: https://%s/#job/%s", command, environment.getHost(), jobId));
+            getLog().info(String.format("Preparing to run command: [%s] on: https://%s/#job/%s", command, host, jobId));
 
             try {
                 switch (command) {
@@ -124,7 +124,7 @@ public class JobMojo extends BaseDatabricksJobMojo {
         RunNowDTO runNowDTO = getJobService().runJobNow(jobId);
         long numberInJob = runNowDTO.getNumberInJob();
 
-        getLog().info(String.format("Job started, url: https://%s/#job/%s/run/%s", environment.getHost(), jobId, numberInJob));
+        getLog().info(String.format("Job started, url: https://%s/#job/%s/run/%s", host, jobId, numberInJob));
 
         return runNowDTO;
     }
@@ -135,7 +135,7 @@ public class JobMojo extends BaseDatabricksJobMojo {
             long runId = runDTO.getRunId();
             long numberInJob = runDTO.getNumberInJob();
 
-            getLog().info(String.format("Stopping run: https://%s/#job/%s/run/%s", environment.getHost(), jobId, numberInJob));
+            getLog().info(String.format("Stopping run: https://%s/#job/%s/run/%s", host, jobId, numberInJob));
 
             getJobService().cancelRun(runId);
         }
