@@ -20,7 +20,6 @@ package com.edmunds.tools.databricks.maven;
 import com.edmunds.rest.databricks.DTO.RunDTO;
 import com.edmunds.rest.databricks.DTO.RunNowDTO;
 import com.edmunds.rest.databricks.DTO.RunsDTO;
-import com.edmunds.tools.databricks.maven.util.Environment;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -50,7 +49,7 @@ public class JobMojoTest extends BaseDatabricksMojoTest {
 
         underTest.setDatabricksServiceFactory(databricksServiceFactory);
         underTest.setStreamingOnly(false);
-        underTest.setEnvironment(Environment.QA);
+        underTest.setEnvironment("QA");
     }
 
     @Test

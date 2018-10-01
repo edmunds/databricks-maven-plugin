@@ -21,11 +21,9 @@ import com.edmunds.rest.databricks.DTO.LanguageDTO;
 import com.edmunds.rest.databricks.DTO.ObjectInfoDTO;
 import com.edmunds.rest.databricks.DTO.ObjectTypeDTO;
 import com.edmunds.rest.databricks.request.ExportWorkspaceRequest;
-import com.edmunds.tools.databricks.maven.util.Environment;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import java.io.File;
 import java.net.URLEncoder;
@@ -40,7 +38,7 @@ public class WorkspaceToolMojoTest extends BaseDatabricksMojoTest {
         super.init();
 
         underTest.setDatabricksServiceFactory(databricksServiceFactory);
-        underTest.setEnvironment(Environment.QA);
+        underTest.setEnvironment("QA");
     }
 
     //TODO currently does not work with maven...

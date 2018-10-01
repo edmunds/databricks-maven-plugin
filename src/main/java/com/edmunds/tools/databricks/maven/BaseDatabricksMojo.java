@@ -17,7 +17,6 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DatabricksServiceFactory;
-import com.edmunds.tools.databricks.maven.util.Environment;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -30,8 +29,23 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
 
-    @Parameter(defaultValue = "QA", property = "environment", required = true)
-    protected Environment environment;
+    /**
+     * The environment name. Is used in freemarker templating for conditional job settings.e
+     */
+    @Parameter(required = true)
+    protected String environment;
+
+    @Parameter(required = true)
+    protected String host;
+
+    @Parameter
+    protected String token;
+
+    @Parameter
+    protected String user;
+
+    @Parameter
+    protected String password;
 
     @Parameter(defaultValue = "true", property = "validate")
     protected boolean validate;
@@ -42,10 +56,20 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
 
     protected DatabricksServiceFactory getDatabricksServiceFactory() {
 
-        getLog().debug(String.format("connecting to databricks environment: [%s]", environment));
-
         if (databricksServiceFactory == null) {
-            databricksServiceFactory = environment.getEdmundsDatabricksServiceFactory();
+            if (user != null && password != null) {
+                return DatabricksServiceFactory
+                    .Builder
+                    .createServiceFactoryWithUserPasswordAuthentication(user, password, host)
+                    .build();
+            } else if (token != null) {
+                return DatabricksServiceFactory
+                    .Builder
+                    .createServiceFactoryWithTokenAuthentication(token, host)
+                    .build();
+            } else {
+                throw new IllegalArgumentException("Must either specify user/password or token!");
+            }
         }
         return databricksServiceFactory;
     }
@@ -62,7 +86,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     /**
      * NOTE - only for unit testing!
      */
-    void setEnvironment(Environment environment) {
+    void setEnvironment(String environment) {
         this.environment = environment;
     }
 
