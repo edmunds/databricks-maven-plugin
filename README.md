@@ -51,7 +51,7 @@ It is recommended that you use maven profiles to allow for credentials per an en
                          <artifactId>databricks-maven-plugin</artifactId>
                          <version>${oss-databricks-maven-plugin-version}</version>
                          <configuration>
-                             <bucketName>edmunds-repos</bucketName>
+                             <bucketName>${s3-bucket-where-you-want-to-store-jars}</bucketName>
                              <!-- This is used to be able to allow for conditional configuration in job settings -->
                              <environment>QA</environment>
                              <host>${qa-host-here}</host>
