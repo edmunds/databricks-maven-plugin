@@ -32,19 +32,19 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     /**
      * The environment name. Is used in freemarker templating for conditional job settings.e
      */
-    @Parameter(required = true)
+    @Parameter(property="environment")
     protected String environment;
 
-    @Parameter(required = true)
+    @Parameter(property="host")
     protected String host;
 
-    @Parameter
+    @Parameter(property="token")
     protected String token;
 
-    @Parameter
+    @Parameter(property="user")
     protected String user;
 
-    @Parameter
+    @Parameter(property="password")
     protected String password;
 
     @Parameter(defaultValue = "true", property = "validate")
@@ -57,6 +57,10 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     protected DatabricksServiceFactory getDatabricksServiceFactory() {
 
         if (databricksServiceFactory == null) {
+            //TODO temporary, will be replaced with logic to get environment variables
+            if (environment == null || host == null) {
+                throw new IllegalArgumentException("Must specify environment and host");
+            }
             if (user != null && password != null) {
                 return DatabricksServiceFactory
                     .Builder
