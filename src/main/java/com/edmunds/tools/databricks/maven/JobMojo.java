@@ -52,7 +52,7 @@ public class JobMojo extends BaseDatabricksJobMojo {
     @Parameter(property = "jobName")
     private String jobName;
 
-    @Parameter(defaultValue = "RESTART", property = "command", required = true)
+    @Parameter(defaultValue = "RESTART", property = "job.command", required = true)
     private JobCommand command;
 
     @Parameter(property = "streamingOnly", defaultValue = "true")

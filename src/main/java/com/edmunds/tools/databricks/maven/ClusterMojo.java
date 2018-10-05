@@ -39,7 +39,7 @@ public class ClusterMojo extends BaseDatabricksMojo {
     @Parameter(property = "clusters", required = true)
     private String[] clusters;
 
-    @Parameter(property = "command", required = true)
+    @Parameter(property = "cluster.command", required = true)
     private ClusterCommand command;
 
     public void execute() throws MojoExecutionException {
