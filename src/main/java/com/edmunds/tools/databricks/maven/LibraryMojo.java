@@ -53,7 +53,7 @@ public class LibraryMojo extends PrepareLibraryResources {
 
     private static final int SLEEP_TIME_MS = 200;
 
-    @Parameter(property = "command", required = true)
+    @Parameter(property = "library.command", required = true)
     private LibraryCommand command;
 
     public void execute() throws MojoExecutionException {
