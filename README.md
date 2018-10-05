@@ -2,6 +2,14 @@
 
 _This is the maven databricks plugin, which uses the databricks rest api._
 
+## Build Status
+[![Build Status](https://travis-ci.org/edmunds/databricks-maven-plugin.svg?branch=master)](https://travis-ci.org/edmunds/databricks-maven-plugin)
+
+## API Overview
+
+[![Javadocs](http://www.javadoc.io/badge/com.edmunds/databricks-maven-plugin.svg)](http://www.javadoc.io/doc/com.edmunds/databricks-maven-plugin)
+
+
 ### Building, Installing and Running
 
 How to build the project locally:
