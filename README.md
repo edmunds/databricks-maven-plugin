@@ -204,6 +204,8 @@ There is 1 required property:jobCommand. You can add it to your configuration se
 (note: you can override the jobName in this example, which is otherwise derived from the job settings json file)
 ```bash
 mvn databricks:job -Djob.command=STOP
+mvn databricks:job -Djob.command=START
+mvn databricks:job -Djob.command=RESTART
 ```
 
 
