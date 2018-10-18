@@ -18,15 +18,12 @@ package com.edmunds.tools.databricks.maven;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.event.ProgressEvent;
 import com.amazonaws.event.ProgressListener;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import java.io.File;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -34,20 +31,13 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import java.io.File;
 
 /**
  * Uploads an artifact to s3.
  */
 @Mojo(name = "upload-to-s3", defaultPhase = LifecyclePhase.DEPLOY)
 public class UploadMojo extends AbstractMojo {
-
-    @Parameter(property = "accessKey")
-    private String accessKey;
-
-    @Parameter(property = "secretKey")
-    private String secretKey;
 
     @Parameter(property = "bucketName", required = true)
     private String bucketName;
@@ -65,7 +55,7 @@ public class UploadMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         if (file.exists()) {
             try {
-                AWSCredentialsProvider credentialsProvider = isNotBlank(accessKey) && isNotBlank(secretKey) ? new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)) : new ProfileCredentialsProvider();
+                AWSCredentialsProvider credentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
                 AmazonS3 s3Client = AmazonS3ClientBuilder
                         .standard()
                         .withRegion(region)
