@@ -107,16 +107,19 @@ databricks:library databricks:import-workspace \
 
 ### Use Case 4 - Upsert a Job to a Workspace
 You must have a job definition file. This file should be in the resources directory named databricks-plugin/databricks-job-settings.json and should be a serialized form of an array of type JobSettingsDTO. 
+Note that this file is a template, that has access to both the java system properties, as well as the maven project data. It uses freemarker to merge this file, with that data.
+
 ```json
 [
  {
-   "name": "${groupWithoutCompany}/${artifactId}",
+   //There is validation rules around job names based on groupId and artifactId these can be turned off
+   "name": "myTeam/myArtifact",
    "new_cluster": {
      "spark_version": "4.1.x-scala2.11",
      "aws_attributes": {
        "first_on_demand": 1,
        "availability": "SPOT_WITH_FALLBACK", // Can also set to SPOT
-       "instance_profile_arn": arn:aws:iam::625959542261:instance-profile/DatabricksS3Role,
+       "instance_profile_arn": "yourArn",
        "spot_bid_price_percent": 100,
        "ebs_volume_type": "GENERAL_PURPOSE_SSD",
        "ebs_volume_count": 1,
@@ -130,14 +133,13 @@ You must have a job definition file. This file should be in the resources direct
       "max_workers" : 3
     },
     "custom_tags": {
-        "team": "${groupWithoutCompany}"
+        "team": "myTeam"
       },
      "autotermination_minutes": 0,
      "enable_elastic_disk": false
    },
    "existing_cluster_id": null,
     "spark_conf" : {
-//      "spark.databricks.delta.preview.enabled" : "true" if you are using delta
     "spark.databricks.delta.retentionDurationCheck.enabled" : "false"
     },
    "timeout_seconds": 10800, //3hrs
@@ -148,11 +150,12 @@ You must have a job definition file. This file should be in the resources direct
      "spark_jar_task": {
       "main_class_name": "com.edmunds.dwh.VehicleInventoryHistoryDriver"
     },
+    //If you emit this section, it will automatically be added to your job
     "libraries": [
       {
         "jar": "s3://${projectProperties['databricks.repo']}/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
       }
-],
+   ],
   "email_notifications" : {
     "on_failure" : [ "myEmail@email.com" ],
     "on_start" : null,
@@ -165,6 +168,44 @@ You must have a job definition file. This file should be in the resources direct
  }
 ]
 ```
+
+To upsert your job run the following:
+You can invoke it manually, like so, or attach it as an execution (see case 2 for example):
+```json
+#deploys the current version
+mvn databricks:upsert-job
+
+#deploys a specific version
+mvn databricks:upsert-job -Ddeploy-version=1.0
+```
+
+You can use freemarker templating like so:
+```json
+      <#if environment == "QA" || environment == "DEV">
+      "node_type_id": "r3.xlarge",
+      "driver_node_type_id": "r3.xlarge",
+      "num_workers": 5,
+      <#else>
+      "node_type_id": "r3.4xlarge",
+      "driver_node_type_id": "r3.xlarge",
+      "num_workers": 10,
+      </#if>
+```
+
+For additional information please consult:
+https://docs.databricks.com/api/latest/jobs.html#create
+And the JobSettingsDTO in:
+https://www.javadoc.io/doc/com.edmunds/databricks-rest-client/
+
+### Use Case 5 - Control a Job (start, stop, restart)
+You can control a job (stop it, start it, restart it) via this mojo. 
+There is 1 required property:jobCommand. You can add it to your configuration section, or invoke manually, like so:
+
+(note: you can override the jobName in this example, which is otherwise derived from the job settings json file)
+```bash
+mvn databricks:job -Djob.command=STOP
+```
+
 
 ## Contributing
 
