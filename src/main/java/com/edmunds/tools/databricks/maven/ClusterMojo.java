@@ -39,6 +39,9 @@ public class ClusterMojo extends BaseDatabricksMojo {
     @Parameter(property = "clusters", required = true)
     private String[] clusters;
 
+    /**
+     * What command to run.
+     */
     @Parameter(property = "cluster.command", required = true)
     private ClusterCommand command;
 
@@ -74,5 +77,4 @@ public class ClusterMojo extends BaseDatabricksMojo {
     public enum ClusterCommand {
         STOP, START
     }
-
 }

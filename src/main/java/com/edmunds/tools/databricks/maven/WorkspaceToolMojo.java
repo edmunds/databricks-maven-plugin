@@ -43,6 +43,11 @@ import static org.apache.commons.lang3.StringUtils.substringAfter;
 @Mojo(name = "workspace-tool", requiresProject = true)
 public class WorkspaceToolMojo extends BaseWorkspaceMojo {
 
+    /**
+     * The workspace command to execute.
+     *
+     * @link WorkspaceToolMojo#WorkspaceCommand
+     */
     @Parameter(property = "workspaceCommand", required = true)
     private WorkspaceCommand workspaceCommand;
 

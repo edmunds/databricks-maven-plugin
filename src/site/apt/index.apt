@@ -1,0 +1,43 @@
+ ------
+ Introduction
+ ------
+ Author
+ ------
+ YYYY-MM-DD
+ ------
+
+
+Databricks-maven-plugin
+
+  The purpose of this plugin is to enable databricks integration as part of a java/scala project build.
+  This can allow testing and development to be more seamlessly integrated with databricks, as well as allow for
+  automation of deployment and testing.
+
+* Goals Overview
+
+  General information about the goals. This is the most useful page!
+
+  {{{../site/plugin-info.html}Goal Page}}
+
+* Usage
+
+  General instructions on how to use the Plugin Name can be found on the {{{usage.html}usage page}}. Some more
+  specific use cases are described in the examples given below.
+
+  In case you still have questions regarding the plugin's usage, please have a look at the {{{faq.html}FAQ}}.
+
+  If you feel like the plugin is missing a feature or has a defect, you can fill a feature request or bug report in issue management
+  system on github. When creating a new issue, please provide a comprehensive description of your
+  concern. Especially for fixing bugs it is crucial that the developers can reproduce your problem. For this reason,
+  entire debug logs, POMs or most preferably little demo projects attached to the issue are very much appreciated.
+  Of course, patches are welcome, too. Contributors can check out the project from our
+  {{{https://github.com/edmunds/databricks-maven-plugin/}source repository}}.
+
+* Examples
+
+  To provide you with better understanding of some usages of the Plugin Name,
+  you can take a look into the following examples:
+
+  * {{{./examples/example-one.html}Example Description One}}
+
+  * {{{./examples/example-two.html}Example Description Two}}

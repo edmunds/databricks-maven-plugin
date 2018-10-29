@@ -59,17 +59,31 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
     protected static final ObjectMapper OBJECT_MAPPER = ObjectMapperUtils.getObjectMapper();
 
+    /**
+     * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
+     */
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-job-settings.json", property = "dbJobFile")
     protected File dbJobFile;
 
+    /**
+     * If true, any command that involves working by databricks job name, will fail if more then one job exists
+     * with that job name.
+     */
     @Parameter(property = "failOnDuplicateJobName")
     boolean failOnDuplicateJobName = true;
 
     public final static String MODEL_FILE_NAME = "job-template-model.json";
 
+    /**
+     * This file is used by the databricks-maven-plugin internally to inject informatino from maven.
+     */
     @Parameter(property = "jobTemplateModelFile", defaultValue = "${project.build.directory}/databricks-plugin/" + MODEL_FILE_NAME)
     protected File jobTemplateModelFile;
 
+    /**
+     * If set to true, this project is being built locally.
+     */
+    //TODO this parameter should be removed
     @Parameter(property = "isLocalBuild", defaultValue = "true")
     protected boolean isLocalBuild = true;
 

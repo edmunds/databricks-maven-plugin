@@ -35,18 +35,33 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(property="environment")
     protected String environment;
 
+    /**
+     * The databricks host.
+     */
     @Parameter(property="host")
     protected String host;
 
+    /**
+     * The databricks token.
+     */
     @Parameter(property="token")
     protected String token;
 
+    /**
+     * The databricks user name.
+     */
     @Parameter(property="user")
     protected String user;
 
+    /**
+     * The databricks password.
+     */
     @Parameter(property="password")
     protected String password;
 
+    /**
+     * Whether or not you want to validate the databricks job settings file.
+     */
     @Parameter(defaultValue = "true", property = "validate")
     protected boolean validate;
 

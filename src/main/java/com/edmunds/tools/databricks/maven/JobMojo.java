@@ -49,12 +49,22 @@ public class JobMojo extends BaseDatabricksJobMojo {
     public static final int RUNS_LIMIT = 1000;
     public static final String STREAM = "stream";
 
+    /**
+     * The databricks job name to operate on.
+     */
     @Parameter(property = "jobName")
     private String jobName;
 
+    /**
+     * The databricks job command to execute.
+     */
     @Parameter(defaultValue = "RESTART", property = "job.command", required = true)
     private JobCommand command;
 
+    /**
+     * Whether the command should be only executed on streaming jobs only.
+     * Whether a job is streaming is based on its job name.
+     */
     @Parameter(property = "streamingOnly", defaultValue = "true")
     private boolean streamingOnly;
 

@@ -53,6 +53,9 @@ public class LibraryMojo extends PrepareLibraryResources {
 
     private static final int SLEEP_TIME_MS = 200;
 
+    /**
+     * The library command to execute.
+     */
     @Parameter(property = "library.command", required = true)
     private LibraryCommand command;
 

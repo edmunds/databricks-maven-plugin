@@ -83,6 +83,8 @@
         <commons-lang-version>3.4</commons-lang-version>
         <commons-collections-version>3.2.1</commons-collections-version>
 
+        <maven-plugin-info-version>2.7</maven-plugin-info-version>
+        <maven-plugin-plugin-version>3.4</maven-plugin-plugin-version>
         <maven-version>3.2.1</maven-version>
         <maven-plugin-annotation-version>3.2</maven-plugin-annotation-version>
         <plexus-version>3.0.24</plexus-version>
@@ -96,6 +98,28 @@
         <powermock-version>1.5.3</powermock-version>
         <groovy-version>2.4.15</groovy-version>
     </properties>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>${maven-plugin-plugin-version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-plugin-info-version}</version>
+                <reportSets>
+                    <reportSet>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <build>
         <plugins>
@@ -161,10 +185,22 @@
                 </configuration>
             </plugin>
 
+            <!--Site-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.7</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-plugin-info-version}</version>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
+                <version>${maven-plugin-plugin-version}</version>
                 <configuration>
                     <goalPrefix>databricks</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>

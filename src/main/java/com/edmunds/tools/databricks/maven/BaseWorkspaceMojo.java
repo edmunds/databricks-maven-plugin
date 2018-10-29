@@ -39,15 +39,27 @@ import static org.apache.commons.lang3.StringUtils.substringAfter;
 //TODO - workspace mojo extends from job mojo. It works, but, seems funny.
 public abstract class BaseWorkspaceMojo extends BaseDatabricksJobMojo {
 
+    /**
+     * This is the base path where databricks notebooks live in your project.
+     */
     @Parameter(property = "sourceWorkspacePath", required = true, defaultValue = "${project.basedir}/src/main/notebooks")
     protected File sourceWorkspacePath;
 
+    /**
+     * This is where the databricks notebooks are packaged as part of a build.
+     * This should not require changing.
+     */
+    //TODO this property should probably not be changeable
     @Parameter(property = "packagedWorkspacePath", required = true, defaultValue = "${project.build.directory}/notebooks/")
     protected File packagedWorkspacePath;
 
+    //TODO this prefix should not be changeable, and seems repeat of dbWorkspacePath
     @Parameter(property = "workspacePrefix", required = true, defaultValue = "${project.groupId}/${project.artifactId}")
     protected String workspacePrefix;
 
+    /**
+     * This is where the notebooks live on databricks workspace.
+     */
     @Parameter(property = "dbWorkspacePath", required = true, defaultValue = "/${project.groupId}/${project" +
             ".artifactId}")
     private String dbWorkspacePath;
