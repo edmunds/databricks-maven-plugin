@@ -75,7 +75,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     public final static String MODEL_FILE_NAME = "job-template-model.json";
 
     /**
-     * This file is used by the databricks-maven-plugin internally to inject informatino from maven.
+     * This file is used by the databricks-maven-plugin internally to inject information from maven.
      */
     @Parameter(property = "jobTemplateModelFile", defaultValue = "${project.build.directory}/databricks-plugin/" + MODEL_FILE_NAME)
     protected File jobTemplateModelFile;

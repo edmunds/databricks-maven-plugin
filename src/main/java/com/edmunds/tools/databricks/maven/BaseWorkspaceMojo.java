@@ -58,7 +58,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksJobMojo {
     protected String workspacePrefix;
 
     /**
-     * This is where the notebooks live on databricks workspace.
+     * This is where the notebooks live in the databricks workspace.
      */
     @Parameter(property = "dbWorkspacePath", required = true, defaultValue = "/${project.groupId}/${project" +
             ".artifactId}")

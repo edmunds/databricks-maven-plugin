@@ -44,11 +44,18 @@ import static org.apache.commons.lang3.StringUtils.substringAfter;
 public class WorkspaceToolMojo extends BaseWorkspaceMojo {
 
     /**
-     * The workspace command to execute.
-     *
-     * @link WorkspaceToolMojo#WorkspaceCommand
+     * Workspace command to execute.
      */
-    @Parameter(property = "workspaceCommand", required = true)
+    public enum WorkspaceCommand {
+        EXPORT, LIST
+    }
+
+    /**
+     * The workspace command to execute.<br>
+     * EXPORT - export a workspace path FROM databricks to your local machine.<br>
+     * LIST - list the contents of a workspace path.<br>
+     */
+    @Parameter(property = "workspace.command", required = true)
     private WorkspaceCommand workspaceCommand;
 
     public void execute() throws MojoExecutionException {
@@ -146,12 +153,5 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
      */
     public interface ObjectInfoVisitor {
         void visit(ObjectInfoDTO objectInfoDTO) throws IOException, DatabricksRestException;
-    }
-
-    /**
-     * Workspace command to execute.
-     */
-    public enum WorkspaceCommand {
-        EXPORT, LIST
     }
 }

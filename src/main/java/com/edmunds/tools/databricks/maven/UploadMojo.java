@@ -46,7 +46,7 @@ public class UploadMojo extends AbstractMojo {
     private String bucketName;
 
     /**
-     * the local file to upload.
+     * The local file to upload.
      */
     @Parameter(property = "file", required = true, defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
     private File file;

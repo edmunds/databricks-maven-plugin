@@ -30,7 +30,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     protected MavenProject project;
 
     /**
-     * The environment name. Is used in freemarker templating for conditional job settings.e
+     * The environment name. Is used in freemarker templating for conditional job settings.
      */
     @Parameter(property="environment")
     protected String environment;

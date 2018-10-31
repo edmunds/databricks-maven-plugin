@@ -50,13 +50,24 @@ public class JobMojo extends BaseDatabricksJobMojo {
     public static final String STREAM = "stream";
 
     /**
+     * Job command to execute.
+     */
+    public enum JobCommand {
+        START, STOP, RESTART
+    }
+
+    /**
      * The databricks job name to operate on.
      */
     @Parameter(property = "jobName")
     private String jobName;
 
     /**
-     * The databricks job command to execute.
+     * The databricks job command to execute.<br>
+     *
+     * STOP - stop a job.<br>
+     * START - start a job.<br>
+     * RESTART - restart a running job.<br>
      */
     @Parameter(defaultValue = "RESTART", property = "job.command", required = true)
     private JobCommand command;
@@ -161,13 +172,6 @@ public class JobMojo extends BaseDatabricksJobMojo {
      */
     void setStreamingOnly(boolean streamingOnly) {
         this.streamingOnly = streamingOnly;
-    }
-
-    /**
-     * Job command to execute.
-     */
-    public enum JobCommand {
-        START, STOP, RESTART
     }
 
 }
