@@ -85,6 +85,7 @@
 
         <maven-javadoc-plugin-version>2.10.2</maven-javadoc-plugin-version>
         <maven-plugin-info-version>3.0.0</maven-plugin-info-version>
+        <maven-site-plugin-version>3.7</maven-site-plugin-version>
         <maven-plugin-plugin-version>3.5.2</maven-plugin-plugin-version>
         <maven-version>3.2.1</maven-version>
         <maven-plugin-annotation-version>3.2</maven-plugin-annotation-version>
@@ -111,11 +112,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <version>${maven-plugin-info-version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jxr-plugin</artifactId>
-                <version>2.1</version>
             </plugin>
         </plugins>
     </reporting>
@@ -188,7 +184,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.7</version>
+                <version>${maven-site-plugin-version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
