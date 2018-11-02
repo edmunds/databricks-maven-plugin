@@ -47,6 +47,9 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(property = "host")
     protected String host;
 
+    /**
+     * NOTE: user+password authentication will take precedence over token based authentication if both are provided.
+     */
     @Parameter(property = "token")
     protected String token;
 
