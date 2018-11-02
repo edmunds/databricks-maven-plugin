@@ -51,7 +51,8 @@ private JobDTO validateJob(JobService jobService, String databricksIntegrationTe
 
     def jarPath = parameters[parameters.length - 2]
 
-    assert jarPath == "s3://bucket-name/artifacts/com.edmunds.bde.tools.integration-test/databricks-maven-plugin-stream-it/1.0-SNAPSHOT/databricks-maven-plugin-stream-it-1.0-SNAPSHOT.jar"
+    def repoPath = System.getenv("DB_REPO")
+    assert jarPath == "s3://" + repoPath + "/artifacts/com.edmunds.bde.tools.integration-test/databricks-maven-plugin-stream-it/1.0-SNAPSHOT/databricks-maven-plugin-stream-it-1.0-SNAPSHOT.jar"
 
     /**
      * We set a build time property in the pom, that passes through to the job config, which passes through to databricks.
