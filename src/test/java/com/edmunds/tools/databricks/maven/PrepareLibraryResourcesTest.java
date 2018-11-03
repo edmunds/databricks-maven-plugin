@@ -18,7 +18,7 @@ public class PrepareLibraryResourcesTest extends BaseDatabricksMojoTest {
         underTest.setDatabricksServiceFactory(databricksServiceFactory);
         underTest.setProject(project);
         underTest.setVersion("1.0");
-        underTest.setDbfsRoot("s3://bucket-name/artifacts");
+        underTest.setDbfsRoot("s3://bucket-name");
     }
 
     @Test

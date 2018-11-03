@@ -20,7 +20,7 @@
     },
     "libraries": [
       {
-        "jar": "s3://${projectProperties['databricks.repo']}/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
+        "jar": "s3://${projectProperties['databricks.repo']}/artifacts/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
       }
     ],
     "email_notifications": {
