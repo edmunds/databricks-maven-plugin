@@ -97,7 +97,7 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
         String artifactId = artifact.getArtifactId();
         String fileName = String.format("%s-%s.%s", artifactId, version, artifact.getType());
 
-        return String.format("%s/%s/%s/%s/%s", dbfsRoot, project.getGroupId(), artifactId, version, fileName);
+        return String.format("%s/artifacts/%s/%s/%s/%s", dbfsRoot, project.getGroupId(), artifactId, version, fileName);
     }
 
     /**

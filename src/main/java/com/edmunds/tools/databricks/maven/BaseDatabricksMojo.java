@@ -21,10 +21,19 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 /**
  * The base databricks mojo.
  */
 public abstract class BaseDatabricksMojo extends AbstractMojo {
+
+    private static final String DB_USER = "DB_USER";
+    private static final String DB_PASSWORD = "DB_PASSWORD";
+    private static final String DB_URL = "DB_URL";
+    private static final String DB_TOKEN = "DB_TOKEN";
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
@@ -32,31 +41,22 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     /**
      * The environment name. Is used in freemarker templating for conditional job settings.
      */
-    @Parameter(property="environment")
+    @Parameter(property = "environment")
     protected String environment;
 
-    /**
-     * The databricks host.
-     */
-    @Parameter(property="host")
+    @Parameter(property = "host")
     protected String host;
 
     /**
-     * The databricks token.
+     * NOTE: user+password authentication will take precedence over token based authentication if both are provided.
      */
-    @Parameter(property="token")
+    @Parameter(property = "token")
     protected String token;
 
-    /**
-     * The databricks user name.
-     */
-    @Parameter(property="user")
+    @Parameter(property = "user")
     protected String user;
 
-    /**
-     * The databricks password.
-     */
-    @Parameter(property="password")
+    @Parameter(property = "password")
     protected String password;
 
     /**
@@ -66,31 +66,48 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     protected boolean validate;
 
 
-
     private DatabricksServiceFactory databricksServiceFactory;
 
     protected DatabricksServiceFactory getDatabricksServiceFactory() {
 
         if (databricksServiceFactory == null) {
-            //TODO temporary, will be replaced with logic to get environment variables
-            if (environment == null || host == null) {
-                throw new IllegalArgumentException("Must specify environment and host");
-            }
+
+            loadPropertiesFromSystemEnvironment();
+
             if (user != null && password != null) {
                 return DatabricksServiceFactory
-                    .Builder
-                    .createServiceFactoryWithUserPasswordAuthentication(user, password, host)
-                    .build();
+                        .Builder
+                        .createServiceFactoryWithUserPasswordAuthentication(user, password, host)
+                        .build();
             } else if (token != null) {
                 return DatabricksServiceFactory
-                    .Builder
-                    .createServiceFactoryWithTokenAuthentication(token, host)
-                    .build();
+                        .Builder
+                        .createServiceFactoryWithTokenAuthentication(token, host)
+                        .build();
             } else {
                 throw new IllegalArgumentException("Must either specify user/password or token!");
             }
         }
         return databricksServiceFactory;
+    }
+
+    private void loadPropertiesFromSystemEnvironment() {
+        String envUser = System.getenv(DB_USER);
+        if (isBlank(user) && isNotBlank(envUser)) {
+            this.user = envUser;
+        }
+        String envPassword = System.getenv(DB_PASSWORD);
+        if (isBlank(password) && isNotBlank(envPassword)) {
+            this.password = envPassword;
+        }
+        String envUrl = System.getenv(DB_URL);
+        if (isBlank(host) && isNotBlank(envUrl)) {
+            this.host = envUrl;
+        }
+        String envToken = System.getenv(DB_TOKEN);
+        if (isBlank(token) && isNotBlank(envToken)) {
+            this.token = envToken;
+        }
     }
 
     /**

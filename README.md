@@ -30,10 +30,12 @@ export DB_USER=myuser
 export DB_PASSWORD=mypassword
 export DB_URL=my-test-db-instance
 export DB_TOKEN=my-db-token
+export DB_REPO=my-s3-bucket
+export INSTANCE_PROFILE_ARN=arn:aws:iam::123456789:instance-profile/MyDatabricksRole
 ```
 
 ```bash
-mvn -P run-its clean deploy
+mvn clean -P run-its install
 ```
 
 Please note, this will:
@@ -153,7 +155,7 @@ Note that this file is a template, that has access to both the java system prope
     //If you emit this section, it will automatically be added to your job
     "libraries": [
       {
-        "jar": "s3://${projectProperties['databricks.repo']}/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
+        "jar": "s3://${projectProperties['databricks.repo']}/artifacts/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
       }
    ],
   "email_notifications" : {

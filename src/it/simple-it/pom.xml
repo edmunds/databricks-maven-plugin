@@ -29,6 +29,10 @@
         <pmd.skip>true</pmd.skip>
         <cpd.skip>true</cpd.skip>
         <skipTests>true</skipTests>
+        <bucketName>${env.DB_REPO}</bucketName>
+        <databricks.repo>${env.DB_REPO}</databricks.repo>
+        <instance.profile.arn>${env.INSTANCE_PROFILE_ARN}</instance.profile.arn>
+        <environment>QA</environment>
     </properties>
 
     <build>
@@ -67,16 +71,17 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>deploy-version</id>
-                        <phase>deploy</phase>
+                        <id>install-version</id>
+                        <phase>install</phase>
                         <goals>
+                            <goal>upload-to-s3</goal>
                             <goal>upsert-job</goal>
                             <goal>job</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>import-workspace</id>
-                        <phase>deploy</phase>
+                        <phase>install</phase>
                         <goals>
                             <goal>import-workspace</goal>
                         </goals>
@@ -86,7 +91,7 @@
                     </execution>
                     <execution>
                         <id>export-workspace</id>
-                        <phase>deploy</phase>
+                        <phase>install</phase>
                         <goals>
                             <goal>workspace-tool</goal>
                         </goals>
