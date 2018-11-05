@@ -53,6 +53,20 @@ public class LibraryMojo extends PrepareLibraryResources {
 
     private static final int SLEEP_TIME_MS = 200;
 
+    /**
+     * The library commands.
+     */
+    public enum LibraryCommand {
+        INSTALL, UNINSTALL, STATUS
+    }
+
+    /**
+     * The library command to execute.<br>
+     *
+     * INSTALL - installs a library to a cluster. It will restart a cluster if necessary.<br>
+     * UNINSTALL - removes a library from a cluster. It will restart a cluster if necessary.<br>
+     * STATUS - the status of libraries on a cluster.<br>
+     */
     @Parameter(property = "library.command", required = true)
     private LibraryCommand command;
 
@@ -213,12 +227,4 @@ public class LibraryMojo extends PrepareLibraryResources {
         lib.setJar(artifactPath);
         return new LibraryDTO[]{lib};
     }
-
-    /**
-     * The library commands.
-     */
-    public enum LibraryCommand {
-        INSTALL, UNINSTALL, STATUS
-    }
-
 }

@@ -59,6 +59,9 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(property = "password")
     protected String password;
 
+    /**
+     * Whether or not you want to validate the databricks job settings file.
+     */
     @Parameter(defaultValue = "true", property = "validate")
     protected boolean validate;
 

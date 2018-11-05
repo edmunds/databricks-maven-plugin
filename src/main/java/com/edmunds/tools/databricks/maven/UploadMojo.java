@@ -39,15 +39,27 @@ import java.io.File;
 @Mojo(name = "upload-to-s3", defaultPhase = LifecyclePhase.DEPLOY)
 public class UploadMojo extends AbstractMojo {
 
+    /**
+     * The s3 bucket to upload your jar to.
+     */
     @Parameter(property = "bucketName", required = true)
     private String bucketName;
 
+    /**
+     * The local file to upload.
+     */
     @Parameter(property = "file", required = true, defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
     private File file;
 
+    /**
+     * The prefix to load to.
+     */
     @Parameter(property = "key", defaultValue = "artifacts/${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}.${project.packaging}")
     private String key;
 
+    /**
+     * The aws region that the bucket is located in.
+     */
     @Parameter(property = "region", defaultValue = "us-east-1")
     private String region;
 

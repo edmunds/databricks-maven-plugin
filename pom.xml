@@ -20,7 +20,7 @@
 
     <groupId>com.edmunds</groupId>
     <artifactId>databricks-maven-plugin</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.2.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
 
@@ -84,6 +84,10 @@
         <commons-lang-version>3.4</commons-lang-version>
         <commons-collections-version>3.2.1</commons-collections-version>
 
+        <maven-javadoc-plugin-version>2.10.2</maven-javadoc-plugin-version>
+        <maven-plugin-info-version>3.0.0</maven-plugin-info-version>
+        <maven-site-plugin-version>3.7</maven-site-plugin-version>
+        <maven-plugin-plugin-version>3.5.2</maven-plugin-plugin-version>
         <maven-version>3.2.1</maven-version>
         <maven-plugin-annotation-version>3.2</maven-plugin-annotation-version>
         <plexus-version>3.0.24</plexus-version>
@@ -97,6 +101,26 @@
         <powermock-version>1.5.3</powermock-version>
         <groovy-version>2.4.15</groovy-version>
     </properties>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>${maven-plugin-plugin-version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-plugin-info-version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.1</version>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <build>
         <plugins>
@@ -127,7 +151,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>${maven-javadoc-plugin-version}</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -162,10 +186,22 @@
                 </configuration>
             </plugin>
 
+            <!--Site-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${maven-site-plugin-version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-plugin-info-version}</version>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
+                <version>${maven-plugin-plugin-version}</version>
                 <configuration>
                     <goalPrefix>databricks</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
