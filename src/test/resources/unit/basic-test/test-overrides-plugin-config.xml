@@ -33,7 +33,10 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <goals><goal>prepare-library-resources</goal></goals>
+                        <goals>
+                            <goal>prepare-library-resources</goal>
+                            <goal>library</goal>
+                        </goals>
                         <configuration></configuration>
                     </execution>
                 </executions>

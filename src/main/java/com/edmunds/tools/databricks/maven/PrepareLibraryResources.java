@@ -2,20 +2,17 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.LibraryClustersModel;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-
-import static org.apache.commons.lang3.StringUtils.defaultString;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Prepares the library-mapping.json file such that we can run library attachment, sans project later (e.g. during a build).
@@ -45,6 +42,12 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
     @Parameter(property = "key", defaultValue = "artifacts/${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}.${project.packaging}")
     private String key;
 
+    /**
+     * The aws region that the bucket is located in.
+     */
+    @Parameter(property = "region", defaultValue = "us-east-1")
+    private String region;
+
     @Parameter(property = "libaryMappingFile", defaultValue = "${project.build.directory}/databricks-plugin/" + LIBRARY_MAPPING_FILE_NAME)
     protected File libaryMappingFile;
 
@@ -62,10 +65,11 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
+        validate();
         prepareLibraryResources();
     }
 
-    void prepareLibraryResources() throws MojoExecutionException {
+    protected void validate() throws MojoExecutionException {
         if (StringUtils.isBlank(bucketName)) {
             //This alternative property source is for the integration test.
             bucketName = System.getProperty("DB_REPO");
@@ -73,6 +77,9 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
                 throw new MojoExecutionException("Missing mandatory parameter: ${bucketName}");
             }
         }
+    }
+
+    void prepareLibraryResources() throws MojoExecutionException {
         if (project.getArtifact().getType().equals(JAR)) {
             if (ArrayUtils.isNotEmpty(clusters)) {
                 try {
