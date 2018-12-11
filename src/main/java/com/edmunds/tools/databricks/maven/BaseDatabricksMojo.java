@@ -40,7 +40,11 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
 
     //TODO validate even with required=true? How does that play with the env properties
     /**
-     * The s3 bucket to upload your jar to.
+     * The repo location on s3 that you want to upload your jar to.
+     * At the very least this should be an s3 bucket name like "my-bucket"
+     * BUT you can also specify a common prefix here in addition to a bucket,
+     * for example:
+     * "my-bucket/artifacts"
      *
      * For some reason, I couldn't use the "." syntax for the name.
      */
@@ -48,7 +52,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     protected String databricksRepo;
 
     /**
-     * The prefix to load to.
+     * The prefix to load to. This is appended to the databricksRepo property.
      */
     @Parameter(name= "databricksRepoKey", property = "databricks.repo.key",
         defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}" +

@@ -30,7 +30,7 @@ export DB_USER=myuser
 export DB_PASSWORD=mypassword
 export DB_URL=my-test-db-instance
 export DB_TOKEN=my-db-token
-export DB_REPO=my-s3-bucket
+export DB_REPO=my-s3-bucket/my-artifact-location
 export INSTANCE_PROFILE_ARN=arn:aws:iam::123456789:instance-profile/MyDatabricksRole
 ```
 
@@ -61,7 +61,7 @@ It is recommended that you use maven profiles to allow for credentials per an en
                          <artifactId>databricks-maven-plugin</artifactId>
                          <version>${oss-databricks-maven-plugin-version}</version>
                          <configuration>
-                             <databricksRepo>${which bucket you want to use to store databricks artifacts}</bucketName>
+                             <databricksRepo>${which bucket you want to use to store databricks artifacts}</databricksRepo>
                              <!-- This is used to be able to allow for conditional configuration in job settings -->
                              <environment>QA</environment>
                              <host>${qa-host-here}</host>
@@ -173,6 +173,10 @@ mvn databricks:upsert-job
 
 #deploys a specific version
 mvn databricks:upsert-job -Ddeploy-version=1.0
+
+#you don't want validation! 
+#If so, it could be good to create an issue and let us know where our validation rules are too specific
+mvn databricks:upsert-job -Dvalidate=false
 ```
 
 You can use freemarker templating like so:

@@ -86,12 +86,11 @@
         <maven-javadoc-plugin-version>2.10.2</maven-javadoc-plugin-version>
         <maven-plugin-info-version>3.0.0</maven-plugin-info-version>
         <maven-site-plugin-version>3.7</maven-site-plugin-version>
-        <maven-plugin-plugin-version>3.3</maven-plugin-plugin-version>
+        <maven-plugin-plugin-version>3.5.2</maven-plugin-plugin-version>
         <maven-version>3.2.5</maven-version>
         <maven-plugin-annotation-version>3.3</maven-plugin-annotation-version>
         <plexus-version>3.0.24</plexus-version>
 
-        <!-- DOESN'T WORK WITH NEWEST VERSION-->
         <databricks-rest-client-version>[2.2.0, 2.3.0)</databricks-rest-client-version>
 
         <!--Test versions-->
@@ -392,6 +391,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- TEST DEPENDENCIES-->
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
@@ -439,12 +439,14 @@
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>4.0</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.sisu</groupId>
             <artifactId>org.eclipse.sisu.plexus</artifactId>
             <version>0.3.2</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
