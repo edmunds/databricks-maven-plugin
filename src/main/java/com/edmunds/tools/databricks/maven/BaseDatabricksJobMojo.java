@@ -142,6 +142,11 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
             // [BDD-3114] - we want the current environment, to honor what was passed into the build, and not what was serialized [SAE]
             jobTemplateModel.setEnvironment(environment);
+            if (StringUtils.isBlank(databricksRepo)) {
+                throw new MojoExecutionException("missing property: databricks.repo");
+            }
+            jobTemplateModel.getProjectProperties().setProperty("databricks.repo", databricksRepo);
+            jobTemplateModel.getProjectProperties().setProperty("databricks.repo.key", databricksRepoKey);
 
             return jobTemplateModel;
         } catch (IOException e) {
@@ -272,7 +277,8 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
                     , jobName, OBJECT_MAPPER.writeValueAsString(defaultDTO.getEmailNotifications())));
 
         } else if (targetDTO.getEmailNotifications().getOnFailure() == null
-                || StringUtils.isEmpty(targetDTO.getEmailNotifications().getOnFailure()[0])) {
+                || targetDTO.getEmailNotifications().getOnFailure().length == 0
+            || StringUtils.isEmpty(targetDTO.getEmailNotifications().getOnFailure()[0])) {
             targetDTO.getEmailNotifications().setOnFailure(defaultDTO.getEmailNotifications().getOnFailure());
             getLog().info(String.format("%s|set email_notifications.on_failure with %s"
                     , jobName, OBJECT_MAPPER.writeValueAsString(defaultDTO.getEmailNotifications().getOnFailure())));

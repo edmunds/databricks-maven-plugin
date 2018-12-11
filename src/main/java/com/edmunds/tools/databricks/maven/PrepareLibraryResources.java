@@ -2,19 +2,17 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.LibraryClustersModel;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.maven.artifact.Artifact;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-
-import static org.apache.commons.lang3.StringUtils.defaultString;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Prepares the library-mapping.json file such that we can run library attachment, sans project later (e.g. during a build).
@@ -22,7 +20,6 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 @Mojo(name = "prepare-library-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareLibraryResources extends BaseWorkspaceMojo {
 
-    public static final String DEFAULT_DBFS_ROOT_FORMAT = "s3://%s";
 
     public static final String JAR = "jar";
 
@@ -43,19 +40,12 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
     @Parameter(property = "version", defaultValue = "${project.version}")
     protected String version;
 
-    /**
-     * The root dbfs folder to use
-     */
-    @Parameter(property = "dbfsRoot")
-    protected String dbfsRoot;
-
     @Override
     public void execute() throws MojoExecutionException {
         prepareLibraryResources();
     }
 
     void prepareLibraryResources() throws MojoExecutionException {
-
         if (project.getArtifact().getType().equals(JAR)) {
             if (ArrayUtils.isNotEmpty(clusters)) {
                 try {
@@ -89,29 +79,4 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
             throw new MojoExecutionException(e.getMessage(), e);
         }
     }
-
-    String createArtifactPath() {
-        dbfsRoot = defaultString(dbfsRoot, String.format(DEFAULT_DBFS_ROOT_FORMAT, project.getProperties().getProperty("databricks.repo")));
-
-        Artifact artifact = project.getArtifact();
-        String artifactId = artifact.getArtifactId();
-        String fileName = String.format("%s-%s.%s", artifactId, version, artifact.getType());
-
-        return String.format("%s/artifacts/%s/%s/%s/%s", dbfsRoot, project.getGroupId(), artifactId, version, fileName);
-    }
-
-    /**
-     * NOTE - only for unit testing!
-     */
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    /**
-     * NOTE - only for unit testing!
-     */
-    public void setDbfsRoot(String dbfsRoot) {
-        this.dbfsRoot = dbfsRoot;
-    }
-
 }

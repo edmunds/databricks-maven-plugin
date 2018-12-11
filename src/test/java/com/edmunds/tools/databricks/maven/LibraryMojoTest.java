@@ -16,6 +16,7 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -23,9 +24,10 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarness {
+//Requires building beforehand??
+public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "prepare-library-resources";
+    private final String GOAL = "library";
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -37,24 +39,28 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
         super.beforeMethod();
     }
 
+    //TODO actually test the library functionality!
     @Test
     public void testCreateArtifactPath_default() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getNoOverridesMojo(GOAL);
+        LibraryMojo underTest = (LibraryMojo) getNoOverridesMojo(GOAL);
         assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
                 "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
-        //TODO actually test the execute here
-        underTest.execute();
     }
 
     @Test
-    public void testCreateArtifactPath_doesNothingWhenNoFieldsSpecified() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getMissingMandatoryMojo(GOAL);
-        underTest.execute();
+    public void testCreateArtifactPath_failsWhenMissingMandatoryFields() throws Exception {
+        LibraryMojo underTest = (LibraryMojo) getMissingMandatoryMojo(GOAL);
+        try {
+            underTest.execute();
+        } catch (MojoExecutionException e) {
+            return;
+        }
+        fail();
     }
 
     @Test
     public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getOverridesMojo(GOAL);
+        LibraryMojo underTest = (LibraryMojo) getOverridesMojo(GOAL);
         assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/my-destination"));
     }
 }

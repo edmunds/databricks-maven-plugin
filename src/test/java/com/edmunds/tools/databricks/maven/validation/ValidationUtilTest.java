@@ -31,6 +31,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link ValidationUtil}.
+ *
+ * BE VERY CAREFUL WITH SYSTEM PROPERTIES. THIS CAN CAUSE OTHER TESTS TO FAIL THAT DEPEND ON SYSTEM PROPERTIES TO BE
+ * SET.
  */
 public class ValidationUtilTest {
 
@@ -57,7 +60,8 @@ public class ValidationUtilTest {
 
     @Test
     public void testValidPath_with_maven() throws Exception {
-        System.getProperties().clear();
+        System.setProperty(ARTIFACT_ID, "");
+        System.setProperty(GROUP_ID, "");
         validatePath("/maven-group-id/maven-artifact-id", mavenProject.getGroupId(), mavenProject.getArtifactId());
 
         //nothing to assert, failure will throw an exception
@@ -73,7 +77,8 @@ public class ValidationUtilTest {
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*'groupId' is not set.*")
     public void testMissingGroupId() throws Exception {
-        System.getProperties().clear();
+        System.setProperty(ARTIFACT_ID, "");
+        System.setProperty(GROUP_ID, "");
         when(mavenProject.getGroupId()).thenReturn("");
 
         validatePath("/maven-group-id/maven-artifact-id", mavenProject.getGroupId(), mavenProject.getArtifactId());
@@ -81,7 +86,8 @@ public class ValidationUtilTest {
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*'artifactId' is not set.*")
     public void testMissingArtifactId() throws Exception {
-        System.getProperties().clear();
+        System.setProperty(ARTIFACT_ID, "");
+        System.setProperty(GROUP_ID, "");
         when(mavenProject.getArtifactId()).thenReturn("");
 
         validatePath("/maven-group-id/maven-artifact-id", mavenProject.getGroupId(), mavenProject.getArtifactId());

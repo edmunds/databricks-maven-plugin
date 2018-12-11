@@ -29,8 +29,6 @@
         <pmd.skip>true</pmd.skip>
         <cpd.skip>true</cpd.skip>
         <skipTests>true</skipTests>
-        <bucketName>${env.DB_REPO}</bucketName>
-        <databricks.repo>${env.DB_REPO}</databricks.repo>
         <instance.profile.arn>${env.INSTANCE_PROFILE_ARN}</instance.profile.arn>
         <environment>QA</environment>
     </properties>
@@ -62,6 +60,9 @@
                 <groupId>@project.groupId@</groupId>
                 <artifactId>@project.artifactId@</artifactId>
                 <version>@project.version@</version>
+                <configuration>
+                    <databricksRepo>${env.DB_REPO}</databricksRepo>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepackage</id>
