@@ -25,6 +25,7 @@ How to run the project locally (if applicable):
 
 ```mvn clean test```
 
+
 ### End-to-End testing
 
 Please have these set in your .bash_profile
