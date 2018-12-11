@@ -20,7 +20,6 @@ import java.util.Arrays;
 @Mojo(name = "prepare-library-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareLibraryResources extends BaseWorkspaceMojo {
 
-    public static final String DEFAULT_DBFS_ROOT_FORMAT = "s3://";
 
     public static final String JAR = "jar";
 
@@ -43,18 +42,7 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        validate();
         prepareLibraryResources();
-    }
-
-    protected void validate() throws MojoExecutionException {
-        if (StringUtils.isBlank(databricksRepo)) {
-            //This alternative property source is for the integration test.
-            databricksRepo = System.getProperty("DB_REPO");
-            if (StringUtils.isBlank(databricksRepo)) {
-                throw new MojoExecutionException("Missing mandatory parameter: ${databricksRepo}");
-            }
-        }
     }
 
     void prepareLibraryResources() throws MojoExecutionException {
@@ -91,9 +79,4 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
             throw new MojoExecutionException(e.getMessage(), e);
         }
     }
-
-    String createArtifactPath() {
-        return String.format("%s%s/%s", DEFAULT_DBFS_ROOT_FORMAT, databricksRepo, databricksRepoKey);
-    }
-
 }

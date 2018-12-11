@@ -16,7 +16,6 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,14 +35,9 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
     }
 
     @Test
-    public void testCreateArtifactPath_failsWhenMissingMandatoryFields() throws Exception {
+    public void testCreateArtifactPath_doesNothingWhenNoFieldsSpecified() throws Exception {
         PrepareLibraryResources underTest = (PrepareLibraryResources) getMissingMandatoryMojo(GOAL);
-        try {
-            underTest.execute();
-        } catch (MojoExecutionException e) {
-            return;
-        }
-        fail();
+        underTest.execute();
     }
 
     @Test

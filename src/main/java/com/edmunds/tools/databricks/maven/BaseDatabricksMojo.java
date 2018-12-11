@@ -17,7 +17,9 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DatabricksServiceFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
@@ -29,6 +31,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * The base databricks mojo.
  */
 public abstract class BaseDatabricksMojo extends AbstractMojo {
+
+    public static final String DEFAULT_DBFS_ROOT_FORMAT = "s3://";
 
     private static final String DB_USER = "DB_USER";
     private static final String DB_PASSWORD = "DB_PASSWORD";
@@ -160,4 +164,25 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
         this.project = project;
     }
 
+    protected void validateRepoProperties() throws MojoExecutionException {
+        if (StringUtils.isBlank(databricksRepo)) {
+            throw new MojoExecutionException("Missing mandatory parameter: ${databricksRepo}");
+        }
+        if (StringUtils.isBlank(databricksRepoKey)) {
+            throw new MojoExecutionException("Missing mandatory parameter: ${databricksRepoKey}");
+        }
+    }
+
+    String createArtifactPath() throws MojoExecutionException {
+        validateRepoProperties();
+        String modifiedDatabricksRepo = databricksRepo;
+        String modifiedDatabricksRepoKey = databricksRepoKey;
+        if (databricksRepo.endsWith("/")) {
+            modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length()-1);
+        }
+        if (databricksRepoKey.startsWith("/")) {
+            modifiedDatabricksRepoKey = databricksRepoKey.substring(1, databricksRepoKey.length());
+        }
+        return String.format("%s%s/%s", DEFAULT_DBFS_ROOT_FORMAT, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
+    }
 }

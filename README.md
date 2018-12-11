@@ -15,6 +15,9 @@ _This is the maven databricks plugin, which uses the databricks rest api._
 How to build the project locally:
 ```mvn clean install```
 
+- Not required! Because you can build and develop without it, but you will likely want Lombok configured with your IDEA:
+https://projectlombok.org/setup/intellij
+
 How to run the project locally (if applicable):
 
 

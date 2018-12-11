@@ -71,7 +71,6 @@ public class LibraryMojo extends PrepareLibraryResources {
     private LibraryCommand command;
 
     public void execute() throws MojoExecutionException {
-        validate();
 
         LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
         ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
