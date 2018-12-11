@@ -115,7 +115,7 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
     }
 
     String createArtifactPath() {
-        return String.format("%s/%s", bucketName, key);
+        return String.format("s3://%s/%s", bucketName, key);
     }
 
 }

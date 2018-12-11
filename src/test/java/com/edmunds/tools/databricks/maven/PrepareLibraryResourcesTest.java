@@ -14,7 +14,7 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
     @Test
     public void testCreateArtifactPath_default() throws Exception {
         PrepareLibraryResources underTest = (PrepareLibraryResources) getNoOverridesMojo(GOAL);
-        assertThat(underTest.createArtifactPath(), is("my-bucket/artifacts/unit-test-group" +
+        assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
                 "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
         //TODO actually test the execute here
         underTest.execute();
@@ -34,6 +34,6 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
     @Test
     public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
         PrepareLibraryResources underTest = (PrepareLibraryResources) getOverridesMojo(GOAL);
-        assertThat(underTest.createArtifactPath(), is("my-bucket/my-destination"));
+        assertThat(underTest.createArtifactPath(), is("s3://my-bucket/my-destination"));
     }
 }
