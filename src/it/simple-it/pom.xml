@@ -30,7 +30,6 @@
         <cpd.skip>true</cpd.skip>
         <skipTests>true</skipTests>
         <bucketName>${env.DB_REPO}</bucketName>
-        <databricks.repo>${env.DB_REPO}</databricks.repo>
         <instance.profile.arn>${env.INSTANCE_PROFILE_ARN}</instance.profile.arn>
         <environment>QA</environment>
     </properties>
