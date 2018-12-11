@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -28,6 +29,22 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
 
     public static final String LIBRARY_MAPPING_FILE_NAME = "library-mapping.json";
 
+
+    //TODO we actually are repeating ourselves from upload mojo here. Eventually we need to combine these.
+    /**
+     * The s3 bucket to upload your jar to.
+     */
+    @Parameter(property = "bucketName", required = true)
+    private String bucketName;
+
+    /**
+     * The prefix to load to.
+     *
+     * @parameter default-value "artifacts/${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}.${project.packaging}"
+     */
+    @Parameter(property = "key", defaultValue = "artifacts/${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}.${project.packaging}")
+    private String key;
+
     @Parameter(property = "libaryMappingFile", defaultValue = "${project.build.directory}/databricks-plugin/" + LIBRARY_MAPPING_FILE_NAME)
     protected File libaryMappingFile;
 
@@ -43,19 +60,19 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
     @Parameter(property = "version", defaultValue = "${project.version}")
     protected String version;
 
-    /**
-     * The root dbfs folder to use
-     */
-    @Parameter(property = "dbfsRoot")
-    protected String dbfsRoot;
-
     @Override
     public void execute() throws MojoExecutionException {
         prepareLibraryResources();
     }
 
     void prepareLibraryResources() throws MojoExecutionException {
-
+        if (StringUtils.isBlank(bucketName)) {
+            //This alternative property source is for the integration test.
+            bucketName = System.getProperty("DB_REPO");
+            if (StringUtils.isBlank(bucketName)) {
+                throw new MojoExecutionException("Missing mandatory parameter: ${bucketName}");
+            }
+        }
         if (project.getArtifact().getType().equals(JAR)) {
             if (ArrayUtils.isNotEmpty(clusters)) {
                 try {
@@ -91,27 +108,7 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
     }
 
     String createArtifactPath() {
-        dbfsRoot = defaultString(dbfsRoot, String.format(DEFAULT_DBFS_ROOT_FORMAT, project.getProperties().getProperty("databricks.repo")));
-
-        Artifact artifact = project.getArtifact();
-        String artifactId = artifact.getArtifactId();
-        String fileName = String.format("%s-%s.%s", artifactId, version, artifact.getType());
-
-        return String.format("%s/artifacts/%s/%s/%s/%s", dbfsRoot, project.getGroupId(), artifactId, version, fileName);
-    }
-
-    /**
-     * NOTE - only for unit testing!
-     */
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    /**
-     * NOTE - only for unit testing!
-     */
-    public void setDbfsRoot(String dbfsRoot) {
-        this.dbfsRoot = dbfsRoot;
+        return String.format("%s/%s", bucketName, key);
     }
 
 }

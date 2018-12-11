@@ -49,12 +49,6 @@ Since this code is a library, you do not need to deploy it anywhere, once it pas
 
 ## Configuring
 
-You will want a property somewhere in your pom with this value which represents
-where on s3 you want to store your artifacts:
-```xml
-<databricks.repo>edmunds-repos/artifacts</databricks.repo>
-```
-
 It is recommended that you use maven profiles to allow for credentials per an environment to be defined.
 ```xml
          <!-- Databricks QA Credentials -->
@@ -67,7 +61,7 @@ It is recommended that you use maven profiles to allow for credentials per an en
                          <artifactId>databricks-maven-plugin</artifactId>
                          <version>${oss-databricks-maven-plugin-version}</version>
                          <configuration>
-                             <bucketName>${databricks.repo}</bucketName>
+                             <bucketName>${which bucket you want to use to store databricks artifacts}</bucketName>
                              <!-- This is used to be able to allow for conditional configuration in job settings -->
                              <environment>QA</environment>
                              <host>${qa-host-here}</host>
