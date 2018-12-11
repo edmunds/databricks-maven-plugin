@@ -17,6 +17,8 @@
 package com.edmunds.tools.databricks.maven;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,6 +29,15 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
 
     private final String GOAL = "library";
 
+    @BeforeClass
+    public void initClass() throws Exception {
+        super.setUp();
+    }
+
+    @BeforeMethod
+    public void beforeMethod() throws Exception {
+        super.beforeMethod();
+    }
 
     //TODO actually test the library functionality!
     @Test

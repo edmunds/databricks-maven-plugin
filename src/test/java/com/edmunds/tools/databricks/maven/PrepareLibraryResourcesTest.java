@@ -16,6 +16,8 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,6 +26,16 @@ import static org.hamcrest.Matchers.is;
 public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarness {
 
     private final String GOAL = "prepare-library-resources";
+
+    @BeforeClass
+    public void initClass() throws Exception {
+        super.setUp();
+    }
+
+    @BeforeMethod
+    public void beforeMethod() throws Exception {
+        super.beforeMethod();
+    }
 
     @Test
     public void testCreateArtifactPath_default() throws Exception {
