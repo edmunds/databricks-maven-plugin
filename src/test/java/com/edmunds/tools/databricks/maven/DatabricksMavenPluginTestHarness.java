@@ -16,36 +16,89 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import com.edmunds.rest.databricks.DatabricksServiceFactory;
+import com.edmunds.rest.databricks.restclient.DatabricksRestClient;
+import com.edmunds.rest.databricks.service.ClusterService;
+import com.edmunds.rest.databricks.service.DbfsService;
+import com.edmunds.rest.databricks.service.JobService;
+import com.edmunds.rest.databricks.service.LibraryService;
+import com.edmunds.rest.databricks.service.WorkspaceService;
+import org.apache.log4j.Logger;
 import org.apache.maven.plugin.Mojo;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 
+import static org.powermock.api.mockito.PowerMockito.when;
+
+
+/**
+ * Any test that extends this class requires that the plugin descriptor is available in order for this test to run.
+ * If you do mvn clean install, you should then be able to run tests that depend on this class.
+ * Unfortunately, some changes to MOJO will require that you regenerate this plugin descriptor.
+ */
 public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMojoTestCase {
+
+    //Apparently needed for jenkins tests...
+    private static Logger log = Logger.getLogger(BaseDatabricksMojoTest.class);
+
+    @Mock
+    protected DatabricksServiceFactory databricksServiceFactory;
+    @Mock
+    protected ClusterService clusterService;
+    @Mock
+    protected LibraryService libraryService;
+    @Mock
+    protected WorkspaceService workspaceService;
+    @Mock
+    protected JobService jobService;
+    @Mock
+    protected DbfsService dbfsService;
 
     @BeforeClass
     public void setUp() throws Exception {
         super.setUp();
     }
 
-    public <T extends Mojo> T getNoOverridesMojo(String goal) throws Exception {
-        File testPom = new File(getBasedir(),
-            "src/test/resources/unit/basic-test/test-no-overrides-plugin-config" +
-                ".xml");
-        return (T) lookupConfiguredMojo(testPom, goal);
+    @BeforeMethod
+    public void beforeMethod() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        when(databricksServiceFactory.getClusterService()).thenReturn(clusterService);
+        when(databricksServiceFactory.getLibraryService()).thenReturn(libraryService);
+        when(databricksServiceFactory.getWorkspaceService()).thenReturn(workspaceService);
+        when(databricksServiceFactory.getJobService()).thenReturn(jobService);
+        when(databricksServiceFactory.getDbfsService()).thenReturn(dbfsService);
     }
 
-    public <T extends Mojo> T getMissingMandatoryMojo(String goal) throws Exception {
+    public <T extends BaseDatabricksMojo> T getNoOverridesMojo(String goal) throws Exception {
         File testPom = new File(getBasedir(),
-            "src/test/resources/unit/basic-test/test-missing-mandatory-plugin-config" +
-                ".xml");
-        return (T) lookupConfiguredMojo(testPom, goal);
+            String.format("src/test/resources/unit/basic-test/%s/test-no-overrides-plugin-config" +
+                ".xml", goal));
+        T ret = (T) lookupConfiguredMojo(testPom, goal);
+        ret.setDatabricksServiceFactory(databricksServiceFactory);
+        return ret;
     }
 
-    public <T extends Mojo> T getOverridesMojo(String goal) throws Exception {
+    public <T extends BaseDatabricksMojo> T getMissingMandatoryMojo(String goal) throws Exception {
         File testPom = new File(getBasedir(),
-            "src/test/resources/unit/basic-test/test-overrides-plugin-config" +
-                ".xml");
-        return (T) lookupConfiguredMojo(testPom, goal);
+            String.format("src/test/resources/unit/basic-test/%s/test-missing-mandatory-plugin-config" +
+                ".xml", goal));
+
+        T ret = (T) lookupConfiguredMojo(testPom, goal);
+        ret.setDatabricksServiceFactory(databricksServiceFactory);
+        return ret;
+    }
+
+    public <T extends BaseDatabricksMojo> T getOverridesMojo(String goal) throws Exception {
+        File testPom = new File(getBasedir(),
+            String.format("src/test/resources/unit/basic-test/%s/test-overrides-plugin-config" +
+                ".xml", goal));
+        T ret = (T) lookupConfiguredMojo(testPom, goal);
+        ret.setDatabricksServiceFactory(databricksServiceFactory);
+        return ret;
     }
 }

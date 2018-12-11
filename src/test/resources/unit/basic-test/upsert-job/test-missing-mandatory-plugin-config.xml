@@ -27,17 +27,15 @@
             <plugin>
                 <groupId>com.edmunds</groupId>
                 <artifactId>databricks-maven-plugin</artifactId>
+                <version>${project.version}</version>
                 <configuration>
-                    <bucketName>my-bucket</bucketName>
-                    <key>my-destination</key>
+
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>prepare-library-resources</goal>
-                            <goal>library</goal>
+                            <goal>upsert-job</goal>
                         </goals>
-                        <configuration></configuration>
                     </execution>
                 </executions>
             </plugin>

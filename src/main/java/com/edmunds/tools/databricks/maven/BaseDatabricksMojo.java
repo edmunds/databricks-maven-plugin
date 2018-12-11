@@ -38,6 +38,29 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
 
+    //TODO validate even with required=true? How does that play with the env properties
+    /**
+     * The s3 bucket to upload your jar to.
+     *
+     * For some reason, I couldn't use the "." syntax for the name.
+     */
+    @Parameter(name = "databricksRepo", property = "databricks.repo", required = true)
+    protected String databricksRepo;
+
+    /**
+     * The prefix to load to.
+     */
+    @Parameter(name= "databricksRepoKey", property = "databricks.repo.key",
+        defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}" +
+            ".${project.packaging}")
+    protected String databricksRepoKey;
+
+    /**
+     * The aws databricksRepoRegion that the bucket is located in.
+     */
+    @Parameter(property = "databricksRepoRegion", defaultValue = "us-east-1")
+    protected String databricksRepoRegion;
+
     /**
      * The environment name. Is used in freemarker templating for conditional job settings.
      */
@@ -77,12 +100,12 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
             if (user != null && password != null) {
                 return DatabricksServiceFactory
                         .Builder
-                        .createServiceFactoryWithUserPasswordAuthentication(user, password, host)
+                        .createUserPasswordAuthentication(user, password, host)
                         .build();
             } else if (token != null) {
                 return DatabricksServiceFactory
                         .Builder
-                        .createServiceFactoryWithTokenAuthentication(token, host)
+                        .createTokenAuthentication(token, host)
                         .build();
             } else {
                 throw new IllegalArgumentException("Must either specify user/password or token!");

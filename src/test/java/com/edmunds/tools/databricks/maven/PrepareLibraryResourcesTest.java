@@ -22,7 +22,6 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-//Requires building beforehand??
 public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarness {
 
     private final String GOAL = "prepare-library-resources";
@@ -50,6 +49,6 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
     @Test
     public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
         PrepareLibraryResources underTest = (PrepareLibraryResources) getOverridesMojo(GOAL);
-        assertThat(underTest.createArtifactPath(), is("s3://my-bucket/my-destination"));
+        assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/my-destination"));
     }
 }

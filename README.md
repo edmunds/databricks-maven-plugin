@@ -61,7 +61,7 @@ It is recommended that you use maven profiles to allow for credentials per an en
                          <artifactId>databricks-maven-plugin</artifactId>
                          <version>${oss-databricks-maven-plugin-version}</version>
                          <configuration>
-                             <bucketName>${which bucket you want to use to store databricks artifacts}</bucketName>
+                             <databricksRepo>${which bucket you want to use to store databricks artifacts}</bucketName>
                              <!-- This is used to be able to allow for conditional configuration in job settings -->
                              <environment>QA</environment>
                              <host>${qa-host-here}</host>
@@ -149,7 +149,7 @@ Note that this file is a template, that has access to both the java system prope
     //If you emit this section, it will automatically be added to your job
     "libraries": [
       {
-        "jar": "s3://${projectProperties['databricks.repo']}/artifacts/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
+        "jar": "s3://${projectProperties['databricks.repo']}/${projectProperties['databricks.repo.key']}"
       }
    ],
   "email_notifications" : {

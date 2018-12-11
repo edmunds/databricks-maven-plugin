@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils
 
 //TODO couldn't use the Environment class here?
 def databricksServiceFactory = DatabricksServiceFactory.Builder
-        .createServiceFactoryWithUserPasswordAuthentication(System.getenv("DB_USER"), System.getenv("DB_PASSWORD"), System.getenv("DB_URL")).build();
+        .createUserPasswordAuthentication(System.getenv("DB_USER"), System.getenv("DB_PASSWORD"), System.getenv("DB_URL")).build();
 def jobService = databricksServiceFactory.getJobService()
 def databricksIntegrationTestJobName = "bde.tools.integration-test/databricks-maven-plugin-stream-it/QA"
 

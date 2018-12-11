@@ -23,7 +23,7 @@ import com.edmunds.rest.databricks.service.WorkspaceService
 //TODO couldn't use the Environment class here?
 def databricksIntegrationTestJobName = "bde.tools.integration-test/databricks-maven-plugin-stream-it/QA"
 def databricksServiceFactory = DatabricksServiceFactory.Builder
-        .createServiceFactoryWithUserPasswordAuthentication(System.getenv("DB_USER"), System.getenv("DB_PASSWORD"), System.getenv("DB_URL")).build();
+        .createUserPasswordAuthentication(System.getenv("DB_USER"), System.getenv("DB_PASSWORD"), System.getenv("DB_URL")).build();
 def jobService = databricksServiceFactory.getJobService()
 def workspaceService = databricksServiceFactory.workspaceService
 

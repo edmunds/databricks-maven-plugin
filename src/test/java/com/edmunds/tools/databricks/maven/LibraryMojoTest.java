@@ -50,6 +50,6 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
     @Test
     public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
         LibraryMojo underTest = (LibraryMojo) getOverridesMojo(GOAL);
-        assertThat(underTest.createArtifactPath(), is("s3://my-bucket/my-destination"));
+        assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/my-destination"));
     }
 }

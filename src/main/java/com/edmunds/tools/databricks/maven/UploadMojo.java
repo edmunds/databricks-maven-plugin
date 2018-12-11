@@ -37,31 +37,13 @@ import java.io.File;
  * Uploads an artifact to s3.
  */
 @Mojo(name = "upload-to-s3", defaultPhase = LifecyclePhase.DEPLOY)
-public class UploadMojo extends AbstractMojo {
-
-    /**
-     * The s3 bucket to upload your jar to.
-     */
-    @Parameter(property = "bucketName", required = true)
-    private String bucketName;
+public class UploadMojo extends BaseDatabricksMojo {
 
     /**
      * The local file to upload.
      */
     @Parameter(property = "file", required = true, defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
     private File file;
-
-    /**
-     * The prefix to load to.
-     */
-    @Parameter(property = "key", defaultValue = "artifacts/${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}.${project.packaging}")
-    private String key;
-
-    /**
-     * The aws region that the bucket is located in.
-     */
-    @Parameter(property = "region", defaultValue = "us-east-1")
-    private String region;
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -70,18 +52,21 @@ public class UploadMojo extends AbstractMojo {
                 AWSCredentialsProvider credentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
                 AmazonS3 s3Client = AmazonS3ClientBuilder
                         .standard()
-                        .withRegion(region)
+                        .withRegion(databricksRepoRegion)
                         .withCredentials(credentialsProvider)
                         .build();
 
-                PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, file);
+                PutObjectRequest putObjectRequest = new PutObjectRequest(databricksRepo, databricksRepoKey, file);
                 putObjectRequest.setGeneralProgressListener(new LoggingProgressListener(getLog(), file.length()));
 
-                getLog().info(String.format("Starting upload for bucket: [%s] key: [%s], file: [%s]", bucketName, key, file.getPath()));
+                getLog().info(String.format("Starting upload for bucket: [%s] key: [%s], file: [%s]", databricksRepo,
+                    databricksRepoKey, file
+                    .getPath()));
 
                 s3Client.putObject(putObjectRequest);
             } catch (SdkClientException e) {
-                throw new MojoExecutionException(String.format("Could not upload file: [%s] to bucket: [%s] with remote prefix: [%s]", file.getPath(), bucketName, key), e);
+                throw new MojoExecutionException(String.format("Could not upload file: [%s] to bucket: [%s] with " +
+                    "remote prefix: [%s]", file.getPath(), databricksRepo, databricksRepoKey), e);
             }
         } else {
             getLog().warn(String.format("Target upload file does not exist, skipping: [%s]", file.getPath()));

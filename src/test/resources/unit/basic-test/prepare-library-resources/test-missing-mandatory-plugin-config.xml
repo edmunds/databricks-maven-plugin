@@ -27,6 +27,7 @@
             <plugin>
                 <groupId>com.edmunds</groupId>
                 <artifactId>databricks-maven-plugin</artifactId>
+                <version>${project.version}</version>
                 <configuration>
                 </configuration>
                 <executions>
@@ -35,7 +36,6 @@
                             <goal>prepare-library-resources</goal>
                             <goal>library</goal>
                         </goals>
-                        <configuration></configuration>
                     </execution>
                 </executions>
             </plugin>

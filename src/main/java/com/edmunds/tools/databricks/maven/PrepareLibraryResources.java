@@ -20,33 +20,11 @@ import java.util.Arrays;
 @Mojo(name = "prepare-library-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareLibraryResources extends BaseWorkspaceMojo {
 
-    public static final String DEFAULT_DBFS_ROOT_FORMAT = "s3://%s";
+    public static final String DEFAULT_DBFS_ROOT_FORMAT = "s3://";
 
     public static final String JAR = "jar";
 
     public static final String LIBRARY_MAPPING_FILE_NAME = "library-mapping.json";
-
-
-    //TODO we actually are repeating ourselves from upload mojo here. Eventually we need to combine these.
-    /**
-     * The s3 bucket to upload your jar to.
-     */
-    @Parameter(property = "bucketName", required = true)
-    private String bucketName;
-
-    /**
-     * The prefix to load to.
-     *
-     * @parameter default-value "artifacts/${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}.${project.packaging}"
-     */
-    @Parameter(property = "key", defaultValue = "artifacts/${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}.${project.packaging}")
-    private String key;
-
-    /**
-     * The aws region that the bucket is located in.
-     */
-    @Parameter(property = "region", defaultValue = "us-east-1")
-    private String region;
 
     @Parameter(property = "libaryMappingFile", defaultValue = "${project.build.directory}/databricks-plugin/" + LIBRARY_MAPPING_FILE_NAME)
     protected File libaryMappingFile;
@@ -70,11 +48,11 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
     }
 
     protected void validate() throws MojoExecutionException {
-        if (StringUtils.isBlank(bucketName)) {
+        if (StringUtils.isBlank(databricksRepo)) {
             //This alternative property source is for the integration test.
-            bucketName = System.getProperty("DB_REPO");
-            if (StringUtils.isBlank(bucketName)) {
-                throw new MojoExecutionException("Missing mandatory parameter: ${bucketName}");
+            databricksRepo = System.getProperty("DB_REPO");
+            if (StringUtils.isBlank(databricksRepo)) {
+                throw new MojoExecutionException("Missing mandatory parameter: ${databricksRepo}");
             }
         }
     }
@@ -115,7 +93,7 @@ public class PrepareLibraryResources extends BaseWorkspaceMojo {
     }
 
     String createArtifactPath() {
-        return String.format("s3://%s/%s", bucketName, key);
+        return String.format("%s%s/%s", DEFAULT_DBFS_ROOT_FORMAT, databricksRepo, databricksRepoKey);
     }
 
 }
