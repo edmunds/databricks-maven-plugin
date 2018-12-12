@@ -19,9 +19,6 @@ package com.edmunds.tools.databricks.maven;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-/**
- * JUNIT TEST!!!
- */
 public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarness {
 
     private final String GOAL = "prepare-library-resources";

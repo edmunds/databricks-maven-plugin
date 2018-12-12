@@ -27,7 +27,6 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * JUNIT TEST!!!
  * Tests for @{@link UpsertJobMojo}.
  * <p>
  * For these tests, the regex as part of the expected exceptions no longer works.

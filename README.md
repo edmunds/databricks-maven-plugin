@@ -23,8 +23,7 @@ How to run the project locally (if applicable):
 
 ## Running the tests
 
-Please note that some tests are currently Testng and others are Junit.
-Anything extending from the maven test mojo has to be JUnit 3.
+Unfortunately due to the maven test dependency on Junit3, all tests must be in Junit3.
 
 ```mvn clean test```
 

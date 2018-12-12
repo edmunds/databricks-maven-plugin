@@ -21,9 +21,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-/**
- * JUNIT TEST!!
- */
 public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
 
     private final String GOAL = "library";
