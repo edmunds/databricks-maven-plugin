@@ -17,19 +17,14 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DatabricksServiceFactory;
-import com.edmunds.rest.databricks.restclient.DatabricksRestClient;
 import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.DbfsService;
 import com.edmunds.rest.databricks.service.JobService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.rest.databricks.service.WorkspaceService;
 import org.apache.log4j.Logger;
-import org.apache.maven.plugin.Mojo;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 
@@ -42,9 +37,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
  * Unfortunately, some changes to MOJO will require that you regenerate this plugin descriptor.
  */
 public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMojoTestCase {
-
-    //Apparently needed for jenkins tests...
-    private static Logger log = Logger.getLogger(BaseDatabricksMojoTest.class);
 
     @Mock
     protected DatabricksServiceFactory databricksServiceFactory;
@@ -59,12 +51,10 @@ public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMoj
     @Mock
     protected DbfsService dbfsService;
 
-    @BeforeClass
     public void setUp() throws Exception {
         super.setUp();
     }
 
-    @BeforeMethod
     public void beforeMethod() throws Exception {
         MockitoAnnotations.initMocks(this);
         when(databricksServiceFactory.getClusterService()).thenReturn(clusterService);
