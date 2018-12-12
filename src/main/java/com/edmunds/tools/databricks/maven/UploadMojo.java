@@ -23,8 +23,8 @@ import com.amazonaws.event.ProgressEvent;
 import com.amazonaws.event.ProgressListener;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -37,13 +37,7 @@ import java.io.File;
  * Uploads an artifact to s3.
  */
 @Mojo(name = "upload-to-s3", defaultPhase = LifecyclePhase.DEPLOY)
-public class UploadMojo extends AbstractMojo {
-
-    /**
-     * The s3 bucket to upload your jar to.
-     */
-    @Parameter(property = "bucketName", required = true)
-    private String bucketName;
+public class UploadMojo extends BaseDatabricksMojo {
 
     /**
      * The local file to upload.
@@ -51,41 +45,43 @@ public class UploadMojo extends AbstractMojo {
     @Parameter(property = "file", required = true, defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
     private File file;
 
-    /**
-     * The prefix to load to.
-     */
-    @Parameter(property = "key", defaultValue = "artifacts/${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}.${project.packaging}")
-    private String key;
-
-    /**
-     * The aws region that the bucket is located in.
-     */
-    @Parameter(property = "region", defaultValue = "us-east-1")
-    private String region;
+    protected AmazonS3 s3Client;
 
     @Override
     public void execute() throws MojoExecutionException {
         if (file.exists()) {
+            AmazonS3URI uri = new AmazonS3URI(createArtifactPath());
+            String bucket = uri.getBucket();
+            String key = uri.getKey();
             try {
-                AWSCredentialsProvider credentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
-                AmazonS3 s3Client = AmazonS3ClientBuilder
-                        .standard()
-                        .withRegion(region)
-                        .withCredentials(credentialsProvider)
-                        .build();
-
-                PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, file);
+                PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, key, file);
                 putObjectRequest.setGeneralProgressListener(new LoggingProgressListener(getLog(), file.length()));
 
-                getLog().info(String.format("Starting upload for bucket: [%s] key: [%s], file: [%s]", bucketName, key, file.getPath()));
+                getLog().info(String.format("Starting upload for bucket: [%s] key: [%s], file: [%s]", bucket,
+                    key, file
+                    .getPath()));
 
-                s3Client.putObject(putObjectRequest);
+                getS3Client().putObject(putObjectRequest);
             } catch (SdkClientException e) {
-                throw new MojoExecutionException(String.format("Could not upload file: [%s] to bucket: [%s] with remote prefix: [%s]", file.getPath(), bucketName, key), e);
+                throw new MojoExecutionException(String.format("Could not upload file: [%s] to bucket: [%s] with " +
+                    "remote prefix: [%s]", file.getPath(), bucket, key), e);
             }
         } else {
             getLog().warn(String.format("Target upload file does not exist, skipping: [%s]", file.getPath()));
         }
+    }
+
+    protected AmazonS3 getS3Client() {
+        if (s3Client == null) {
+            AWSCredentialsProvider credentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
+            s3Client = AmazonS3ClientBuilder
+                .standard()
+                .withRegion(databricksRepoRegion)
+                .withCredentials(credentialsProvider)
+                .build();
+
+        }
+        return s3Client;
     }
 
     private static class LoggingProgressListener implements ProgressListener {

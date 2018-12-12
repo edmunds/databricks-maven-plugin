@@ -32,7 +32,7 @@
       "parameters": [
         "--class",
         "com.edmunds.HelloWorld",
-        "s3://${projectProperties['databricks.repo']}/artifacts/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar",
+        "s3://${projectProperties['databricks.repo']}/${projectProperties['databricks.repo.key']}",
         "${projectProperties['build.time']}"
       ]
     },

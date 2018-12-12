@@ -24,6 +24,9 @@ import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import java.io.File;
 import java.util.Map;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.collections.Maps;
@@ -36,6 +39,8 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
@@ -45,39 +50,69 @@ import static org.testng.Assert.fail;
  * <p>
  * For these tests, the regex as part of the expected exceptions no longer works.
  */
-public class UpsertJobMojoTest extends BaseDatabricksMojoTest {
+public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private UpsertJobMojo underTest = new UpsertJobMojo();
+    private final String GOAL = "upsert-job";
+
+    private UpsertJobMojo underTest;
 
     private ClassLoader classLoader = UpsertJobMojoTest.class.getClassLoader();
 
+    @BeforeClass
+    public void initClass() throws Exception {
+        super.setUp();
+    }
+
     @BeforeMethod
-    public void init() throws Exception {
+    public void beforeMethod() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
 
-        super.init();
-
-        underTest.setDatabricksServiceFactory(databricksServiceFactory);
-        underTest.setProject(project);
-        underTest.setDbJobFile(new File(classLoader.getResource(DEFAULT_JOB_JSON).getFile()));
-        underTest.setFailOnDuplicateJobName(true);
-        underTest.setJobTemplateModelFile(new File(""));
-        underTest.setEnvironment("QA");
     }
 
     @Test
-    public void testGetJobSettingsDTOs() throws Exception {
+    public void test_executeWithDefault() throws Exception{
+        underTest = getNoOverridesMojo(GOAL);
+        Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
+            ("unit-test-group/unit-test-artifact", 1));
+        underTest.execute();
+
+        JobSettingsDTO[] jobSettingsDTOS = underTest.buildJobSettingsDTOsWithDefault();
+        assert(jobSettingsDTOS.length == 1);
+        ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
+        verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
+        assertEquals(jobSettingsDTOS[0], jobCaptor.getValue());
+    }
+
+    @Test
+    public void test_executeWithMissingProperties() throws Exception{
+        underTest = getMissingMandatoryMojo(GOAL);
+        try {
+            underTest.execute();
+        } catch (MojoExecutionException e) {
+            return;
+        }
+        fail();
+    }
+
+    @Test
+    public void test_getJobSettingsDefault_returnsDefaultFile() throws Exception {
+        underTest = getNoOverridesMojo(GOAL);
         JobSettingsDTO[] jobSettingsDTOs = underTest.buildJobSettingsDTOsWithDefault();
 
         assertThat(jobSettingsDTOs.length, is(1));
-        assertThat(jobSettingsDTOs[0].getName(), is("test/mycoolartifact/QA"));
+        assertThat(jobSettingsDTOs[0].getName(), is("unit-test-group/unit-test-artifact"));
+        assertThat(jobSettingsDTOs[0].getLibraries()[0].getJar(), is
+            ("s3://my-bucket/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
+            "-1.0.0-SNAPSHOT.jar"));
     }
 
-
     @Test
-    public void testGetJobSettingsFromTemplate() throws Exception {
-        String jobSettings = underTest.getJobSettingsFromTemplate(underTest.getJobTemplateModel());
-        assertThat(jobSettings, containsString("s3://bucket-name/artifacts/com.edmunds" +
-                ".test/mycoolartifact/1.0/mycoolartifact-1.0.jar"));
+    public void test_getJobSettingsDtoWithFile_returnsNoFile() throws Exception {
+        underTest = getOverridesMojo(GOAL);
+        JobSettingsDTO[] jobSettingsDTOs = underTest.buildJobSettingsDTOsWithDefault();
+
+        assertThat(jobSettingsDTOs.length, is(0));
     }
 
     @Test
@@ -135,7 +170,6 @@ public class UpsertJobMojoTest extends BaseDatabricksMojoTest {
         assertThat(jobId, nullValue());
     }
 
-
     @Test
     public void testDefaultIfNull_JobSettingsDTO() throws Exception {
 
@@ -144,7 +178,7 @@ public class UpsertJobMojoTest extends BaseDatabricksMojoTest {
         JobSettingsDTO targetDTO = new JobSettingsDTO();
 
         underTest.fillInDefaultJobSettings(targetDTO, exampleSettingsDTOs, underTest.getJobTemplateModel());
-        assertEquals(targetDTO.getName(), "test/mycoolartifact");
+        assertEquals(targetDTO.getName(), "unit-test-group/unit-test-artifact");
 
         assertEquals(targetDTO.getNewCluster().getSparkVersion(), exampleSettingsDTOs.getNewCluster().getSparkVersion());
         assertEquals(targetDTO.getNewCluster().getNodeTypeId(), exampleSettingsDTOs.getNewCluster().getNodeTypeId());
@@ -191,21 +225,18 @@ public class UpsertJobMojoTest extends BaseDatabricksMojoTest {
     }
 
     @Test
-    public void validateInstanceTags_whenNull_throwsException() throws Exception {
-        when(project.getGroupId()).thenReturn("com.edmunds.myteam");
+    public void validateInstanceTags_whenNull_fillsInDefault() throws Exception {
 
         JobSettingsDTO targetDTO = createTestJobSettings(null);
 
         underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
 
-        assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "myteam");
+        assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "unit-test-group");
 
     }
 
     @Test
-    public void validateInstanceTags_whenWrongTeamTag_throwsException() throws Exception {
-        when(project.getGroupId()).thenReturn("com.edmunds.myteam");
-
+    public void validateInstanceTags_whenWrongTeamTag_fillsInDefault() throws Exception {
         Map<String, String> tags = Maps.newHashMap();
         tags.put("team", "overrideTeam");
         JobSettingsDTO targetDTO = createTestJobSettings(tags);
@@ -216,8 +247,7 @@ public class UpsertJobMojoTest extends BaseDatabricksMojoTest {
     }
 
     @Test
-    public void validateInstanceTags_whenMissingDeltaTag_throwsException() throws Exception {
-        when(project.getGroupId()).thenReturn("com.edmunds.myteam");
+    public void validateInstanceTags_whenMissingDeltaTag_fillsInDefault() throws Exception {
         Map<String, String> tags = Maps.newHashMap();
         tags.put("team", "myteam");
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
@@ -229,7 +259,6 @@ public class UpsertJobMojoTest extends BaseDatabricksMojoTest {
 
     @Test
     public void validateInstanceTags_whenDeltaTag_noException() throws Exception {
-        when(project.getGroupId()).thenReturn("com.edmunds.myteam");
         Map<String, String> tags = Maps.newHashMap();
         tags.put("team", "myteam");
         tags.put("delta", "true");
@@ -239,8 +268,5 @@ public class UpsertJobMojoTest extends BaseDatabricksMojoTest {
         underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
-
     }
-
-
 }

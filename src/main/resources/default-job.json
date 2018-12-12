@@ -1,7 +1,7 @@
 [
   // Full example: Be careful when editing the full example, it is used for default!
   {
-    "name": "${groupWithoutCompany}/${artifactId}/${environment}",
+    "name": "${groupWithoutCompany}/${artifactId}",
     "new_cluster": {
       "spark_version": "4.2.x-scala2.11",
       "aws_attributes": {
@@ -20,7 +20,7 @@
     },
     "libraries": [
       {
-        "jar": "s3://${projectProperties['databricks.repo']}/artifacts/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
+        "jar": "s3://${projectProperties['databricks.repo']}/${projectProperties['databricks.repo.key']}"
       }
     ],
     "email_notifications": {
