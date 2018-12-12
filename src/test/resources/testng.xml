@@ -22,4 +22,13 @@
             </package>
         </packages>
     </test>
+    <test name="JunitTests" junit="true">
+    <classes>
+        <class name="com.edmunds.tools.databricks.maven.UploadMojoTest"/>
+        <class name="com.edmunds.tools.databricks.maven.UpsertJobMojoTest"/>
+        <class name="com.edmunds.tools.databricks.maven.PrepareLibraryResourcesTest"/>
+        <class name="com.edmunds.tools.databricks.maven.LibraryMojoTest"/>
+    </classes>
+    </test>
+
 </suite>

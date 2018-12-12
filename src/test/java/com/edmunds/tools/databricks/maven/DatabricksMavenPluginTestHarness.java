@@ -22,7 +22,6 @@ import com.edmunds.rest.databricks.service.DbfsService;
 import com.edmunds.rest.databricks.service.JobService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.rest.databricks.service.WorkspaceService;
-import org.apache.log4j.Logger;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -38,10 +37,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
  */
 public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMojoTestCase {
 
-    static {
-        System.out.println(System.getProperties().getProperty("java.home"));
-    }
-
     @Mock
     protected DatabricksServiceFactory databricksServiceFactory;
     @Mock
@@ -54,10 +49,6 @@ public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMoj
     protected JobService jobService;
     @Mock
     protected DbfsService dbfsService;
-
-    public void setUp() throws Exception {
-        super.setUp();
-    }
 
     public void beforeMethod() throws Exception {
         MockitoAnnotations.initMocks(this);

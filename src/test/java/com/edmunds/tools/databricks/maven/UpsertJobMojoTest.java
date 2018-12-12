@@ -21,18 +21,14 @@ import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.JobsDTO;
 import com.edmunds.rest.databricks.DTO.NewClusterDTO;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
-import java.io.File;
-import java.util.Map;
+import com.google.common.collect.Maps;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import org.testng.collections.Maps;
 
+import java.io.File;
+import java.util.Map;
 
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.DEFAULT_JOB_JSON;
 import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.DELTA_TAG;
 import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.TEAM_TAG;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -42,8 +38,6 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
 
 /**
  * Tests for @{@link UpsertJobMojo}.
@@ -58,20 +52,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
     private ClassLoader classLoader = UpsertJobMojoTest.class.getClassLoader();
 
-    @BeforeClass
-    public void initClass() throws Exception {
-        super.setUp();
-    }
-
-    @BeforeMethod
-    public void beforeMethod() throws Exception {
-        super.beforeMethod();
-        underTest = getNoOverridesMojo(GOAL);
-
-    }
-
-    @Test
     public void test_executeWithDefault() throws Exception{
+        super.beforeMethod();
         underTest = getNoOverridesMojo(GOAL);
         Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
             ("unit-test-group/unit-test-artifact", 1));
@@ -84,8 +66,9 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertEquals(jobSettingsDTOS[0], jobCaptor.getValue());
     }
 
-    @Test
+
     public void test_executeWithMissingProperties() throws Exception{
+        super.beforeMethod();
         underTest = getMissingMandatoryMojo(GOAL);
         try {
             underTest.execute();
@@ -95,8 +78,9 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         fail();
     }
 
-    @Test
+
     public void test_getJobSettingsDefault_returnsDefaultFile() throws Exception {
+        super.beforeMethod();
         underTest = getNoOverridesMojo(GOAL);
         JobSettingsDTO[] jobSettingsDTOs = underTest.buildJobSettingsDTOsWithDefault();
 
@@ -107,17 +91,20 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
             "-1.0.0-SNAPSHOT.jar"));
     }
 
-    @Test
+
     public void test_getJobSettingsDtoWithFile_returnsNoFile() throws Exception {
+        super.beforeMethod();
         underTest = getOverridesMojo(GOAL);
         JobSettingsDTO[] jobSettingsDTOs = underTest.buildJobSettingsDTOsWithDefault();
 
         assertThat(jobSettingsDTOs.length, is(0));
     }
 
-    @Test
+
     public void testGetJobSettingsFromTemplate_missing_freemarker_variable() throws Exception {
+        super.beforeMethod();
         // annotation no longer works with regex
+        underTest = getNoOverridesMojo(GOAL);
         underTest.setDbJobFile(new File(classLoader.getResource("bad-example-job.json").getFile()));
         try {
             underTest.getJobSettingsFromTemplate(underTest.getJobTemplateModel());
@@ -130,16 +117,20 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         fail();
     }
 
-    @Test
+
     public void testGetJobId_single() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         when(jobService.listAllJobs()).thenReturn(createJobsDTO(createJobDTO("test-job", 123L)));
         when(jobService.getJobByName("test-job", true)).thenReturn(createJobDTO("test-job", 123L));
         Long jobId = underTest.getJobId("test-job");
         assertThat(jobId, is(123L));
     }
 
-    @Test
+
     public void testGetJobId_multiple() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         when(jobService.listAllJobs()).thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
         when(jobService.getJobByName("test-job", true)).thenThrow(new IllegalStateException());
         try {
@@ -150,8 +141,10 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         fail();
     }
 
-    @Test
+
     public void testGetJobId_multiple_no_exception() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         underTest.setFailOnDuplicateJobName(false);
         when(jobService.listAllJobs()).thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
 
@@ -161,8 +154,10 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertThat(jobId, is(123L));
     }
 
-    @Test
+
     public void testGetJobId_none() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         when(jobService.listAllJobs()).thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
         when(jobService.getJobByName("fake-job", true)).thenReturn(null);
 
@@ -170,9 +165,10 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertThat(jobId, nullValue());
     }
 
-    @Test
-    public void testDefaultIfNull_JobSettingsDTO() throws Exception {
 
+    public void testDefaultIfNull_JobSettingsDTO() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         JobSettingsDTO exampleSettingsDTOs = underTest.defaultJobSettingDTO();
 
         JobSettingsDTO targetDTO = new JobSettingsDTO();
@@ -224,9 +220,10 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         return jobSettingsDTO;
     }
 
-    @Test
-    public void validateInstanceTags_whenNull_fillsInDefault() throws Exception {
 
+    public void testValidateInstanceTags_whenNull_fillsInDefault() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         JobSettingsDTO targetDTO = createTestJobSettings(null);
 
         underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
@@ -235,8 +232,10 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
     }
 
-    @Test
-    public void validateInstanceTags_whenWrongTeamTag_fillsInDefault() throws Exception {
+
+    public void testValidateInstanceTags_whenWrongTeamTag_fillsInDefault() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         Map<String, String> tags = Maps.newHashMap();
         tags.put("team", "overrideTeam");
         JobSettingsDTO targetDTO = createTestJobSettings(tags);
@@ -246,8 +245,10 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "overrideTeam");
     }
 
-    @Test
-    public void validateInstanceTags_whenMissingDeltaTag_fillsInDefault() throws Exception {
+
+    public void testValidateInstanceTags_whenMissingDeltaTag_fillsInDefault() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         Map<String, String> tags = Maps.newHashMap();
         tags.put("team", "myteam");
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
@@ -257,8 +258,10 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }
 
-    @Test
-    public void validateInstanceTags_whenDeltaTag_noException() throws Exception {
+
+    public void testValidateInstanceTags_whenDeltaTag_noException() throws Exception {
+        super.beforeMethod();
+        underTest = getNoOverridesMojo(GOAL);
         Map<String, String> tags = Maps.newHashMap();
         tags.put("team", "myteam");
         tags.put("delta", "true");

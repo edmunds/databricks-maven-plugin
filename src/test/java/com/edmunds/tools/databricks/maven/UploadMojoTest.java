@@ -22,14 +22,12 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
+ * JUNIT TEST!!!
  * Tests for @{@link UpsertJobMojo}.
  * <p>
  * For these tests, the regex as part of the expected exceptions no longer works.
@@ -40,30 +38,18 @@ public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
 
     private UploadMojo underTest;
 
-    private ClassLoader classLoader = UploadMojoTest.class.getClassLoader();
-
     @Mock
     AmazonS3Client s3Client;
 
-    @BeforeClass
-    public void initClass() throws Exception {
-        super.setUp();
-    }
-
-    @BeforeMethod
-    public void beforeMethod() throws Exception {
+    public void testDefaultExecute() throws Exception {
         super.beforeMethod();
-        underTest = getNoOverridesMojo(GOAL);
-    }
-
-    @Test
-    public void testDefaultExecute() throws MojoExecutionException {
+        underTest = getOverridesMojo(GOAL);
         underTest.s3Client = s3Client;
         underTest.execute();
     }
 
-    @Test
     public void testMissingProperties() throws Exception {
+        super.beforeMethod();
         underTest = getMissingMandatoryMojo(GOAL);
         underTest.s3Client = s3Client;
         try {
@@ -75,8 +61,8 @@ public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
         fail();
     }
 
-    @Test
     public void testOverridesExecute() throws Exception {
+        super.beforeMethod();
         underTest = getOverridesMojo(GOAL);
         underTest.s3Client = s3Client;
         underTest.execute();

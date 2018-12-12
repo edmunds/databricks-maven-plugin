@@ -16,45 +16,34 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+/**
+ * JUNIT TEST!!!
+ */
 public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarness {
 
     private final String GOAL = "prepare-library-resources";
 
-    @BeforeClass
-    public void initClass() throws Exception {
-        super.setUp();
-    }
-
-    @BeforeMethod
-    public void beforeMethod() throws Exception {
-        super.beforeMethod();
-    }
-
-    @Test
     public void testCreateArtifactPath_default() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getNoOverridesMojo(GOAL);
+        super.beforeMethod();
+        PrepareLibraryResources underTest = getNoOverridesMojo(GOAL);
         assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
                 "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
         //TODO actually test the execute here
         underTest.execute();
     }
 
-    @Test
     public void testCreateArtifactPath_doesNothingWhenNoFieldsSpecified() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getMissingMandatoryMojo(GOAL);
+        super.beforeMethod();
+        PrepareLibraryResources underTest = getMissingMandatoryMojo(GOAL);
         underTest.execute();
     }
 
-    @Test
     public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getOverridesMojo(GOAL);
+        super.beforeMethod();
+        PrepareLibraryResources underTest = getOverridesMojo(GOAL);
         assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/my-destination"));
     }
 }

@@ -17,39 +17,29 @@
 package com.edmunds.tools.databricks.maven;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-//Requires building beforehand??
+/**
+ * JUNIT TEST!!
+ */
 public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
 
     private final String GOAL = "library";
 
-    @BeforeClass
-    public void initClass() throws Exception {
-        super.setUp();
-    }
-
-    @BeforeMethod
-    public void beforeMethod() throws Exception {
-        super.beforeMethod();
-    }
-
     //TODO actually test the library functionality!
-    @Test
+
     public void testCreateArtifactPath_default() throws Exception {
-        LibraryMojo underTest = (LibraryMojo) getNoOverridesMojo(GOAL);
+        beforeMethod();
+        LibraryMojo underTest = getNoOverridesMojo(GOAL);
         assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
                 "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
     }
 
-    @Test
     public void testCreateArtifactPath_failsWhenMissingMandatoryFields() throws Exception {
-        LibraryMojo underTest = (LibraryMojo) getMissingMandatoryMojo(GOAL);
+        beforeMethod();
+        LibraryMojo underTest = getMissingMandatoryMojo(GOAL);
         try {
             underTest.execute();
         } catch (MojoExecutionException e) {
@@ -58,7 +48,6 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
         fail();
     }
 
-    @Test
     public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
         LibraryMojo underTest = (LibraryMojo) getOverridesMojo(GOAL);
         assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/my-destination"));
