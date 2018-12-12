@@ -38,6 +38,7 @@ import java.util.Arrays;
 public abstract class BetterAbstractMojoTestCase extends AbstractMojoTestCase {
 
     protected MavenSession newMavenSession() {
+        System.out.println(System.getProperties().getProperty("java.home"));
         try {
             MavenExecutionRequest request = new DefaultMavenExecutionRequest();
             MavenExecutionResult result = new DefaultMavenExecutionResult();
@@ -60,7 +61,7 @@ public abstract class BetterAbstractMojoTestCase extends AbstractMojoTestCase {
             repoSession.setLocalRepositoryManager(
                 new SimpleLocalRepositoryManagerFactory().newInstance(repoSession,
                     new LocalRepository(request.getLocalRepository().getBasedir())));
-
+            System.out.println(System.getProperties().getProperty("java.home"));
             @SuppressWarnings("deprecation")
             MavenSession session = new MavenSession(getContainer(),
                 repoSession,

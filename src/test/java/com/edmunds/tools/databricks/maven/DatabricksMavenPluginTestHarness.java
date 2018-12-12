@@ -38,6 +38,10 @@ import static org.powermock.api.mockito.PowerMockito.when;
  */
 public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMojoTestCase {
 
+    static {
+        System.out.println(System.getProperties().getProperty("java.home"));
+    }
+
     @Mock
     protected DatabricksServiceFactory databricksServiceFactory;
     @Mock
