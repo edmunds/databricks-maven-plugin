@@ -16,7 +16,12 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+
+import java.io.File;
 
 /**
  * Controls a given databricks job [start\stop\restart].
@@ -32,4 +37,14 @@ import org.apache.maven.plugins.annotations.Mojo;
 @Mojo(name = "job-np", requiresProject = false)
 public class JobMojoNoProject extends JobMojo {
 
+    /**
+     * The serialized job model is requierd to be passed in a NoProject scenario.
+     */
+    @Parameter(name = "jobTemplateModelFile", property = "jobTemplateModelFile", required = true)
+    protected File jobTemplateModelFile;
+
+    @Override
+    protected JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
+        return JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
+    }
 }

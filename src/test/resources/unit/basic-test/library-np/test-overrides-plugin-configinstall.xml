@@ -29,16 +29,14 @@
                 <artifactId>databricks-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
-                    <environment>QA</environment>
-                    <dbJobFile>databricks-job-settings.json</dbJobFile>
-                    <validate>false</validate>
+                    <libraryMappingFile>my-cluster-file.json</libraryMappingFile>
+                    <libraryCommand>INSTALL</libraryCommand>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>upsert-job-np</goal>
+                            <goal>library-np</goal>
                         </goals>
-                        <configuration></configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -50,7 +50,7 @@ public class UploadMojo extends BaseDatabricksMojo {
     @Override
     public void execute() throws MojoExecutionException {
         if (file.exists()) {
-            AmazonS3URI uri = new AmazonS3URI(createArtifactPath());
+            AmazonS3URI uri = new AmazonS3URI(createDeployedArtifactPath());
             String bucket = uri.getBucket();
             String key = uri.getKey();
             try {

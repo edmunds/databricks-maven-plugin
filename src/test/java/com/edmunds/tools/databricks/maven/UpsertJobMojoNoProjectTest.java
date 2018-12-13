@@ -75,16 +75,9 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "" +
-        ".*databricksRepo must be set.*")
+        ".*jobTemplateModelFile must be set.*")
     public void executeWithMissingProperties() throws Exception{
         UpsertJobMojoNoProject underTest = getMissingMandatoryMojo(GOAL);
-        underTest.execute();
-    }
-
-    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*databricksRepo.*")
-    public void whenJobFileExistsButNoTemplate_fails() throws Exception {
-        UpsertJobMojoNoProject underTest = getOverridesMojo(GOAL);
-
         underTest.execute();
     }
 

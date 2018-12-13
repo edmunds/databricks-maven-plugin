@@ -30,7 +30,7 @@
                 <version>${project.version}</version>
                 <configuration>
                     <databricksRepo>my-bucket/artifacts</databricksRepo>
-                    <databricksRepoKey>my-destination</databricksRepoKey>
+                    <clusters>my-test-cluster,my-other-cluster</clusters>
                 </configuration>
                 <executions>
                     <execution>

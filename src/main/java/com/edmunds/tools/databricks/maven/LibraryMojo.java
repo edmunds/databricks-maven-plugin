@@ -26,12 +26,12 @@ import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.tools.databricks.maven.model.LibraryClustersModel;
 import com.google.common.util.concurrent.Uninterruptibles;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -49,7 +49,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * It will return the cluster to it's original state when complete.
  */
 @Mojo(name = "library", requiresProject = true)
-public class LibraryMojo extends PrepareLibraryResources {
+public class LibraryMojo extends BaseLibraryMojo {
 
     private static final int SLEEP_TIME_MS = 200;
 
@@ -67,8 +67,8 @@ public class LibraryMojo extends PrepareLibraryResources {
      * UNINSTALL - removes a library from a cluster. It will restart a cluster if necessary.<br>
      * STATUS - the status of libraries on a cluster.<br>
      */
-    @Parameter(property = "library.command", required = true)
-    private LibraryCommand command;
+    @Parameter(name = "libraryCommand", property = "library.command", required = true)
+    private LibraryCommand libraryCommand;
 
     public void execute() throws MojoExecutionException {
 
@@ -81,12 +81,13 @@ public class LibraryMojo extends PrepareLibraryResources {
         for (String clusterId : convertClusterNamesToIds(clusterService, libraryClustersModel.getClusterNames())) {
             try {
 
-                getLog().debug(String.format("preparing to run command [%s] artifact on path: [%s] to cluster id: [%s]", command, artifactPath, clusterId));
+                getLog().debug(String.format("preparing to run command [%s] artifact on path: [%s] to cluster id: " +
+                    "[%s]", libraryCommand, artifactPath, clusterId));
 
-                switch (command) {
+                switch (libraryCommand) {
                     case INSTALL:
                     case UNINSTALL:
-                        runCommand(artifactPath, clusterId, command, clusterService, libraryService);
+                        runCommand(artifactPath, clusterId, libraryCommand, clusterService, libraryService);
                         break;
                     case STATUS:
                         listLibraryStatus(clusterId, libraryService);
@@ -95,7 +96,7 @@ public class LibraryMojo extends PrepareLibraryResources {
                         throw new IllegalStateException("No valid library command was found.");
                 }
             } catch (DatabricksRestException | IOException e) {
-                throw new MojoExecutionException(String.format("Could not [%s] library: [%s] to [%s]", command, artifactPath, clusterId), e);
+                throw new MojoExecutionException(String.format("Could not [%s] library: [%s] to [%s]", libraryCommand, artifactPath, clusterId), e);
             }
         }
 
