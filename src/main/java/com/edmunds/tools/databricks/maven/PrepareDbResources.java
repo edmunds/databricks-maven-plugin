@@ -46,7 +46,7 @@ public class PrepareDbResources extends BaseWorkspaceMojo {
 
     void prepareJobTemplateModel() throws MojoExecutionException {
         try {
-            FileUtils.writeStringToFile(jobTemplateModelFile, ObjectMapperUtils.serialize(new JobTemplateModel(project)));
+            FileUtils.writeStringToFile(jobTemplateModelFile, ObjectMapperUtils.serialize(getJobTemplateModel()));
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }

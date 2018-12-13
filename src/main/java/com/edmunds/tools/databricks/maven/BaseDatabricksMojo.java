@@ -50,9 +50,10 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      * for example:
      * "my-bucket/artifacts"
      *
+     * This property is not required due to the no project option.
      * For some reason, I couldn't use the "." syntax for the name.
      */
-    @Parameter(name = "databricksRepo", property = "databricks.repo", required = true)
+    @Parameter(name = "databricksRepo", property = "databricks.repo")
     protected String databricksRepo;
 
     /**
@@ -72,28 +73,28 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     /**
      * The environment name. Is used in freemarker templating for conditional job settings.
      */
-    @Parameter(property = "environment")
+    @Parameter(name = "environment", property = "environment")
     protected String environment;
 
-    @Parameter(property = "host")
+    @Parameter(name = "host", property = "host")
     protected String host;
 
     /**
      * NOTE: user+password authentication will take precedence over token based authentication if both are provided.
      */
-    @Parameter(property = "token")
+    @Parameter(name = "token", property = "token")
     protected String token;
 
-    @Parameter(property = "user")
+    @Parameter(name = "user", property = "user")
     protected String user;
 
-    @Parameter(property = "password")
+    @Parameter(name = "password", property = "password")
     protected String password;
 
     /**
      * Whether or not you want to validate the databricks job settings file.
      */
-    @Parameter(defaultValue = "true", property = "validate")
+    @Parameter(name = "validate", defaultValue = "true", property = "validate")
     protected boolean validate;
 
 
