@@ -129,6 +129,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
         try {
             JobTemplateModel jobTemplateModel;
+            // TODO this if/else should be done with polymorphism. It isn't needed in local builds
             if (jobTemplateModelFile.exists()) {
                 String jobTemplateModelJson = FileUtils.readFileToString(jobTemplateModelFile);
                 jobTemplateModel = ObjectMapperUtils.deserialize(jobTemplateModelJson, JobTemplateModel.class);
