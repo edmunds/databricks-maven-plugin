@@ -1,0 +1,18 @@
+[
+  {
+    "email_notifications": {
+      "on_failure": ["myfakeemail.com"]
+    },
+    "spark_jar_task": {
+      "main_class_name": "",
+      "parameters": []
+    },
+    "timeout_seconds": 1800,
+    // If streaming job, timeout_seconds should override to 0
+    "retry_on_timeout": false,
+    "max_retries": 0,
+    //0 : never retry, -1: indefinitely
+    "min_retry_interval_millis": 120000,
+    "max_concurrent_runs": 1
+  }
+]

@@ -91,4 +91,13 @@ public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMoj
         ret.setDatabricksServiceFactory(databricksServiceFactory);
         return ret;
     }
+
+    public <T extends BaseDatabricksMojo> T getOverridesMojo(String goal, String variation) throws Exception {
+        File testPom = new File(getBasedir(),
+            String.format("src/test/resources/unit/basic-test/%s/test-overrides-plugin-config%s" +
+                ".xml", goal, variation));
+        T ret = (T) lookupConfiguredMojo(testPom, goal);
+        ret.setDatabricksServiceFactory(databricksServiceFactory);
+        return ret;
+    }
 }

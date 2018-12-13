@@ -36,8 +36,13 @@ public class JobTemplateModel {
     private String groupId;
     private String artifactId;
     private String version;
+    // TODO This property should not be persisted with the template model
     private String environment;
     private String groupWithoutCompany;
+    // The rationale for persisting these properties is because a deployed artifact will already have been deployed
+    // to a specific place. You cannot change that after the fact!
+    private String databricksRepo;
+    private String databricksRepoKey;
 
     /**
      * Don't use this - it's for jackson deserialization only!
@@ -45,13 +50,20 @@ public class JobTemplateModel {
     public JobTemplateModel() {
     }
 
-    public JobTemplateModel(MavenProject project) {
+    public JobTemplateModel(MavenProject project,
+                            String environment, String databricksRepo, String databricksRepoKey) {
         this.groupId = project.getGroupId();
         this.artifactId = project.getArtifactId();
         this.projectProperties = project.getProperties();
         this.systemProperties = System.getProperties();
         this.version = defaultString(systemProperties.getProperty(DEPLOY_VERSION), project.getVersion());
         this.groupWithoutCompany = stripCompanyPackage(project.getGroupId());
+        this.databricksRepo = databricksRepo;
+        this.databricksRepoKey = databricksRepoKey;
+        this.environment = environment;
+        //TODO NEED TO GET RID OF this once we are ready. This is for backwards compatibility
+        projectProperties.setProperty("databricks.repo", databricksRepo);
+        projectProperties.setProperty("databricks.repo.key", databricksRepoKey);
     }
 
     public static String stripCompanyPackage(String path) {
@@ -92,5 +104,21 @@ public class JobTemplateModel {
 
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    public String getDatabricksRepo() {
+        return databricksRepo;
+    }
+
+    public void setDatabricksRepo(String databricksRepo) {
+        this.databricksRepo = databricksRepo;
+    }
+
+    public String getDatabricksRepoKey() {
+        return databricksRepoKey;
+    }
+
+    public void setDatabricksRepoKey(String databricksRepoKey) {
+        this.databricksRepoKey = databricksRepoKey;
     }
 }

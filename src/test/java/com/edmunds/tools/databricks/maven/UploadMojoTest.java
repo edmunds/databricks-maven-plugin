@@ -40,8 +40,6 @@ public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
 
     private UploadMojo underTest;
 
-    private ClassLoader classLoader = UploadMojoTest.class.getClassLoader();
-
     @Mock
     AmazonS3Client s3Client;
 
@@ -53,11 +51,11 @@ public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
     @BeforeMethod
     public void beforeMethod() throws Exception {
         super.beforeMethod();
-        underTest = getNoOverridesMojo(GOAL);
     }
 
     @Test
-    public void testDefaultExecute() throws MojoExecutionException {
+    public void testDefaultExecute() throws Exception {
+        underTest = getNoOverridesMojo(GOAL);
         underTest.s3Client = s3Client;
         underTest.execute();
     }

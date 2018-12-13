@@ -16,53 +16,60 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.google.common.collect.Lists;
-import java.io.File;
-import java.util.List;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.DEFAULT_JOB_JSON;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.testng.Assert.assertTrue;
 
-public class PrepareDbResourcesTest extends BaseDatabricksMojoTest {
+public class PrepareDbResourcesTest extends DatabricksMavenPluginTestHarness {
 
-    private PrepareDbResources underTest = new PrepareDbResources();
+    private final String GOAL = "prepare-db-resources";
 
-    private ClassLoader classLoader = PrepareDbResources.class.getClassLoader();
 
-    private String outputBuildDir;
+    @BeforeClass
+    public void initClass() throws Exception {
+        super.setUp();
+    }
 
     @BeforeMethod
-    public void init() throws Exception {
-
-        super.init();
-
-        underTest.setDatabricksServiceFactory(databricksServiceFactory);
-        underTest.setProject(project);
-        underTest.setFailOnDuplicateJobName(true);
-        outputBuildDir = build.getOutputDirectory();
+    public void beforeMethod() throws Exception {
+        super.beforeMethod();
     }
 
     @Test
-    public void testGetJobSettingsDTOs() throws Exception {
-        File outputFile = new File(outputBuildDir + PrepareDbResources.MODEL_FILE_NAME);
-        underTest.setDbJobFile(new File(classLoader.getResource(DEFAULT_JOB_JSON).getFile()));
-        underTest.setJobTemplateModelFile(outputFile);
-        underTest.prepareJobTemplateModel();
-        String lines = FileUtils.readFileToString(outputFile);
+    public void testExecuteJobTemplateFile_default() throws Exception {
+        PrepareDbResources underTest = getNoOverridesMojo(GOAL);
+        // MUST be done otherwise invocations will read from an existing file instead.
+        underTest.jobTemplateModelFile.delete();
+        underTest.execute();
 
-        assertThat(lines, containsString("  \"groupId\" : \"com.edmunds.test\","));
-        assertThat(lines, containsString("  \"artifactId\" : \"mycoolartifact\","));
-        assertThat(lines, containsString("  \"version\" : \"1.0\","));
+        String key = "unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT" +
+            ".jar";
+
+        String lines = FileUtils.readFileToString(underTest.jobTemplateModelFile);
+        assertThat(lines, containsString("  \"groupId\" : \"unit-test-group\","));
+        assertThat(lines, containsString("  \"artifactId\" : \"unit-test-artifact\","));
+        assertThat(lines, containsString("  \"version\" : \"1.0.0-SNAPSHOT\","));
         assertThat(lines, containsString("  \"environment\" : null,"));
-        assertThat(lines, containsString("  \"groupWithoutCompany\" : \"test\""));
+        assertThat(lines, containsString("  \"groupWithoutCompany\" : \"unit-test-group\""));
+        assertThat(lines, containsString("  \"databricks.repo\" : \"my-bucket/artifacts\""));
+        assertThat(lines, containsString("  \"databricksRepo\" : \"my-bucket/artifacts\""));
+        assertThat(lines, containsString("  \"databricks.repo.key\" : \"" + key +"\""));
+        assertThat(lines, containsString("  \"databricksRepoKey\" : \""+key+"\""));
     }
 
+    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*databricksRepo.*")
+    public void testExecuteJobTemplateFile_missingThrowsException() throws Exception {
+        PrepareDbResources underTest = getMissingMandatoryMojo(GOAL);
+        // MUST be done otherwise invocations will read from an existing file instead.
+        underTest.jobTemplateModelFile.delete();
+        underTest.execute();
+    }
+/*
     //Currently I can't get this test to work for the life of me on jenkins... It fails during the copy dir stage.
     @Test(enabled = false)
     public void testNotebookCopy() throws Exception {
@@ -83,5 +90,5 @@ public class PrepareDbResourcesTest extends BaseDatabricksMojoTest {
         for (String expectedFile : expectedFiles) {
             assertThat(expectedFile, new File(expectedFile).exists());
         }
-    }
+    }*/
 }

@@ -1,0 +1,16 @@
+{
+  "projectProperties" : {
+    "databricks.repo" : "edmunds-repos/artifacts",
+    "databricks.repo.key" : "com.edmunds.dwh/inventory-databricks/1.1.182-SNAPSHOT/inventory-databricks-1.1.182-SNAPSHOT.jar"
+  },
+  "systemProperties" : {
+
+  },
+  "groupId" : "com.edmunds.dwh",
+  "artifactId" : "inventory-databricks",
+  "version" : "1.1.182-SNAPSHOT",
+  "environment" : "QA",
+  "groupWithoutCompany" : "dwh",
+  "databricksRepo" : "edmunds-repos/artifacts",
+  "databricksRepoKey" : "com.edmunds.dwh/inventory-databricks/1.1.182-SNAPSHOT/inventory-databricks-1.1.182-SNAPSHOT.jar"
+}

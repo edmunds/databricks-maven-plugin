@@ -9,51 +9,45 @@ _This is the maven databricks plugin, which uses the databricks rest api._
 
 [![Javadocs](http://www.javadoc.io/badge/com.edmunds/databricks-maven-plugin.svg)](http://www.javadoc.io/doc/com.edmunds/databricks-maven-plugin)
 
+## Prerequisites
 
-### Building, Installing and Running
+For Users:
+- You have a databricks account
+- You are somewhat familiar with Maven and have maven installed
+- You have an s3 bucket (we will call databricksRepo) that you will use to store your artifacts. 
+- You have AWS keys that can write to this s3 bucket
+- Databricks has access to an IAM Role that can read from this bucket.
 
-How to build the project locally:
-```mvn clean install```
-
-- Not required! Because you can build and develop without it, but you will likely want Lombok configured with your IDEA:
-https://projectlombok.org/setup/intellij
-
-How to run the project locally (if applicable):
-
-
-## Running the tests
-
-```mvn clean test```
-
-
-### End-to-End testing
-
-Please have these set in your .bash_profile
-```bash
-export DB_USER=myuser
-export DB_PASSWORD=mypassword
-export DB_URL=my-test-db-instance
-export DB_TOKEN=my-db-token
-export DB_REPO=my-s3-bucket/my-artifact-location
-export INSTANCE_PROFILE_ARN=arn:aws:iam::123456789:instance-profile/MyDatabricksRole
-```
-
-```bash
-mvn clean -P run-its install
-```
-
-Please note, this will:
-1. create a job, if it does not exist, delete it if it does
-2. start the job (e.g. run it once)
-3. wait for the job to finish and ensure it's success
-
-## Deployment
-
-Since this code is a library, you do not need to deploy it anywhere, once it passes build, you can just use it in another project.
+For Contributors:
+- You need to be able execute an integration test that will actually do things on your databricks account.
 
 ## Configuring
 
-It is recommended that you use maven profiles to allow for credentials per an environment to be defined.
+### System Properties
+For databricks specific properties we also support system properties. This can be useful for when you don't want tokens or passwords
+stored in a pom or a script and instead want it to be available on a build server.
+Currently the following environment properties are supported:
+DB_URL -> my-databrics.cloud.databricks.com
+DB_TOKEN -> dapiceexampletoken
+DB_USER -> my_user
+DB_PASSWORD -> my_password
+
+We can continue to support more system properties in the future if users have a compelling reason for it.
+
+### AWS Credentials
+For the upload mojo that uploads your artifact to s3, the default aws provider chain is used. As long as you have appropriate permissions on that chain
+it should just work.
+
+### All other properties
+
+For all other properties we support configuration in the following ways:
+1. via configuration in the mojo
+2. via property configuration on the command line or in the <properties> section
+
+### Examples
+
+If you would like to setup default profiles for users, you can take the following approach.
+NOTE: if you define like below, you cannot override via CLI args unless you use project properties as well.
 ```xml
          <!-- Databricks QA Credentials -->
          <profile>
@@ -76,6 +70,15 @@ It is recommended that you use maven profiles to allow for credentials per an en
                  </plugins>
              </build>
          </profile>
+```
+
+Yet another option is to provide all of your credentials when you call the plugin.
+You can even rely on System Properties or the default aws provider chain 
+for the host/user/password OR token for databricks rest client. Please see End to End testing section or the
+BaseDatabricksMojo for information on these system properties. 
+
+```sh
+mvn databricks:upload-to-s3 -Ddatabricks.repo=my-repo -Denvironment=QA
 ```
 
 ## Instructions
@@ -212,6 +215,49 @@ mvn databricks:job -Djob.command=START
 mvn databricks:job -Djob.command=RESTART
 ```
 
+
+
+## Building, Installing and Running
+
+How to build the project locally:
+```mvn clean install```
+
+- Not required! Because you can build and develop without it, but you will likely want Lombok configured with your IDEA:
+https://projectlombok.org/setup/intellij
+
+How to run the project locally (if applicable):
+
+
+### Running the tests
+
+```mvn clean test```
+
+
+### End-to-End testing
+
+Please have these set in your .bash_profile.
+
+```bash
+export DB_USER=myuser
+export DB_PASSWORD=mypassword
+export DB_URL=my-test-db-instance
+export DB_TOKEN=my-db-token
+export DB_REPO=my-s3-bucket/my-artifact-location
+export INSTANCE_PROFILE_ARN=arn:aws:iam::123456789:instance-profile/MyDatabricksRole
+```
+
+```bash
+mvn clean -P run-its install
+```
+
+Please note, this will:
+1. create a job, if it does not exist, delete it if it does
+2. start the job (e.g. run it once)
+3. wait for the job to finish and ensure it's success
+
+## Releasing
+
+Please see the contributing section on how to RELEASE.
 
 ## Contributing
 

@@ -129,25 +129,20 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
         try {
             JobTemplateModel jobTemplateModel;
+            // TODO this if/else should be done with polymorphism. It isn't needed in local builds
             if (jobTemplateModelFile.exists()) {
                 String jobTemplateModelJson = FileUtils.readFileToString(jobTemplateModelFile);
                 jobTemplateModel = ObjectMapperUtils.deserialize(jobTemplateModelJson, JobTemplateModel.class);
             } else {
                 if (isLocalBuild) {
-                    jobTemplateModel = new JobTemplateModel(project);
+                    if (databricksRepo == null) {
+                        throw new MojoExecutionException("databricksRepo must be set!");
+                    }
+                    jobTemplateModel = new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey);
                 } else {
                     throw new MojoExecutionException(String.format("[%s] file was not found in the build. Please ensure prepare-package was ran during build.", MODEL_FILE_NAME));
                 }
             }
-
-            // [BDD-3114] - we want the current environment, to honor what was passed into the build, and not what was serialized [SAE]
-            jobTemplateModel.setEnvironment(environment);
-            if (StringUtils.isBlank(databricksRepo)) {
-                throw new MojoExecutionException("missing property: databricks.repo");
-            }
-            jobTemplateModel.getProjectProperties().setProperty("databricks.repo", databricksRepo);
-            jobTemplateModel.getProjectProperties().setProperty("databricks.repo.key", databricksRepoKey);
-
             return jobTemplateModel;
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
