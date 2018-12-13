@@ -51,13 +51,16 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      * "my-bucket/artifacts"
      *
      * This property is not required due to the no project option.
-     * For some reason, I couldn't use the "." syntax for the name.
+     *
+     * If both project property and mojo configuration is set, mojo configuration wins.
      */
     @Parameter(name = "databricksRepo", property = "databricks.repo")
     protected String databricksRepo;
 
     /**
      * The prefix to load to. This is appended to the databricksRepo property.
+     * This is an artifact specific key and will by default be the maven style qualifier:
+     * groupId/artifactId/version/artifact-version.jar
      */
     @Parameter(name= "databricksRepoKey", property = "databricks.repo.key",
         defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}" +
@@ -76,18 +79,32 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(name = "environment", property = "environment")
     protected String environment;
 
+    /**
+     * This property can be picked up via an environment property!
+     * DB_URL
+     */
     @Parameter(name = "host", property = "host")
     protected String host;
 
     /**
+     * This property can be picked up via an environment property!
+     * DB_TOKEN
      * NOTE: user+password authentication will take precedence over token based authentication if both are provided.
      */
     @Parameter(name = "token", property = "token")
     protected String token;
 
+    /**
+     * This property can be picked up via an environment property!
+     * DB_USER
+     */
     @Parameter(name = "user", property = "user")
     protected String user;
 
+    /**
+     * This property can be picked up via an environment property!
+     * DB_PASSWORD
+     */
     @Parameter(name = "password", property = "password")
     protected String password;
 
@@ -175,6 +192,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     }
 
     String createArtifactPath() throws MojoExecutionException {
+        //TODO if we want databricksRepo to be specified via system properties, this is where it could happen.
         validateRepoProperties();
         String modifiedDatabricksRepo = databricksRepo;
         String modifiedDatabricksRepoKey = databricksRepoKey;

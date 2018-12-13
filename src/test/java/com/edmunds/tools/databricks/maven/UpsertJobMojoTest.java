@@ -85,6 +85,38 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test
+    public void test_executeWithProjectProperties() throws Exception {
+        underTest = getOverridesMojo(GOAL, "_viaProperties");
+        Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
+            ("unit-test-group/unit-test-artifact", 1));
+        JobSettingsDTO[] jobSettingsDTOs = underTest.buildJobSettingsDTOsWithDefault();
+        underTest.execute();
+        assertThat(jobSettingsDTOs.length, is(1));
+        assertThat(jobSettingsDTOs[0].getLibraries()[0].getJar(), is
+            ("s3://projectProperty/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
+                "-1.0.0-SNAPSHOT.jar"));
+        ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
+        verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
+        assertEquals(jobSettingsDTOs[0], jobCaptor.getValue());
+    }
+
+    @Test
+    public void test_executeWithProjectPropertiesAndConfig() throws Exception {
+        underTest = getOverridesMojo(GOAL, "_viaBothSettings");
+        Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
+            ("unit-test-group/unit-test-artifact", 1));
+        JobSettingsDTO[] jobSettingsDTOs = underTest.buildJobSettingsDTOsWithDefault();
+        underTest.execute();
+        assertThat(jobSettingsDTOs.length, is(1));
+        assertThat(jobSettingsDTOs[0].getLibraries()[0].getJar(), is
+            ("s3://configProperty/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
+                "-1.0.0-SNAPSHOT.jar"));
+        ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
+        verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
+        assertEquals(jobSettingsDTOs[0], jobCaptor.getValue());
+    }
+
+    @Test
     public void test_executeWithMissingProperties() throws Exception{
         underTest = getMissingMandatoryMojo(GOAL);
         try {
