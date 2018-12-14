@@ -62,7 +62,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
     }
 
     @Test
-    public void execute_WhenNoJobFile_NothingHappens() throws Exception{
+    public void execute_NoJobFile_NothingHappens() throws Exception{
         UpsertJobMojoNoProject underTest = getNoOverridesMojo(GOAL);
         Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
             ("unit-test-group/unit-test-artifact", 1));

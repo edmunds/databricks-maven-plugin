@@ -31,7 +31,6 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 /**
  * Simple POJO to pass properties to the job template.
  */
-//TODO should be renamed "ProjectModel" and no longer be meant just for jobs.
 public class JobTemplateModel {
 
     public static final String DEPLOY_VERSION = "deploy-version";

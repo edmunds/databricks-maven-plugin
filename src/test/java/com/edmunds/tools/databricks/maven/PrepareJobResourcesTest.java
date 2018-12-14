@@ -40,7 +40,7 @@ public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test
-    public void testExecuteJobTemplateFile_default() throws Exception {
+    public void executeJobTemplateFile_default_outputsFile() throws Exception {
         PrepareJobResources underTest = getNoOverridesMojo(GOAL);
         // MUST be done otherwise invocations will read from an existing file instead.
         underTest.jobTemplateModelFileOutput.delete();
@@ -62,7 +62,7 @@ public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*databricksRepo.*")
-    public void testExecuteJobTemplateFile_missingThrowsException() throws Exception {
+    public void executeJobTemplateFile_missingProperties_ThrowsException() throws Exception {
         PrepareJobResources underTest = getMissingMandatoryMojo(GOAL);
         // MUST be done otherwise invocations will read from an existing file instead.
         underTest.jobTemplateModelFileOutput.delete();

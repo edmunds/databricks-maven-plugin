@@ -39,7 +39,7 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
     }
 
     @Test
-    public void testCreateArtifactPath_default_NOOP() throws Exception {
+    public void createArtifactPath_default_NOOP() throws Exception {
         PrepareLibraryResources underTest = getNoOverridesMojo(GOAL);
         assertThat(underTest.createDeployedArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
                 "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
@@ -47,13 +47,13 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
     }
 
     @Test
-    public void testCreateArtifactPath_doesNothingWhenNoFieldsSpecified() throws Exception {
+    public void createArtifactPath_WhenNoFieldsSpecified_NOOP() throws Exception {
         PrepareLibraryResources underTest = getMissingMandatoryMojo(GOAL);
         underTest.execute();
     }
 
     @Test
-    public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
+    public void createArtifactPath_WithOverrides_succeeds() throws Exception {
         PrepareLibraryResources underTest = getOverridesMojo(GOAL);
         underTest.execute();
 
