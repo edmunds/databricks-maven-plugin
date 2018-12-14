@@ -38,8 +38,8 @@ public class LibraryClustersModel {
     }
 
     public static LibraryClustersModel loadFromFile(File libraryClusterModelFile) throws MojoExecutionException {
-        if (libraryClusterModelFile == null) {
-            throw new MojoExecutionException("libraryClusterModelFile must be set!");
+        if (libraryClusterModelFile == null || !libraryClusterModelFile.exists()) {
+            return null;
         }
         try {
             String libraryMappingModelJson = FileUtils.readFileToString(libraryClusterModelFile);

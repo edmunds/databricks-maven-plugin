@@ -76,6 +76,10 @@ public class LibraryMojo extends BaseLibraryMojo {
         ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
 
         LibraryClustersModel libraryClustersModel = getLibraryClustersModel();
+        if (libraryClustersModel == null) {
+            return;
+        }
+
         String artifactPath = libraryClustersModel.getArtifactPath();
 
         for (String clusterId : convertClusterNamesToIds(clusterService, libraryClustersModel.getClusterNames())) {

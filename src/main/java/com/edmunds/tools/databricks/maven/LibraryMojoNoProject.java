@@ -35,6 +35,10 @@ public class LibraryMojoNoProject extends LibraryMojo {
 
     @Override
     protected LibraryClustersModel getLibraryClustersModel() throws MojoExecutionException {
-        return LibraryClustersModel.loadFromFile(libraryMappingFile);
+        LibraryClustersModel libraryClustersModel = LibraryClustersModel.loadFromFile(libraryMappingFile);
+        if (libraryClustersModel == null) {
+            getLog().info("No library mapping file found at " + libraryMappingFile);
+        }
+        return libraryClustersModel;
     }
 }

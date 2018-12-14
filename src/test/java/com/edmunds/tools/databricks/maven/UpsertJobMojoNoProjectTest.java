@@ -51,8 +51,6 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
 
     private final String GOAL = "upsert-job-np";
 
-    private ClassLoader classLoader = UpsertJobMojoNoProjectTest.class.getClassLoader();
-
     @BeforeClass
     public void initClass() throws Exception {
         super.setUp();
@@ -64,7 +62,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
     }
 
     @Test
-    public void executeWithDefault() throws Exception{
+    public void execute_WhenNoJobFile_NothingHappens() throws Exception{
         UpsertJobMojoNoProject underTest = getNoOverridesMojo(GOAL);
         Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
             ("unit-test-group/unit-test-artifact", 1));
@@ -76,7 +74,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "" +
         ".*jobTemplateModelFile must be set.*")
-    public void executeWithMissingProperties() throws Exception{
+    public void execute_whenMissingProperties_fail() throws Exception{
         UpsertJobMojoNoProject underTest = getMissingMandatoryMojo(GOAL);
         underTest.execute();
     }
@@ -91,7 +89,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
      * @throws Exception
      */
     @Test
-    public void whenJobFileAndTemplateExists_succeeds() throws Exception {
+    public void execute_whenJobFileAndTemplateExists_upsertsJob() throws Exception {
         UpsertJobMojoNoProject underTest = getOverridesMojo(GOAL, "2");
         Mockito.when(jobService.getJobByName("dwh/inventory-databricks", true)).thenReturn(createJobDTO
             ("dwh/inventory-databricks", 1));
@@ -110,12 +108,6 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
         ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
         verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
         assertEquals(jobSettingsDTOS[0], jobCaptor.getValue());
-    }
-
-    private JobsDTO createJobsDTO(JobDTO... jobDTOs) {
-        JobsDTO jobsDTO = new JobsDTO();
-        jobsDTO.setJobs(jobDTOs);
-        return jobsDTO;
     }
 
     private JobDTO createJobDTO(String jobName, long jobId) {

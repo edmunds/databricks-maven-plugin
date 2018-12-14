@@ -65,6 +65,15 @@ public class LibraryNoProjectMojoTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test
+    public void install_whenNoClusterMapping_doesNothing() throws Exception {
+        LibraryMojoNoProject underTest = getNoOverridesMojo(GOAL);
+
+        underTest.execute();
+
+        Mockito.verify(libraryService, Mockito.times(0)).install(Matchers.anyString(), Matchers.any());
+    }
+
+    @Test
     public void unInstall_whenClusterMappingExistsAndonlyOneCluster_attachesLibraryToExistingCluster() throws
                                                                                                        Exception {
         LibraryMojoNoProject underTest = getOverridesMojo(GOAL, "uninstall");
@@ -94,13 +103,8 @@ public class LibraryNoProjectMojoTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test
-    public void testCreateArtifactPath_failsWhenMissingMandatoryFields() throws Exception {
+    public void execute_WhenMissingFields_succeeds() throws Exception {
         LibraryMojoNoProject underTest = getMissingMandatoryMojo(GOAL);
-        try {
-            underTest.execute();
-        } catch (MojoExecutionException e) {
-            return;
-        }
-        fail();
+        underTest.execute();
     }
 }
