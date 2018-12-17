@@ -97,7 +97,7 @@ This will install a library on a databricks cluster, taking care of any restarts
 mvn clean install databricks:upload-to-s3 \
 databricks:library -Dlibrary.command=INSTALL -Dclusters={myDatabricksCluster}
 ```
-Here is how you can install a library to a cluster WITHOUT restarting:
+Here is how you can install a library to a cluster WITHOUT restarting.
 ```bash
 mvn databricks:library -Dlibrary.command=INSTALL -Dclusters=data_engineering -Drestart=false
 ```

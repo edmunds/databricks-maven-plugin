@@ -138,13 +138,7 @@ public class LibraryMojo extends BaseLibraryMojo {
             }
 
             listLibraryStatus(clusterId, libraryService);
-            if (restart) {
-                getLog().info("Restarting cluster!");
-                manageClusterState(clusterId, originalState, clusterService);
-            } else {
-                getLog().info("restart set to false. Users need to restart cluster in order for new library to take " +
-                    "effect");
-            }
+            manageClusterState(clusterId, originalState, clusterService, restart);
         } else {
             getLog().warn(String.format("skipping install for non-jar artifact: [%s]", project.getArtifact()));
         }
@@ -162,17 +156,26 @@ public class LibraryMojo extends BaseLibraryMojo {
      * @param clusterId      - the cluster id we're working on
      * @param originalState  - the state the cluster was in prior to this mojo
      * @param clusterService
+     * @param - whether to restart the cluster
      */
-    private void manageClusterState(String clusterId, ClusterStateDTO originalState, ClusterService clusterService) throws
+    private void manageClusterState(String clusterId, ClusterStateDTO originalState, ClusterService clusterService,
+                                    boolean restart) throws
             IOException, DatabricksRestException {
         switch (originalState) {
             case PENDING:
             case RESTARTING:
             case RESIZING:
             case RUNNING:
-                restartCluster(clusterId, clusterService);
+                if (restart) {
+                    getLog().info("Restarting cluster!");
+                    restartCluster(clusterId, clusterService);
+                } else {
+                    getLog().info("restart set to false. Users need to restart cluster in order for new library to take " +
+                        "effect");
+                }
                 break;
             default:
+                getLog().info("Stopping cluster to return cluster to its initial state.");
                 stopCluster(clusterId, clusterService);
                 break;
         }
