@@ -30,9 +30,9 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
+public class LibraryNoProjectMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "library";
+    private final String GOAL = "library-np";
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -45,19 +45,8 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test
-    public void testCreateArtifactPath_whenNoClustersSpecified_DoesNothing() throws Exception {
-        LibraryMojo underTest = getNoOverridesMojo(GOAL);
-        assertThat(underTest.createDeployedArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
-                "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
-
-        underTest.execute();
-
-        Mockito.verify(libraryService, Mockito.times(0)).install(Matchers.anyString(), Matchers.any());
-    }
-
-    @Test
     public void install_whenClusterMappingExistsAndonlyOneCluster_attachesLibraryToExistingCluster() throws Exception {
-        LibraryMojo underTest = getOverridesMojo(GOAL, "install");
+        LibraryMojoNoProject underTest = getOverridesMojo(GOAL, "install");
         ClusterInfoDTO clusterOne = createClusterInfoDTO("1", "my-test-cluster");
         ClusterInfoDTO[] clusters = {clusterOne};
         Mockito.when(clusterService.list()).thenReturn(clusters);
@@ -76,9 +65,18 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test
+    public void install_whenNoClusterMapping_doesNothing() throws Exception {
+        LibraryMojoNoProject underTest = getNoOverridesMojo(GOAL);
+
+        underTest.execute();
+
+        Mockito.verify(libraryService, Mockito.times(0)).install(Matchers.anyString(), Matchers.any());
+    }
+
+    @Test
     public void unInstall_whenClusterMappingExistsAndonlyOneCluster_attachesLibraryToExistingCluster() throws
                                                                                                        Exception {
-        LibraryMojo underTest = getOverridesMojo(GOAL, "uninstall");
+        LibraryMojoNoProject underTest = getOverridesMojo(GOAL, "uninstall");
         ClusterInfoDTO clusterOne = createClusterInfoDTO("1", "my-test-cluster");
         ClusterInfoDTO[] clusters = {clusterOne};
         Mockito.when(clusterService.list()).thenReturn(clusters);
@@ -96,47 +94,17 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
             "-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
     }
 
-    //TODO proper behavior should be to log here?
-    @Test
-    public void unInstall_whenClusterCantBeFound_doesNothing() throws
-                                                                                                       Exception {
-        LibraryMojo underTest = getOverridesMojo(GOAL, "uninstall");
-        ClusterInfoDTO clusterOne = createClusterInfoDTO("1", "not-my-cluster");
-        ClusterInfoDTO[] clusters = {clusterOne};
-        Mockito.when(clusterService.list()).thenReturn(clusters);
-        Mockito.when(clusterService.getInfo("1")).thenReturn(clusterOne);
-        ArgumentCaptor<LibraryDTO[]> libraryDTOArgumentCaptor = ArgumentCaptor.forClass(LibraryDTO[].class);
-
-        underTest.execute();
-
-        Mockito.verify(libraryService, Mockito.times(0)).uninstall(Matchers.anyString(), libraryDTOArgumentCaptor
-            .capture());
-        Mockito.verify(clusterService, Mockito.times(0)).delete("1");
-        Mockito.verify(clusterService, Mockito.times(0)).start("1");
-    }
-
-    @Test
-    public void testCreateArtifactPath_failsWhenMissingMandatoryFields() throws Exception {
-        LibraryMojo underTest = (LibraryMojo) getMissingMandatoryMojo(GOAL);
-        try {
-            underTest.execute();
-        } catch (MojoExecutionException e) {
-            return;
-        }
-        fail();
-    }
-
-    @Test
-    public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
-        LibraryMojo underTest = (LibraryMojo) getOverridesMojo(GOAL);
-        assertThat(underTest.createDeployedArtifactPath(), is("s3://my-bucket/artifacts/my-destination"));
-    }
-
     private ClusterInfoDTO createClusterInfoDTO(String clusterId, String clusterName) {
         ClusterInfoDTO clusterInfoDTO = new ClusterInfoDTO();
         clusterInfoDTO.setClusterId(clusterId);
         clusterInfoDTO.setClusterName(clusterName);
         clusterInfoDTO.setState(ClusterStateDTO.RUNNING);
         return clusterInfoDTO;
+    }
+
+    @Test
+    public void execute_WhenMissingFields_succeeds() throws Exception {
+        LibraryMojoNoProject underTest = getMissingMandatoryMojo(GOAL);
+        underTest.execute();
     }
 }

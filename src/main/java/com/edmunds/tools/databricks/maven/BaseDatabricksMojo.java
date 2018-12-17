@@ -191,7 +191,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
         }
     }
 
-    String createArtifactPath() throws MojoExecutionException {
+    String createDeployedArtifactPath() throws MojoExecutionException {
         //TODO if we want databricksRepo to be specified via system properties, this is where it could happen.
         validateRepoProperties();
         String modifiedDatabricksRepo = databricksRepo;

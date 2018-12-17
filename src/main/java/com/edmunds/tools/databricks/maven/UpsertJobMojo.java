@@ -20,10 +20,10 @@ import com.edmunds.rest.databricks.DTO.JobDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.IOException;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
+
+import java.io.IOException;
 
 /**
  * Upserts databricks jobs with the given name based on the artifacts job settings json file.

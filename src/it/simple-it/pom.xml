@@ -68,7 +68,9 @@
                         <id>prepackage</id>
                         <phase>prepare-package</phase>
                         <goals>
-                            <goal>prepare-db-resources</goal>
+                            <goal>prepare-job-resources</goal>
+                            <goal>prepare-workspace-resources</goal>
+                            <goal>prepare-library-resources</goal>
                         </goals>
                     </execution>
                     <execution>

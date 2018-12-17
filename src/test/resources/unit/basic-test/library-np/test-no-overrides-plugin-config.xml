@@ -30,14 +30,15 @@
                 <version>${project.version}</version>
                 <configuration>
                     <environment>QA</environment>
-                    <jobTemplateModelFile>mySerializedProperties.json</jobTemplateModelFile>
+                    <libraryMappingFile>noFile</libraryMappingFile>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>upsert-job-np</goal>
+                            <goal>library-np</goal>
                         </goals>
-                        <configuration></configuration>
+                        <configuration>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -16,6 +16,7 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import org.apache.commons.io.FileUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -38,23 +39,31 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
     }
 
     @Test
-    public void testCreateArtifactPath_default() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getNoOverridesMojo(GOAL);
-        assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
+    public void createArtifactPath_default_NOOP() throws Exception {
+        PrepareLibraryResources underTest = getNoOverridesMojo(GOAL);
+        assertThat(underTest.createDeployedArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
                 "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
-        //TODO actually test the execute here
         underTest.execute();
     }
 
     @Test
-    public void testCreateArtifactPath_doesNothingWhenNoFieldsSpecified() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getMissingMandatoryMojo(GOAL);
+    public void createArtifactPath_WhenNoFieldsSpecified_NOOP() throws Exception {
+        PrepareLibraryResources underTest = getMissingMandatoryMojo(GOAL);
         underTest.execute();
     }
 
     @Test
-    public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
-        PrepareLibraryResources underTest = (PrepareLibraryResources) getOverridesMojo(GOAL);
-        assertThat(underTest.createArtifactPath(), is("s3://my-bucket/artifacts/my-destination"));
+    public void createArtifactPath_WithOverrides_succeeds() throws Exception {
+        PrepareLibraryResources underTest = getOverridesMojo(GOAL);
+        underTest.execute();
+
+        String expected = "{\n" +
+            "  \"artifactPath\" : \"s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar\",\n" +
+            "  \"clusterNames\" : [ \"my-test-cluster\", \"my-other-cluster\" ]\n" +
+            "}";
+
+        String actual = FileUtils.readFileToString(underTest.libaryMappingFileOutput);
+
+        assertEquals(expected, actual);
     }
 }

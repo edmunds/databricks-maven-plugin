@@ -28,16 +28,12 @@
                 <groupId>com.edmunds</groupId>
                 <artifactId>databricks-maven-plugin</artifactId>
                 <version>${project.version}</version>
-                <configuration>
-                    <environment>QA</environment>
-                    <jobTemplateModelFile>mySerializedProperties.json</jobTemplateModelFile>
-                </configuration>
+                <configuration></configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>upsert-job-np</goal>
+                            <goal>library-np</goal>
                         </goals>
-                        <configuration></configuration>
                     </execution>
                 </executions>
             </plugin>

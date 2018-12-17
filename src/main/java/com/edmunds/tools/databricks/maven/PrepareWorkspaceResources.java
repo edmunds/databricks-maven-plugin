@@ -35,22 +35,14 @@ import org.apache.maven.plugins.annotations.Mojo;
  * <p>
  * NOTE, this does not cover library preparation, as adding that here would have caused DRY violations and would have been very hacky.
  */
-@Mojo(name = "prepare-db-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
-public class PrepareDbResources extends BaseWorkspaceMojo {
+@Mojo(name = "prepare-workspace-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
+public class PrepareWorkspaceResources extends BaseWorkspaceMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        prepareJobTemplateModel();
         prepareNotebooks();
     }
 
-    void prepareJobTemplateModel() throws MojoExecutionException {
-        try {
-            FileUtils.writeStringToFile(jobTemplateModelFile, ObjectMapperUtils.serialize(getJobTemplateModel()));
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getMessage(), e);
-        }
-    }
 
     void prepareNotebooks() throws MojoExecutionException {
         if (!sourceWorkspacePath.exists()) {

@@ -36,8 +36,7 @@ import static org.apache.commons.lang3.StringUtils.substringAfter;
 /**
  * A base class for workspace mojos.
  */
-//TODO - workspace mojo extends from job mojo. It works, but, seems funny.
-public abstract class BaseWorkspaceMojo extends BaseDatabricksJobMojo {
+public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
 
     /**
      * This is the base path where databricks notebooks live in your project.

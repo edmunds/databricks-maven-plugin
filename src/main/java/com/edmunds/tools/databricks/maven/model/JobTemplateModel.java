@@ -16,9 +16,14 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
+import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
 import static org.apache.commons.lang3.StringUtils.defaultString;
@@ -120,5 +125,18 @@ public class JobTemplateModel {
 
     public void setDatabricksRepoKey(String databricksRepoKey) {
         this.databricksRepoKey = databricksRepoKey;
+    }
+
+    public static JobTemplateModel loadJobTemplateModelFromFile(File jobTemplateModelFile) throws
+                                                                                          MojoExecutionException {
+        if (jobTemplateModelFile == null) {
+            throw new MojoExecutionException("jobTemplateModelFile must be set!");
+        }
+        try {
+            String jobTemplateModelJson = FileUtils.readFileToString(jobTemplateModelFile);
+            return ObjectMapperUtils.deserialize(jobTemplateModelJson, JobTemplateModel.class);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
     }
 }

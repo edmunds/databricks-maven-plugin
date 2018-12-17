@@ -33,7 +33,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Any test that extends this class requires that the plugin descriptor is available in order for this test to run.
- * If you do mvn clean install, you should then be able to run tests that depend on this class.
+ * If you do mvn clean install -DskipTests, you should then be able to run tests that depend on this class.
+ * Most changes do not require rebuilding to test.
  * Unfortunately, some changes to MOJO will require that you regenerate this plugin descriptor.
  */
 public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMojoTestCase {
