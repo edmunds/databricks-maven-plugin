@@ -70,6 +70,14 @@ public class LibraryMojo extends BaseLibraryMojo {
     @Parameter(name = "libraryCommand", property = "library.command", required = true)
     private LibraryCommand libraryCommand;
 
+    /**
+     * If set to true (default), the cluster will be restarted in order for the new library to immediately take effect.
+     * If set to false, the cluster will not be restarted which means that in order for new library to be installed,
+     * manual restart is necessary.
+     */
+    @Parameter(property = "restart", required = false, defaultValue = "true")
+    private boolean restart;
+
     public void execute() throws MojoExecutionException {
 
         LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
@@ -130,8 +138,13 @@ public class LibraryMojo extends BaseLibraryMojo {
             }
 
             listLibraryStatus(clusterId, libraryService);
-
-            manageClusterState(clusterId, originalState, clusterService);
+            if (restart) {
+                getLog().info("Restarting cluster!");
+                manageClusterState(clusterId, originalState, clusterService);
+            } else {
+                getLog().info("restart set to false. Users need to restart cluster in order for new library to take " +
+                    "effect");
+            }
         } else {
             getLog().warn(String.format("skipping install for non-jar artifact: [%s]", project.getArtifact()));
         }
