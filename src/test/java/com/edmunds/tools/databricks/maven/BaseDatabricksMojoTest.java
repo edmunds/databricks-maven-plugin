@@ -27,13 +27,21 @@ import org.apache.log4j.Logger;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 
+import static com.edmunds.tools.databricks.maven.BaseDatabricksMojo.ARTIFACT_ID;
+import static com.edmunds.tools.databricks.maven.BaseDatabricksMojo.GROUP_ID;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -65,6 +73,15 @@ public class BaseDatabricksMojoTest extends PowerMockTestCase {
     @Mock
     protected DbfsService dbfsService;
 
+    @Spy
+    private BaseDatabricksMojo baseDatabricksMojo = new BaseDatabricksMojo() {
+        @Override
+        public void execute() throws MojoExecutionException, MojoFailureException {
+            //nothing to do here
+        }
+    };
+
+    @BeforeMethod
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
 
@@ -91,6 +108,69 @@ public class BaseDatabricksMojoTest extends PowerMockTestCase {
         when(project.getVersion()).thenReturn("1.0");
         when(build.getFinalName()).thenReturn("mycoolartifact-1.0");
         when(build.getOutputDirectory()).thenReturn("target/test-target/");
+
+        System.setProperty(ARTIFACT_ID, "system-property-artifact-id");
+        System.setProperty(GROUP_ID, "system-property-group-id");
+
+        Mockito.when(project.getGroupId()).thenReturn("maven-group-id");
+        Mockito.when(project.getArtifactId()).thenReturn("maven-artifact-id");
+
+        baseDatabricksMojo.setPrefixToStrip("com\\.edmunds\\.");
+    }
+
+    @Test
+    public void testValidPath_no_maven() throws Exception {
+        Mockito.when(project.getArtifactId()).thenReturn("standalone-pom");
+        baseDatabricksMojo.validatePath("/system-property-group-id/system-property-artifact-id", project.getGroupId(), project.getArtifactId());
+
+        //nothing to assert, failure will throw an exception
+    }
+
+    @Test
+    public void testValidPath_with_maven() throws Exception {
+        System.setProperty(ARTIFACT_ID, "");
+        System.setProperty(GROUP_ID, "");
+        baseDatabricksMojo.validatePath("/maven-group-id/maven-artifact-id", project.getGroupId(), project.getArtifactId());
+
+        //nothing to assert, failure will throw an exception
+    }
+
+    @Test
+    public void testValidPath_with_company_name() throws Exception {
+        Mockito.when(project.getGroupId()).thenReturn("com.edmunds.maven-group-id");
+        baseDatabricksMojo.validatePath("/maven-group-id/maven-artifact-id", project.getGroupId(), project.getArtifactId());
+
+        //nothing to assert, failure will throw an exception
+    }
+
+    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*'groupId' is not set.*")
+    public void testMissingGroupId() throws Exception {
+        System.setProperty(ARTIFACT_ID, "");
+        System.setProperty(GROUP_ID, "");
+        Mockito.when(project.getGroupId()).thenReturn("");
+
+        baseDatabricksMojo.validatePath("/maven-group-id/maven-artifact-id", project.getGroupId(), project.getArtifactId());
+    }
+
+    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*'artifactId' is not set.*")
+    public void testMissingArtifactId() throws Exception {
+        System.setProperty(ARTIFACT_ID, "");
+        System.setProperty(GROUP_ID, "");
+        Mockito.when(project.getArtifactId()).thenReturn("");
+
+        baseDatabricksMojo.validatePath("/maven-group-id/maven-artifact-id", project.getGroupId(), project.getArtifactId());
+    }
+
+    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*Expected: \\[groupId/artifactId/...\\] but found: \\[1\\] parts.*")
+    public void testInvalidPath_no_maven_missing_artifact_id() throws Exception {
+        Mockito.when(project.getArtifactId()).thenReturn("standalone-pom");
+        baseDatabricksMojo.validatePath("/system-property-group-id/", project.getGroupId(), project.getArtifactId());
+    }
+
+    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*Expected: \\[system-property-artifact-id] but found: \\[foo\\].*")
+    public void testInvalidPath_no_maven_bad_artifact_id() throws Exception {
+        Mockito.when(project.getArtifactId()).thenReturn("standalone-pom");
+        baseDatabricksMojo.validatePath("/system-property-group-id/foo", project.getGroupId(), project.getArtifactId());
     }
 
 }

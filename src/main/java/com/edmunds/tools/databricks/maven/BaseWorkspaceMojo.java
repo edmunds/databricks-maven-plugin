@@ -16,8 +16,6 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
-import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -68,13 +66,13 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
 
 
     protected String getSourceFullWorkspacePath() {
-        String strippedPrefix = JobTemplateModel.stripCompanyPackage(workspacePrefix);
+        String strippedPrefix = stripPrefix(workspacePrefix);
         return Paths.get(sourceWorkspacePath.getPath(), strippedPrefix).toString();
     }
 
     protected String getRemoteFullWorkspacePath() {
         //Seperator should always be "/"
-        String strippedPrefix = JobTemplateModel.stripCompanyPackage(workspacePrefix);
+        String strippedPrefix = stripPrefix(workspacePrefix);
         return (packagedWorkspacePath.getPath() + strippedPrefix).replace("\\", "/");
     }
 
@@ -98,7 +96,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
             String remoteFilePath = relativePath + "/" + getBaseName(file.getName());
             getLog().info(String.format("Validating: [%s]", remoteFilePath));
             if (validate) {
-                ValidationUtil.validatePath(remoteFilePath, project.getGroupId(), project.getArtifactId());
+                validatePath(remoteFilePath, project.getGroupId(), project.getArtifactId());
             }
         }
     }
@@ -116,7 +114,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
     }
 
     public String getDbWorkspacePath() {
-        return JobTemplateModel.stripCompanyPackage(dbWorkspacePath).replaceAll("\\.", "/");
+        return stripPrefix(dbWorkspacePath).replaceAll("\\.", "/");
     }
 
     public void setDbWorkspacePath(String dbWorkspacePath) {

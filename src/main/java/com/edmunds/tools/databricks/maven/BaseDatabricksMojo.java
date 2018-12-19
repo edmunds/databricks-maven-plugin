@@ -16,7 +16,10 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import com.edmunds.rest.databricks.DTO.NewClusterDTO;
 import com.edmunds.rest.databricks.DatabricksServiceFactory;
+import java.util.Map;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -39,8 +42,15 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     private static final String DB_URL = "DB_URL";
     private static final String DB_TOKEN = "DB_TOKEN";
 
+    public static final String GROUP_ID = "groupId";
+    public static final String ARTIFACT_ID = "artifactId";
+    public static final String DELTA_ENABLED = "spark.databricks.delta.preview.enabled";
+
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
+
+    @Parameter(name = "prefixToStrip", property = "prefixToStrip", defaultValue = "com\\.edmunds\\.")
+    protected String prefixToStrip;
 
     //TODO validate even with required=true? How does that play with the env properties
     /**
@@ -49,9 +59,9 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      * BUT you can also specify a common prefix here in addition to a bucket,
      * for example:
      * "my-bucket/artifacts"
-     *
+     * <p>
      * This property is not required due to the no project option.
-     *
+     * <p>
      * If both project property and mojo configuration is set, mojo configuration wins.
      */
     @Parameter(name = "databricksRepo", property = "databricks.repo")
@@ -62,9 +72,9 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      * This is an artifact specific key and will by default be the maven style qualifier:
      * groupId/artifactId/version/artifact-version.jar
      */
-    @Parameter(name= "databricksRepoKey", property = "databricks.repo.key",
-        defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}" +
-            ".${project.packaging}")
+    @Parameter(name = "databricksRepoKey", property = "databricks.repo.key",
+            defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}" +
+                    ".${project.packaging}")
     protected String databricksRepoKey;
 
     /**
@@ -182,6 +192,13 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
         this.project = project;
     }
 
+    /**
+     * NOTE - only for unit testing!
+     */
+    void setPrefixToStrip(String prefixToStrip) {
+        this.prefixToStrip = prefixToStrip;
+    }
+
     protected void validateRepoProperties() throws MojoExecutionException {
         if (StringUtils.isBlank(databricksRepo)) {
             throw new MojoExecutionException("Missing mandatory parameter: ${databricksRepo}");
@@ -197,11 +214,92 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
         String modifiedDatabricksRepo = databricksRepo;
         String modifiedDatabricksRepoKey = databricksRepoKey;
         if (databricksRepo.endsWith("/")) {
-            modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length()-1);
+            modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length() - 1);
         }
         if (databricksRepoKey.startsWith("/")) {
             modifiedDatabricksRepoKey = databricksRepoKey.substring(1, databricksRepoKey.length());
         }
         return String.format("%s%s/%s", DEFAULT_DBFS_ROOT_FORMAT, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
+    }
+
+    public String stripPrefix(String path) {
+        return path.replaceAll(prefixToStrip, "");
+    }
+
+    public String getStrippedGroupId(String groupId, String artifactId) {
+        return stripPrefix(isMaven(artifactId) ? groupId : getValue(GROUP_ID));
+    }
+
+    public String getArtifactId(String artifactId) {
+        return isMaven(artifactId) ? artifactId : getValue(ARTIFACT_ID);
+    }
+
+    private boolean isMaven(String artifactId) {
+        return !artifactId.equals("standalone-pom");
+    }
+
+    private String getValue(String key) {
+        return Objects.toString(System.getProperties().get(key), "");
+    }
+
+    /**
+     * Validate the path that is passed in. Note, path can also be a job name.
+     * <p>
+     * What the validation does:
+     * split it by /
+     * part[0] == groupId
+     * part[1] == artifactId
+     * part[...] - don't check, doesn't matter, as user defined
+     *
+     * @param path       - the path to validate, can be a job name as well
+     * @param groupId    - the projects groupId
+     * @param artifactId - the projects artifactId
+     * @throws MojoExecutionException - thrown when the job name does not conform
+     */
+    public void validatePath(String path, String groupId, String artifactId) throws MojoExecutionException {
+
+        //workspace path starts at root, job names do not have '/' prefix
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+
+        String[] jobNameParts = path.split("/");
+        if (jobNameParts.length < 2) {
+            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL FORMAT]:\n" +
+                    "Expected: [groupId/artifactId/...] but found: [%s] parts.", jobNameParts.length));
+        }
+
+        validatePart(jobNameParts[0], getStrippedGroupId(groupId, artifactId), GROUP_ID);
+        validatePart(jobNameParts[1], getArtifactId(artifactId), ARTIFACT_ID);
+    }
+
+    private void validatePart(String jobNamePart, String expectedValue, String keyName) throws MojoExecutionException {
+        if (isBlank(expectedValue)) {
+            throw new MojoExecutionException(
+                    String.format(
+                            "JOB NAME VALIDATION FAILED [REQUIRED PROPERTY]: '%s' is not set.\n" +
+                                    "Please set it in your POM file.\n" +
+                                    "ex: <%s>foo</%s>\n" +
+                                    "Or, pass it as a program argument.\n" +
+                                    "ex: -D%s=foo", keyName, keyName, keyName, keyName));
+        }
+
+        if (!StringUtils.equals(expectedValue, jobNamePart)) {
+            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL VALUE]:\n" +
+                    "Expected: [%s] but found: [%s]", expectedValue, jobNamePart));
+        }
+    }
+
+
+    public boolean isDeltaEnabled(NewClusterDTO newClusterDTO) {
+        Map<String, String> confMap = newClusterDTO.getSparkConf();
+        if (confMap == null) {
+            return false;
+        }
+        String deltaValue = confMap.get(DELTA_ENABLED);
+        if (deltaValue == null || !deltaValue.equals("true")) {
+            return false;
+        }
+        return true;
     }
 }

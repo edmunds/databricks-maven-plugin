@@ -17,12 +17,12 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
+import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.File;
 
 import static org.testng.Assert.fail;
 
@@ -36,12 +36,14 @@ public class ImportWorkspaceMojoTest extends BaseDatabricksMojoTest {
 
         underTest.setDatabricksServiceFactory(databricksServiceFactory);
         underTest.setEnvironment("QA");
+
+        underTest.setPrefixToStrip("com\\.edmunds\\.");
     }
 
     @Test
     public void testImportWorksWithProperPath() throws Exception {
         File workspacePath = new File(this.getClass().getResource("/notebooks")
-            .getPath());
+                .getPath());
         underTest.validate = true;
         underTest.setSourceWorkspacePath(workspacePath);
         Mockito.when(project.getGroupId()).thenReturn("com.edmunds.test");
@@ -57,7 +59,7 @@ public class ImportWorkspaceMojoTest extends BaseDatabricksMojoTest {
     @Test
     public void testImportFailsWithImproperPath() throws Exception {
         File workspacePath = new File(this.getClass().getResource("/notebooks")
-            .getPath());
+                .getPath());
         underTest.validate = true;
         underTest.setSourceWorkspacePath(workspacePath);
         Mockito.when(project.getGroupId()).thenReturn("com.edmunds.nottest");
