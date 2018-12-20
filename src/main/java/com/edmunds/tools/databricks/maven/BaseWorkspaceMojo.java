@@ -68,13 +68,13 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
 
 
     protected String getSourceFullWorkspacePath() {
-        String strippedPrefix = JobTemplateModel.stripCompanyPackage(workspacePrefix);
+        String strippedPrefix = JobTemplateModel.stripCompanyPackage(prefixToStrip, workspacePrefix);
         return Paths.get(sourceWorkspacePath.getPath(), strippedPrefix).toString();
     }
 
     protected String getRemoteFullWorkspacePath() {
         //Seperator should always be "/"
-        String strippedPrefix = JobTemplateModel.stripCompanyPackage(workspacePrefix);
+        String strippedPrefix = JobTemplateModel.stripCompanyPackage(prefixToStrip, workspacePrefix);
         return (packagedWorkspacePath.getPath() + strippedPrefix).replace("\\", "/");
     }
 
@@ -98,7 +98,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
             String remoteFilePath = relativePath + "/" + getBaseName(file.getName());
             getLog().info(String.format("Validating: [%s]", remoteFilePath));
             if (validate) {
-                ValidationUtil.validatePath(remoteFilePath, project.getGroupId(), project.getArtifactId());
+                ValidationUtil.validatePath(remoteFilePath, project.getGroupId(), project.getArtifactId(), prefixToStrip);
             }
         }
     }
@@ -116,7 +116,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
     }
 
     public String getDbWorkspacePath() {
-        return JobTemplateModel.stripCompanyPackage(dbWorkspacePath).replaceAll("\\.", "/");
+        return JobTemplateModel.stripCompanyPackage(prefixToStrip, dbWorkspacePath).replaceAll("\\.", "/");
     }
 
     public void setDbWorkspacePath(String dbWorkspacePath) {

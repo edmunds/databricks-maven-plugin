@@ -50,7 +50,7 @@ public class ValidationUtil {
      * @param artifactId - the projects artifactId
      * @throws MojoExecutionException - thrown when the job name does not conform
      */
-    public static void validatePath(String path, String groupId, String artifactId) throws MojoExecutionException {
+    public static void validatePath(String path, String groupId, String artifactId, String prefixToStrip) throws MojoExecutionException {
 
         //workspace path starts at root, job names do not have '/' prefix
         if (path.startsWith("/")) {
@@ -63,12 +63,12 @@ public class ValidationUtil {
                     "Expected: [groupId/artifactId/...] but found: [%s] parts.", jobNameParts.length));
         }
 
-        validatePart(jobNameParts[0], getStrippedGroupId(groupId, artifactId), GROUP_ID);
+        validatePart(jobNameParts[0], getStrippedGroupId(groupId, artifactId, prefixToStrip), GROUP_ID);
         validatePart(jobNameParts[1], getArtifactId(artifactId), ARTIFACT_ID);
     }
 
-    public static String getStrippedGroupId(String groupId, String artifactId) {
-        return stripCompanyPackage(isMaven(artifactId) ? groupId : getValue(GROUP_ID));
+    public static String getStrippedGroupId(String groupId, String artifactId, String prefixToStrip) {
+        return stripCompanyPackage(prefixToStrip, isMaven(artifactId) ? groupId : getValue(GROUP_ID));
     }
 
     public static String getArtifactId(String artifactId) {

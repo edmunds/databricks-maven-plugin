@@ -33,6 +33,11 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -40,12 +45,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Base class for databricks job mojos.
@@ -117,7 +116,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
         if (StringUtils.isBlank(databricksRepo)) {
             throw new MojoExecutionException("databricksRepo property is missing");
         }
-        return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey);
+        return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
     }
 
     String getJobSettingsFromTemplate(String templateText, JobTemplateModel jobTemplateModel) throws MojoExecutionException {
@@ -177,7 +176,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
             throw new MojoExecutionException("REQUIRED FIELD [email_notifications.on_failure] was empty. VALIDATION FAILED.");
         }
 
-        ValidationUtil.validatePath(settingsDTO.getName(), jobTemplateModel.getGroupWithoutCompany(), jobTemplateModel.getArtifactId());
+        ValidationUtil.validatePath(settingsDTO.getName(), jobTemplateModel.getGroupWithoutCompany(), jobTemplateModel.getArtifactId(), prefixToStrip);
     }
 
     private static String readDefaultJob() {
@@ -244,7 +243,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
         } else if (targetDTO.getEmailNotifications().getOnFailure() == null
                 || targetDTO.getEmailNotifications().getOnFailure().length == 0
-            || StringUtils.isEmpty(targetDTO.getEmailNotifications().getOnFailure()[0])) {
+                || StringUtils.isEmpty(targetDTO.getEmailNotifications().getOnFailure()[0])) {
             targetDTO.getEmailNotifications().setOnFailure(defaultDTO.getEmailNotifications().getOnFailure());
             getLog().info(String.format("%s|set email_notifications.on_failure with %s"
                     , jobName, OBJECT_MAPPER.writeValueAsString(defaultDTO.getEmailNotifications().getOnFailure())));
