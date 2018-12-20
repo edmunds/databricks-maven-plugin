@@ -49,9 +49,9 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      * BUT you can also specify a common prefix here in addition to a bucket,
      * for example:
      * "my-bucket/artifacts"
-     *
+     * <p>
      * This property is not required due to the no project option.
-     *
+     * <p>
      * If both project property and mojo configuration is set, mojo configuration wins.
      */
     @Parameter(name = "databricksRepo", property = "databricks.repo")
@@ -62,9 +62,9 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      * This is an artifact specific key and will by default be the maven style qualifier:
      * groupId/artifactId/version/artifact-version.jar
      */
-    @Parameter(name= "databricksRepoKey", property = "databricks.repo.key",
-        defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}" +
-            ".${project.packaging}")
+    @Parameter(name = "databricksRepoKey", property = "databricks.repo.key",
+            defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}" +
+                    ".${project.packaging}")
     protected String databricksRepoKey;
 
     /**
@@ -114,6 +114,11 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(name = "validate", defaultValue = "true", property = "validate")
     protected boolean validate;
 
+    /**
+     * The value that will be stripped off of the groupId and used in path setting and job names.
+     */
+    @Parameter(name = "prefixToStrip", property = "prefixToStrip", defaultValue = "com\\.edmunds\\.")
+    protected String prefixToStrip;
 
     private DatabricksServiceFactory databricksServiceFactory;
 
@@ -197,7 +202,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
         String modifiedDatabricksRepo = databricksRepo;
         String modifiedDatabricksRepoKey = databricksRepoKey;
         if (databricksRepo.endsWith("/")) {
-            modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length()-1);
+            modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length() - 1);
         }
         if (databricksRepoKey.startsWith("/")) {
             modifiedDatabricksRepoKey = databricksRepoKey.substring(1, databricksRepoKey.length());

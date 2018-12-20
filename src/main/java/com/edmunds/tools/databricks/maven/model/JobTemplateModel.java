@@ -17,14 +17,14 @@
 package com.edmunds.tools.databricks.maven.model;
 
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
 
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
@@ -34,7 +34,6 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 public class JobTemplateModel {
 
     public static final String DEPLOY_VERSION = "deploy-version";
-    public static final String COMPANY_GROUP_PREFIX = "com\\.edmunds\\.";
 
     private Properties projectProperties;
     private Properties systemProperties;
@@ -56,13 +55,13 @@ public class JobTemplateModel {
     }
 
     public JobTemplateModel(MavenProject project,
-                            String environment, String databricksRepo, String databricksRepoKey) {
+                            String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
         this.groupId = project.getGroupId();
         this.artifactId = project.getArtifactId();
         this.projectProperties = project.getProperties();
         this.systemProperties = System.getProperties();
         this.version = defaultString(systemProperties.getProperty(DEPLOY_VERSION), project.getVersion());
-        this.groupWithoutCompany = stripCompanyPackage(project.getGroupId());
+        this.groupWithoutCompany = stripCompanyPackage(prefixToStrip, project.getGroupId());
         this.databricksRepo = databricksRepo;
         this.databricksRepoKey = databricksRepoKey;
         this.environment = environment;
@@ -71,8 +70,8 @@ public class JobTemplateModel {
         projectProperties.setProperty("databricks.repo.key", databricksRepoKey);
     }
 
-    public static String stripCompanyPackage(String path) {
-        return path.replaceAll(COMPANY_GROUP_PREFIX, "");
+    public static String stripCompanyPackage(String prefixToStrip, String path) {
+        return path.replaceAll(prefixToStrip, "");
     }
 
     public Properties getProjectProperties() {
@@ -128,7 +127,7 @@ public class JobTemplateModel {
     }
 
     public static JobTemplateModel loadJobTemplateModelFromFile(File jobTemplateModelFile) throws
-                                                                                          MojoExecutionException {
+            MojoExecutionException {
         if (jobTemplateModelFile == null) {
             throw new MojoExecutionException("jobTemplateModelFile must be set!");
         }

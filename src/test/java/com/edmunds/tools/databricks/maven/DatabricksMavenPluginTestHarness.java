@@ -22,11 +22,10 @@ import com.edmunds.rest.databricks.service.DbfsService;
 import com.edmunds.rest.databricks.service.JobService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.rest.databricks.service.WorkspaceService;
-import org.apache.log4j.Logger;
+import java.io.File;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
 
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -67,8 +66,17 @@ public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMoj
 
     public <T extends BaseDatabricksMojo> T getNoOverridesMojo(String goal) throws Exception {
         File testPom = new File(getBasedir(),
-            String.format("src/test/resources/unit/basic-test/%s/test-no-overrides-plugin-config" +
-                ".xml", goal));
+                String.format("src/test/resources/unit/basic-test/%s/test-no-overrides-plugin-config" +
+                        ".xml", goal));
+        T ret = (T) lookupConfiguredMojo(testPom, goal);
+        ret.setDatabricksServiceFactory(databricksServiceFactory);
+        return ret;
+    }
+
+    public <T extends BaseDatabricksMojo> T getNoOverridesMojo(String goal, String variation) throws Exception {
+        File testPom = new File(getBasedir(),
+                String.format("src/test/resources/unit/basic-test/%s/test-no-overrides-plugin-config%s" +
+                        ".xml", goal, variation));
         T ret = (T) lookupConfiguredMojo(testPom, goal);
         ret.setDatabricksServiceFactory(databricksServiceFactory);
         return ret;
@@ -76,8 +84,8 @@ public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMoj
 
     public <T extends BaseDatabricksMojo> T getMissingMandatoryMojo(String goal) throws Exception {
         File testPom = new File(getBasedir(),
-            String.format("src/test/resources/unit/basic-test/%s/test-missing-mandatory-plugin-config" +
-                ".xml", goal));
+                String.format("src/test/resources/unit/basic-test/%s/test-missing-mandatory-plugin-config" +
+                        ".xml", goal));
 
         T ret = (T) lookupConfiguredMojo(testPom, goal);
         ret.setDatabricksServiceFactory(databricksServiceFactory);
@@ -86,8 +94,8 @@ public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMoj
 
     public <T extends BaseDatabricksMojo> T getOverridesMojo(String goal) throws Exception {
         File testPom = new File(getBasedir(),
-            String.format("src/test/resources/unit/basic-test/%s/test-overrides-plugin-config" +
-                ".xml", goal));
+                String.format("src/test/resources/unit/basic-test/%s/test-overrides-plugin-config" +
+                        ".xml", goal));
         T ret = (T) lookupConfiguredMojo(testPom, goal);
         ret.setDatabricksServiceFactory(databricksServiceFactory);
         return ret;
@@ -95,8 +103,8 @@ public abstract class DatabricksMavenPluginTestHarness extends BetterAbstractMoj
 
     public <T extends BaseDatabricksMojo> T getOverridesMojo(String goal, String variation) throws Exception {
         File testPom = new File(getBasedir(),
-            String.format("src/test/resources/unit/basic-test/%s/test-overrides-plugin-config%s" +
-                ".xml", goal, variation));
+                String.format("src/test/resources/unit/basic-test/%s/test-overrides-plugin-config%s" +
+                        ".xml", goal, variation));
         T ret = (T) lookupConfiguredMojo(testPom, goal);
         ret.setDatabricksServiceFactory(databricksServiceFactory);
         return ret;

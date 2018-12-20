@@ -17,36 +17,45 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
+import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.File;
 
-import static org.testng.Assert.fail;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.times;
 
-public class ImportWorkspaceMojoTest extends BaseDatabricksMojoTest {
+public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private ImportWorkspaceMojo underTest = new ImportWorkspaceMojo();
+
+    private final String GOAL = "import-workspace";
+
+    @BeforeClass
+    public void initClass() throws Exception {
+        super.setUp();
+    }
 
     @BeforeMethod
-    public void init() throws Exception {
-        super.init();
-
-        underTest.setDatabricksServiceFactory(databricksServiceFactory);
-        underTest.setEnvironment("QA");
+    public void beforeMethod() throws Exception {
+        super.beforeMethod();
     }
 
     @Test
     public void testImportWorksWithProperPath() throws Exception {
+        ImportWorkspaceMojo underTest = getNoOverridesMojo(GOAL);
+
         File workspacePath = new File(this.getClass().getResource("/notebooks")
-            .getPath());
+                .getPath());
+
         underTest.validate = true;
         underTest.setSourceWorkspacePath(workspacePath);
-        Mockito.when(project.getGroupId()).thenReturn("com.edmunds.test");
-        Mockito.when(project.getArtifactId()).thenReturn("mycoolartifact");
-        underTest.setProject(project);
+
+        Mockito.verify(libraryService, times(0)).install(Matchers.anyString(), Matchers.any());
 
         underTest.execute();
 
@@ -56,18 +65,37 @@ public class ImportWorkspaceMojoTest extends BaseDatabricksMojoTest {
     // Cannot use expected exceptions with a MojoExecutionException...
     @Test
     public void testImportFailsWithImproperPath() throws Exception {
+
+        ImportWorkspaceMojo underTest = getNoOverridesMojo(GOAL, "_fails_validation");
+
         File workspacePath = new File(this.getClass().getResource("/notebooks")
-            .getPath());
+                .getPath());
         underTest.validate = true;
         underTest.setSourceWorkspacePath(workspacePath);
-        Mockito.when(project.getGroupId()).thenReturn("com.edmunds.nottest");
-        Mockito.when(project.getArtifactId()).thenReturn("mycoolartifact");
-        underTest.setProject(project);
         try {
             underTest.execute();
         } catch (MojoExecutionException e) {
+            assertThat(e.getMessage(), containsString("JOB NAME VALIDATION FAILED [ILLEGAL VALUE]:\n" +
+                    "Expected: [failed-test] but found: [test]"));
             return;
         }
         fail();
+    }
+
+    @Test
+    public void testImportWorksWithProperPathAndOverrides() throws Exception {
+        ImportWorkspaceMojo underTest = getOverridesMojo(GOAL);
+
+        File workspacePath = new File(this.getClass().getResource("/notebooks")
+                .getPath());
+
+        underTest.validate = true;
+        underTest.setSourceWorkspacePath(workspacePath);
+
+        Mockito.verify(libraryService, times(0)).install(Matchers.anyString(), Matchers.any());
+
+        underTest.execute();
+
+        Mockito.verify(workspaceService, Mockito.times(3)).importWorkspace(Mockito.any(ImportWorkspaceRequest.class));
     }
 }
