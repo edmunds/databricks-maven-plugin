@@ -116,6 +116,10 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
 
     /**
      * The value that will be stripped off of the groupId and used in path setting and job names.
+     * <p>
+     * For example: 'com.edmunds' or 'org.myproject'. Keep in mind, this value is a regex, so, '.' should be escaped.
+     * With the default prefixToStrip, if we have a group of 'com.edmunds.tools' the resulting value expected for use in
+     * workspace root and job ids will be 'tools'.
      */
     @Parameter(name = "prefixToStrip", property = "prefixToStrip", defaultValue = "com\\.edmunds\\.")
     protected String prefixToStrip;
