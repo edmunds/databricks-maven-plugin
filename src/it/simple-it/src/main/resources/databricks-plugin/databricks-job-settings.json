@@ -7,7 +7,7 @@
         "first_on_demand": 1,
         "availability": "SPOT_WITH_FALLBACK",
         "zone_id": "us-east-1c",
-        "instance_profile_arn": null,
+        "instance_profile_arn": "${projectProperties['instance.profile.arn']}",
         "spot_bid_price_percent": 100,
         "ebs_volume_type": "GENERAL_PURPOSE_SSD",
         "ebs_volume_count": 1,
@@ -22,6 +22,9 @@
       "enable_elastic_disk": false
     },
     "email_notifications": {
+      "on_failure": [
+        "fake@fake.com"
+      ]
     },
     "existing_cluster_id": null,
     "timeout_seconds": 3600,
@@ -29,7 +32,7 @@
       "parameters": [
         "--class",
         "com.edmunds.HelloWorld",
-        "s3://${projectProperties['databricks.repo']}/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar",
+        "s3://${projectProperties['databricks.repo']}/${projectProperties['databricks.repo.key']}",
         "${projectProperties['build.time']}"
       ]
     },

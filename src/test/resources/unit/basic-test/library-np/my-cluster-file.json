@@ -1,0 +1,4 @@
+{
+  "artifactPath" : "s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar",
+  "clusterNames" : [ "my-test-cluster", "my-other-cluster" ]
+}

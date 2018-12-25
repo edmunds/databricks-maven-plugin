@@ -36,18 +36,29 @@ import static org.apache.commons.lang3.StringUtils.substringAfter;
 /**
  * A base class for workspace mojos.
  */
-//TODO - workspace mojo extends from job mojo. It works, but, seems funny.
-public abstract class BaseWorkspaceMojo extends BaseDatabricksJobMojo {
+public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
 
+    /**
+     * This is the base path where databricks notebooks live in your project.
+     */
     @Parameter(property = "sourceWorkspacePath", required = true, defaultValue = "${project.basedir}/src/main/notebooks")
     protected File sourceWorkspacePath;
 
+    /**
+     * This is where the databricks notebooks are packaged as part of a build.
+     * This should not require changing.
+     */
+    //TODO this property should probably not be changeable
     @Parameter(property = "packagedWorkspacePath", required = true, defaultValue = "${project.build.directory}/notebooks/")
     protected File packagedWorkspacePath;
 
+    //TODO this prefix should not be changeable, and seems repeat of dbWorkspacePath
     @Parameter(property = "workspacePrefix", required = true, defaultValue = "${project.groupId}/${project.artifactId}")
     protected String workspacePrefix;
 
+    /**
+     * This is where the notebooks live in the databricks workspace.
+     */
     @Parameter(property = "dbWorkspacePath", required = true, defaultValue = "/${project.groupId}/${project" +
             ".artifactId}")
     private String dbWorkspacePath;
@@ -57,13 +68,13 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksJobMojo {
 
 
     protected String getSourceFullWorkspacePath() {
-        String strippedPrefix = JobTemplateModel.stripCompanyPackage(workspacePrefix);
+        String strippedPrefix = JobTemplateModel.stripCompanyPackage(prefixToStrip, workspacePrefix);
         return Paths.get(sourceWorkspacePath.getPath(), strippedPrefix).toString();
     }
 
     protected String getRemoteFullWorkspacePath() {
         //Seperator should always be "/"
-        String strippedPrefix = JobTemplateModel.stripCompanyPackage(workspacePrefix);
+        String strippedPrefix = JobTemplateModel.stripCompanyPackage(prefixToStrip, workspacePrefix);
         return (packagedWorkspacePath.getPath() + strippedPrefix).replace("\\", "/");
     }
 
@@ -87,7 +98,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksJobMojo {
             String remoteFilePath = relativePath + "/" + getBaseName(file.getName());
             getLog().info(String.format("Validating: [%s]", remoteFilePath));
             if (validate) {
-                ValidationUtil.validatePath(remoteFilePath, project.getGroupId(), project.getArtifactId());
+                ValidationUtil.validatePath(remoteFilePath, project.getGroupId(), project.getArtifactId(), prefixToStrip);
             }
         }
     }
@@ -105,7 +116,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksJobMojo {
     }
 
     public String getDbWorkspacePath() {
-        return JobTemplateModel.stripCompanyPackage(dbWorkspacePath).replaceAll("\\.", "/");
+        return JobTemplateModel.stripCompanyPackage(prefixToStrip, dbWorkspacePath).replaceAll("\\.", "/");
     }
 
     public void setDbWorkspacePath(String dbWorkspacePath) {

@@ -34,11 +34,24 @@ import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertCluste
 public class ClusterMojo extends BaseDatabricksMojo {
 
     /**
+     * The cluster commands.
+     */
+    public enum ClusterCommand {
+        STOP, START
+    }
+
+    /**
      * This should be a list of cluster names to operate on.
      */
     @Parameter(property = "clusters", required = true)
     private String[] clusters;
 
+    /**
+     * What command to run.<br>
+     *
+     * STOP - stop a cluster.<br>
+     * START - start a cluster.<br>
+     */
     @Parameter(property = "cluster.command", required = true)
     private ClusterCommand command;
 
@@ -67,12 +80,4 @@ public class ClusterMojo extends BaseDatabricksMojo {
             }
         }
     }
-
-    /**
-     * The cluster commands.
-     */
-    public enum ClusterCommand {
-        STOP, START
-    }
-
 }

@@ -29,6 +29,8 @@
         <pmd.skip>true</pmd.skip>
         <cpd.skip>true</cpd.skip>
         <skipTests>true</skipTests>
+        <instance.profile.arn>${env.INSTANCE_PROFILE_ARN}</instance.profile.arn>
+        <environment>QA</environment>
     </properties>
 
     <build>
@@ -58,25 +60,31 @@
                 <groupId>@project.groupId@</groupId>
                 <artifactId>@project.artifactId@</artifactId>
                 <version>@project.version@</version>
+                <configuration>
+                    <databricksRepo>${env.DB_REPO}</databricksRepo>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepackage</id>
                         <phase>prepare-package</phase>
                         <goals>
-                            <goal>prepare-db-resources</goal>
+                            <goal>prepare-job-resources</goal>
+                            <goal>prepare-workspace-resources</goal>
+                            <goal>prepare-library-resources</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>deploy-version</id>
-                        <phase>deploy</phase>
+                        <id>install-version</id>
+                        <phase>install</phase>
                         <goals>
+                            <goal>upload-to-s3</goal>
                             <goal>upsert-job</goal>
                             <goal>job</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>import-workspace</id>
-                        <phase>deploy</phase>
+                        <phase>install</phase>
                         <goals>
                             <goal>import-workspace</goal>
                         </goals>
@@ -86,7 +94,7 @@
                     </execution>
                     <execution>
                         <id>export-workspace</id>
-                        <phase>deploy</phase>
+                        <phase>install</phase>
                         <goals>
                             <goal>workspace-tool</goal>
                         </goals>

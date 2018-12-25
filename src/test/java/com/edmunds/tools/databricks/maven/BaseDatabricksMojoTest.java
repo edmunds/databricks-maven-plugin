@@ -83,7 +83,7 @@ public class BaseDatabricksMojoTest extends PowerMockTestCase {
         when(project.getGroupId()).thenReturn("com.edmunds.test");
         when(project.getArtifactId()).thenReturn("mycoolartifact");
         Properties properties = new Properties() {{
-            put("databricks.repo", "bucket-name/artifacts");
+            put("databricks.repo", "bucket-name");
         }};
         when(project.getProperties()).thenReturn(properties);
         when(artifact.getArtifactId()).thenReturn("mycoolartifact");

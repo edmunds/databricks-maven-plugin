@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils
 
 //TODO couldn't use the Environment class here?
 def databricksServiceFactory = DatabricksServiceFactory.Builder
-        .createServiceFactoryWithUserPasswordAuthentication(System.getenv("DB_USER"), System.getenv("DB_PASSWORD"), System.getenv("DB_URL")).build();
+        .createUserPasswordAuthentication(System.getenv("DB_USER"), System.getenv("DB_PASSWORD"), System.getenv("DB_URL")).build();
 def jobService = databricksServiceFactory.getJobService()
 def databricksIntegrationTestJobName = "bde.tools.integration-test/databricks-maven-plugin-stream-it/QA"
 
@@ -51,7 +51,8 @@ private JobDTO validateJob(JobService jobService, String databricksIntegrationTe
 
     def jarPath = parameters[parameters.length - 2]
 
-    assert jarPath == "s3://bucket-name/artifacts/com.edmunds.bde.tools.integration-test/databricks-maven-plugin-stream-it/1.0-SNAPSHOT/databricks-maven-plugin-stream-it-1.0-SNAPSHOT.jar"
+    def repoPath = System.getenv("DB_REPO")
+    assert jarPath == "s3://" + repoPath + "/com.edmunds.bde.tools.integration-test/databricks-maven-plugin-stream-it/1.0-SNAPSHOT/databricks-maven-plugin-stream-it-1.0-SNAPSHOT.jar"
 
     /**
      * We set a build time property in the pom, that passes through to the job config, which passes through to databricks.

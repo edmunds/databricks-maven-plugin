@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -59,19 +58,20 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
     protected static final ObjectMapper OBJECT_MAPPER = ObjectMapperUtils.getObjectMapper();
 
+    /**
+     * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
+     */
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-job-settings.json", property = "dbJobFile")
     protected File dbJobFile;
 
+    /**
+     * If true, any command that involves working by databricks job name, will fail if more then one job exists
+     * with that job name.
+     */
     @Parameter(property = "failOnDuplicateJobName")
     boolean failOnDuplicateJobName = true;
 
     public final static String MODEL_FILE_NAME = "job-template-model.json";
-
-    @Parameter(property = "jobTemplateModelFile", defaultValue = "${project.build.directory}/databricks-plugin/" + MODEL_FILE_NAME)
-    protected File jobTemplateModelFile;
-
-    @Parameter(property = "isLocalBuild", defaultValue = "true")
-    protected boolean isLocalBuild = true;
 
     Long getJobId(String jobName) throws MojoExecutionException {
         try {
@@ -112,27 +112,11 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
         return stringWriter.toString();
     }
 
-    JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
-        try {
-            JobTemplateModel jobTemplateModel;
-            if (jobTemplateModelFile.exists()) {
-                String jobTemplateModelJson = FileUtils.readFileToString(jobTemplateModelFile);
-                jobTemplateModel = ObjectMapperUtils.deserialize(jobTemplateModelJson, JobTemplateModel.class);
-            } else {
-                if (isLocalBuild) {
-                    jobTemplateModel = new JobTemplateModel(project);
-                } else {
-                    throw new MojoExecutionException(String.format("[%s] file was not found in the build. Please ensure prepare-package was ran during build.", MODEL_FILE_NAME));
-                }
-            }
-
-            // [BDD-3114] - we want the current environment, to honor what was passed into the build, and not what was serialized [SAE]
-            jobTemplateModel.setEnvironment(environment);
-
-            return jobTemplateModel;
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getMessage(), e);
+    protected JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
+        if (StringUtils.isBlank(databricksRepo)) {
+            throw new MojoExecutionException("databricksRepo property is missing");
         }
+        return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
     }
 
     String getJobSettingsFromTemplate(String templateText, JobTemplateModel jobTemplateModel) throws MojoExecutionException {
@@ -192,7 +176,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
             throw new MojoExecutionException("REQUIRED FIELD [email_notifications.on_failure] was empty. VALIDATION FAILED.");
         }
 
-        ValidationUtil.validatePath(settingsDTO.getName(), jobTemplateModel.getGroupWithoutCompany(), jobTemplateModel.getArtifactId());
+        ValidationUtil.validatePath(settingsDTO.getName(), jobTemplateModel.getGroupWithoutCompany(), jobTemplateModel.getArtifactId(), prefixToStrip);
     }
 
     private static String readDefaultJob() {
@@ -258,6 +242,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
                     , jobName, OBJECT_MAPPER.writeValueAsString(defaultDTO.getEmailNotifications())));
 
         } else if (targetDTO.getEmailNotifications().getOnFailure() == null
+                || targetDTO.getEmailNotifications().getOnFailure().length == 0
                 || StringUtils.isEmpty(targetDTO.getEmailNotifications().getOnFailure()[0])) {
             targetDTO.getEmailNotifications().setOnFailure(defaultDTO.getEmailNotifications().getOnFailure());
             getLog().info(String.format("%s|set email_notifications.on_failure with %s"
@@ -346,9 +331,4 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
         }
 
     }
-
-    void setJobTemplateModelFile(File jobTemplateModelFile) {
-        this.jobTemplateModelFile = jobTemplateModelFile;
-    }
-
 }

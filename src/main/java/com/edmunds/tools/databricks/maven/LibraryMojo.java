@@ -26,12 +26,12 @@ import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.tools.databricks.maven.model.LibraryClustersModel;
 import com.google.common.util.concurrent.Uninterruptibles;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -49,12 +49,34 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * It will return the cluster to it's original state when complete.
  */
 @Mojo(name = "library", requiresProject = true)
-public class LibraryMojo extends PrepareLibraryResources {
+public class LibraryMojo extends BaseLibraryMojo {
 
     private static final int SLEEP_TIME_MS = 200;
 
-    @Parameter(property = "library.command", required = true)
-    private LibraryCommand command;
+    /**
+     * The library commands.
+     */
+    public enum LibraryCommand {
+        INSTALL, UNINSTALL, STATUS
+    }
+
+    /**
+     * The library command to execute.<br>
+     *
+     * INSTALL - installs a library to a cluster. It will restart a cluster if necessary.<br>
+     * UNINSTALL - removes a library from a cluster. It will restart a cluster if necessary.<br>
+     * STATUS - the status of libraries on a cluster.<br>
+     */
+    @Parameter(name = "libraryCommand", property = "library.command", required = true)
+    private LibraryCommand libraryCommand;
+
+    /**
+     * If set to true (default), the cluster will be restarted in order for the new library to immediately take effect.
+     * If set to false, the cluster will not be restarted which means that in order for new library to be installed,
+     * manual restart is necessary.
+     */
+    @Parameter(property = "restart", required = false, defaultValue = "true")
+    private boolean restart;
 
     public void execute() throws MojoExecutionException {
 
@@ -62,17 +84,22 @@ public class LibraryMojo extends PrepareLibraryResources {
         ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
 
         LibraryClustersModel libraryClustersModel = getLibraryClustersModel();
+        if (libraryClustersModel == null) {
+            return;
+        }
+
         String artifactPath = libraryClustersModel.getArtifactPath();
 
         for (String clusterId : convertClusterNamesToIds(clusterService, libraryClustersModel.getClusterNames())) {
             try {
 
-                getLog().debug(String.format("preparing to run command [%s] artifact on path: [%s] to cluster id: [%s]", command, artifactPath, clusterId));
+                getLog().debug(String.format("preparing to run command [%s] artifact on path: [%s] to cluster id: " +
+                    "[%s]", libraryCommand, artifactPath, clusterId));
 
-                switch (command) {
+                switch (libraryCommand) {
                     case INSTALL:
                     case UNINSTALL:
-                        runCommand(artifactPath, clusterId, command, clusterService, libraryService);
+                        runCommand(artifactPath, clusterId, libraryCommand, clusterService, libraryService);
                         break;
                     case STATUS:
                         listLibraryStatus(clusterId, libraryService);
@@ -81,7 +108,7 @@ public class LibraryMojo extends PrepareLibraryResources {
                         throw new IllegalStateException("No valid library command was found.");
                 }
             } catch (DatabricksRestException | IOException e) {
-                throw new MojoExecutionException(String.format("Could not [%s] library: [%s] to [%s]", command, artifactPath, clusterId), e);
+                throw new MojoExecutionException(String.format("Could not [%s] library: [%s] to [%s]", libraryCommand, artifactPath, clusterId), e);
             }
         }
 
@@ -111,8 +138,7 @@ public class LibraryMojo extends PrepareLibraryResources {
             }
 
             listLibraryStatus(clusterId, libraryService);
-
-            manageClusterState(clusterId, originalState, clusterService);
+            manageClusterState(clusterId, originalState, clusterService, restart);
         } else {
             getLog().warn(String.format("skipping install for non-jar artifact: [%s]", project.getArtifact()));
         }
@@ -130,17 +156,26 @@ public class LibraryMojo extends PrepareLibraryResources {
      * @param clusterId      - the cluster id we're working on
      * @param originalState  - the state the cluster was in prior to this mojo
      * @param clusterService
+     * @param - whether to restart the cluster
      */
-    private void manageClusterState(String clusterId, ClusterStateDTO originalState, ClusterService clusterService) throws
+    private void manageClusterState(String clusterId, ClusterStateDTO originalState, ClusterService clusterService,
+                                    boolean restart) throws
             IOException, DatabricksRestException {
         switch (originalState) {
             case PENDING:
             case RESTARTING:
             case RESIZING:
             case RUNNING:
-                restartCluster(clusterId, clusterService);
+                if (restart) {
+                    getLog().info("Restarting cluster!");
+                    restartCluster(clusterId, clusterService);
+                } else {
+                    getLog().info("restart set to false. Users need to restart cluster in order for new library to take " +
+                        "effect");
+                }
                 break;
             default:
+                getLog().info("Stopping cluster to return cluster to its initial state.");
                 stopCluster(clusterId, clusterService);
                 break;
         }
@@ -213,12 +248,4 @@ public class LibraryMojo extends PrepareLibraryResources {
         lib.setJar(artifactPath);
         return new LibraryDTO[]{lib};
     }
-
-    /**
-     * The library commands.
-     */
-    public enum LibraryCommand {
-        INSTALL, UNINSTALL, STATUS
-    }
-
 }

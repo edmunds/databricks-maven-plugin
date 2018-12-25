@@ -33,6 +33,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "export-job", requiresProject = true)
 public class ExportJobMojo extends BaseDatabricksMojo {
 
+    /**
+     * The databricks job name to export.
+     */
     @Parameter(property = "jobName", required = true)
     private String jobName;
 
