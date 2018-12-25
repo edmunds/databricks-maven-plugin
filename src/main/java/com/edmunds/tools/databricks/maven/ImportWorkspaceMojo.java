@@ -68,7 +68,7 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
             for (File file : files) {
                 // e.g. the path under the local root, not the full path to it
                 String relativePath = substringAfter(file.getParentFile().getPath(), workspacePath.getPath())
-                    .replaceAll("\\.", "/");
+                    .replaceAll("[.\\\\]", "/");
                 String remoteFilePath = relativePath + "/" + getBaseName(file.getName());
 
                 createRemoteDir(relativePath);
