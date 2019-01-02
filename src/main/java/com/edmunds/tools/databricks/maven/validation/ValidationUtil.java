@@ -52,6 +52,7 @@ public class ValidationUtil {
      */
     public static void validatePath(String path, String groupId, String artifactId, String prefixToStrip) throws MojoExecutionException {
 
+        path = path.replace('\\', '/');
         //workspace path starts at root, job names do not have '/' prefix
         if (path.startsWith("/")) {
             path = path.substring(1);
