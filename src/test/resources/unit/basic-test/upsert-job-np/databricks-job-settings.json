@@ -1,7 +1,7 @@
 [
   {
     "email_notifications": {
-      "on_failure": ["myfakeemail.com"]
+      "on_failure": ["${environment}.com"]
     },
     "spark_jar_task": {
       "main_class_name": "",

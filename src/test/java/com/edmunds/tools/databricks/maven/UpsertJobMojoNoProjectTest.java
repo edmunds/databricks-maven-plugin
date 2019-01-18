@@ -98,16 +98,29 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
 
         JobSettingsDTO[] jobSettingsDTOS = underTest.buildJobSettingsDTOsWithDefault();
         assertThat(jobSettingsDTOS.length, is(1));
+        assertThat(jobSettingsDTOS[0].getEmailNotifications().getOnFailure(), is(new String[]{"QA.com"}));
         assertThat(jobSettingsDTOS[0].getName(), is("dwh/inventory-databricks"));
         assertThat(jobSettingsDTOS[0].getLibraries()[0].getJar(), is
             ("s3://edmunds-repos/artifacts/com.edmunds" +
                 ".dwh/inventory-databricks/1.1.182-SNAPSHOT/inventory-databricks-1.1.182-SNAPSHOT" +
                 ".jar"));
 
-        assert(jobSettingsDTOS.length == 1);
         ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
         verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
         assertEquals(jobSettingsDTOS[0], jobCaptor.getValue());
+    }
+
+    @Test
+    public void execute_whenJobFileAndTemplateExistsAndEnvironmentIsProd_upsertsJob() throws Exception {
+        UpsertJobMojoNoProject underTest = getOverridesMojo(GOAL, "-prod");
+        Mockito.when(jobService.getJobByName("dwh/inventory-databricks", true)).thenReturn(createJobDTO
+            ("dwh/inventory-databricks", 1));
+
+        underTest.execute();
+
+        JobSettingsDTO[] jobSettingsDTOS = underTest.buildJobSettingsDTOsWithDefault();
+        assertThat(jobSettingsDTOS.length, is(1));
+        assertThat(jobSettingsDTOS[0].getEmailNotifications().getOnFailure(), is(new String[]{"PROD.com"}));
     }
 
     private JobDTO createJobDTO(String jobName, long jobId) {
