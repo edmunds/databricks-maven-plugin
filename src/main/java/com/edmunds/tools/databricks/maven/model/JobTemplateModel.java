@@ -40,7 +40,7 @@ public class JobTemplateModel {
     private String groupId;
     private String artifactId;
     private String version;
-    // TODO This property should not be persisted with the template model
+    //This must be in this file due to reliance on this variable for freemarker
     private String environment;
     private String groupWithoutCompany;
     // The rationale for persisting these properties is because a deployed artifact will already have been deployed
