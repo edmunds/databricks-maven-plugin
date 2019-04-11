@@ -1,0 +1,40 @@
+[
+  {
+    "num_workers": 1,
+    "cluster_name": "my-cluster",
+    "spark_version": "5.2.x-scala2.11",
+    "aws_attributes": {
+      "first_on_demand": 1,
+      "availability": "SPOT_WITH_FALLBACK",
+      "zone_id": "us-east-1c",
+      "instance_profile_arn": "yourArn",
+      "spot_bid_price_percent": 50,
+      "ebs_volume_type": "GENERAL_PURPOSE_SSD",
+      "ebs_volume_count": 1,
+      "ebs_volume_size": 100
+    },
+    "node_type_id": "m4.large",
+    "autotermination_minutes": 10,
+    "artifact_paths": [
+      "s3://bucket-name/artifacts/com.company.project/my-artifact-name/1.0.132/my-artifact-name-1.0.132.jar",
+      "dbfs:/Libs/jars/app_sdk_0_1_2-345.jar"
+    ]
+  },
+  {
+    "num_workers": 1,
+    "cluster_name": "my-cluster-2",
+    "spark_version": "5.2.x-scala2.11",
+    "aws_attributes": {
+      "first_on_demand": 1,
+      "availability": "SPOT_WITH_FALLBACK",
+      "zone_id": "us-east-1c",
+      "instance_profile_arn": "yourArn",
+      "spot_bid_price_percent": 50,
+      "ebs_volume_type": "GENERAL_PURPOSE_SSD",
+      "ebs_volume_count": 1,
+      "ebs_volume_size": 100
+    },
+    "node_type_id": "m4.large",
+    "autotermination_minutes": 10
+  }
+]

@@ -52,7 +52,7 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
         underTest.execute();
     }
 
-    @Test
+    //@Test
     public void createArtifactPath_WithOverrides_succeeds() throws Exception {
         PrepareLibraryResources underTest = getOverridesMojo(GOAL);
         underTest.execute();

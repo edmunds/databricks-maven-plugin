@@ -219,7 +219,28 @@ mvn databricks:job -Djob.command=START
 mvn databricks:job -Djob.command=RESTART
 ```
 
-
+### Use Case 6 - Control a Cluster (start, stop, upsert)
+You can control a cluster (stop it, start it, create it or recreate) via this mojo. 
+```bash
+mvn databricks:cluster -Djob.command=STOP
+mvn databricks:cluster -Djob.command=START
+```
+To upsert cluster you should call the following command:
+```bash
+mvn databricks:upsert-cluster
+```
+By default cluster config should be located at
+```bash
+${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings-test.json
+```
+but you can override the location:
+```bash
+mvn databricks:upsert-cluster -DdbClusterFile=${project.build.resources[0].directory}/my.json
+```
+Also you can specify whether to fail if cluster with the same name already exists:
+```bash
+mvn databricks:upsert-cluster -DfailOnClusterExists=false
+```
 
 ## Building, Installing and Running
 
