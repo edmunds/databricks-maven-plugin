@@ -52,15 +52,15 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
         underTest.execute();
     }
 
-    //@Test
+    @Test
     public void createArtifactPath_WithOverrides_succeeds() throws Exception {
         PrepareLibraryResources underTest = getOverridesMojo(GOAL);
         underTest.execute();
 
-        String expected = "{\n" +
-            "  \"artifactPath\" : \"s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar\",\n" +
-            "  \"clusterNames\" : [ \"my-test-cluster\", \"my-other-cluster\" ]\n" +
-            "}";
+        String expected = String.format("{%n" +
+                "  \"artifactPath\" : \"s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar\",%n" +
+                "  \"clusterNames\" : [ \"my-test-cluster\", \"my-other-cluster\" ]%n" +
+                "}");
 
         String actual = FileUtils.readFileToString(underTest.libaryMappingFileOutput);
 
