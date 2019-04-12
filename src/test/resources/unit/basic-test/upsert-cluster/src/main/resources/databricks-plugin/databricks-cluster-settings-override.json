@@ -14,6 +14,9 @@
       "ebs_volume_size": 100
     },
     "node_type_id": "m4.large",
-    "autotermination_minutes": 10
+    "autotermination_minutes": 10,
+    "spark_env_vars": {
+      "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+    }
   }
 ]

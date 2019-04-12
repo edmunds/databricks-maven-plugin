@@ -14,10 +14,14 @@
       "ebs_volume_size": 100
     },
     "node_type_id": "m4.large",
+    "spark_env_vars": {
+      "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+    },
     "autotermination_minutes": 10,
     "artifact_paths": [
       "s3://bucket-name/artifacts/com.company.project/my-artifact-name/1.0.132/my-artifact-name-1.0.132.jar",
-      "dbfs:/Libs/jars/app_sdk_0_1_2-345.jar"
+      "dbfs:/Libs/jars/app_sdk_0_1_2-345.jar",
+      "dbfs:/Libs/wars/app_1_3_2.war"
     ]
   },
   {
@@ -35,6 +39,9 @@
       "ebs_volume_size": 100
     },
     "node_type_id": "m4.large",
-    "autotermination_minutes": 10
+    "autotermination_minutes": 10,
+    "spark_env_vars": {
+      "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+    }
   }
 ]

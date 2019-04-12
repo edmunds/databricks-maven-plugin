@@ -22,7 +22,6 @@ import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,12 +31,15 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
  * Cluster mojo, to perform databricks cluster upsert (create or update through recreation).
@@ -45,7 +47,6 @@ import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertCluste
 @Mojo(name = "upsert-cluster")
 public class UpsertClusterMojo extends BaseDatabricksMojo {
 
-    private static final ObjectMapper OBJECT_MAPPER = ObjectMapperUtils.getObjectMapper();
     private static final Map<String, String> SPARK_ENV_VARS = new HashMap<String, String>() {{
         put("PYSPARK_PYTHON", "/databricks/python3/bin/python3");
     }};
@@ -65,48 +66,63 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
     public void execute() throws MojoExecutionException {
         ClusterTemplateModel[] cts;
         try {
-            cts = OBJECT_MAPPER.readValue(dbClusterFile, ClusterTemplateModel[].class);
+            cts = ObjectMapperUtils.deserialize(dbClusterFile, ClusterTemplateModel[].class);
         } catch (IOException e) {
-            throw new MojoExecutionException("Failed to parse config", e);
+            String config = dbClusterFile.getName();
+            try {
+                config = new String(Files.readAllBytes(Paths.get(dbClusterFile.toURI())));
+            } catch (IOException e1) {
+            }
+            throw new MojoExecutionException("Failed to parse config: " + config, e);
         }
 
         for (ClusterTemplateModel ct : cts) {
             ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
             String clusterId = convertClusterNamesToIds(clusterService, Collections.singletonList(ct.getClusterName()))
-                    .stream().findFirst().orElse(StringUtils.EMPTY);
+                    .stream().findFirst().orElse(EMPTY);
 
             CreateClusterRequest request = new CreateClusterRequest.CreateClusterRequestBuilder(
                     ct.getNumWorkers(), ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
                     .withAwsAttributes(ct.getAwsAttributes())
-                    .withAutoterminationMinutes(ct.getAutoterminationMinutes())
+                    .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
                     .withSparkEnvVars(SPARK_ENV_VARS)
                     .build();
 
-            String logMessage = String.format("Creating cluster: name=[%s]", ct.getClusterName());
+            String logMessage = EMPTY;
             try {
-                if (StringUtils.isNotEmpty(clusterId)) {
+                // create new cluster
+                if (StringUtils.isEmpty(clusterId)) {
+                    logMessage = String.format("Creating cluster: name=[%s]", ct.getClusterName());
+                    getLog().info(logMessage);
+                    clusterId = clusterService.create(request);
+                    attachLibraries(ct, clusterId);
+                }
+                // update existing cluster
+                else {
                     logMessage = String.format("Updating cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId);
+                    getLog().info(logMessage);
                     if (failOnClusterExists) {
                         throw new MojoExecutionException("Exception while " + logMessage + ". Cluster already exists");
                     }
-                }
-                getLog().info(logMessage);
-                if (StringUtils.isNotEmpty(clusterId)) {
                     //note that delete is an alias to terminate: https://docs.databricks.com/api/latest/clusters.html#delete-terminate
                     clusterService.delete(clusterId);
-                }
-                clusterId = clusterService.create(request);
-
-                getLog().info(String.format("Attaching libraries to the cluster: name=[%s], id=[%s], libs=[%s]",
-                        ct.getClusterName(), clusterId, ct.getArtifactPaths()));
-                LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
-                LibraryDTO[] libs = getLibraryDTO(ct.getArtifactPaths());
-                if (ArrayUtils.isNotEmpty(libs)) {
-                    libraryService.install(clusterId, libs);
+                    clusterId = clusterService.create(request);
+                    attachLibraries(ct, clusterId);
                 }
             } catch (DatabricksRestException | IOException e) {
-                throw new MojoExecutionException("Exception while " + logMessage, e);
+                throw new MojoExecutionException("Exception while " + logMessage + ". ClusterTemplateModel=" + ct, e);
             }
+
+        }
+    }
+
+    private void attachLibraries(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException {
+        getLog().info(String.format("Attaching libraries to the cluster: name=[%s], id=[%s], libs=[%s]",
+                ct.getClusterName(), clusterId, ct.getArtifactPaths()));
+        LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
+        LibraryDTO[] libs = getLibraryDTO(ct.getArtifactPaths());
+        if (ArrayUtils.isNotEmpty(libs)) {
+            libraryService.install(clusterId, libs);
         }
     }
 
@@ -118,6 +134,10 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         LibraryDTO[] libs = new LibraryDTO[artifactPaths.size()];
         int i = 0;
         for (String artifactPath : artifactPaths) {
+            if (!artifactPath.endsWith(".jar")) {
+                getLog().error("Cannot attach library " + artifactPath + " - only .jar files supported");
+                continue;
+            }
             LibraryDTO lib = new LibraryDTO();
             lib.setJar(artifactPath);
             libs[i++] = lib;

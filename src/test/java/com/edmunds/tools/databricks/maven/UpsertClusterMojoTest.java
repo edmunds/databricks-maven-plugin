@@ -100,6 +100,26 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
         assertThat(underTest.failOnClusterExists, is(false));
     }
 
+    @Test(expectedExceptions = MojoExecutionException.class,
+            expectedExceptionsMessageRegExp = "Failed to parse config.*\"cluster_name\": \"my-cluster-malformed\".*")
+    public void test_executeWithOverride_malformedConfigException() throws Exception {
+        underTest = getOverridesMojo(GOAL, "-malformed");
+        assertTrue(underTest.dbClusterFile.getPath().endsWith("databricks-cluster-settings-malformed.json"));
+        assertThat(underTest.failOnClusterExists, is(false));
+
+        underTest.execute();
+    }
+
+    @Test(expectedExceptions = MojoExecutionException.class,
+            expectedExceptionsMessageRegExp = "Failed to parse config: databricks-cluster-settings-missing.json")
+    public void test_executeWithOverride_badConfigPathException() throws Exception {
+        underTest = getOverridesMojo(GOAL, "-missing");
+        assertTrue(underTest.dbClusterFile.getPath().endsWith("databricks-cluster-settings-missing.json"));
+        assertThat(underTest.failOnClusterExists, is(false));
+
+        underTest.execute();
+    }
+
     private ClusterInfoDTO createClusterInfoDTO() {
         ClusterInfoDTO clusterInfoDTO = new ClusterInfoDTO();
         clusterInfoDTO.setClusterName("my-cluster");

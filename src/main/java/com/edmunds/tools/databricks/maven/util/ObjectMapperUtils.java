@@ -20,6 +20,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -36,6 +38,10 @@ public class ObjectMapperUtils {
      */
     public static <T> T deserialize(String json, Class<T> clazz) throws IOException {
         return OBJECT_MAPPER.readValue(json, clazz);
+    }
+
+    public static <T> T deserialize(File file, Class<T> clazz) throws IOException {
+        return OBJECT_MAPPER.readValue(file, clazz);
     }
 
     public static String serialize(Object obj) throws JsonProcessingException {
