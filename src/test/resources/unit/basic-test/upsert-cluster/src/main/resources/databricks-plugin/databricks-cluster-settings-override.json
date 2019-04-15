@@ -17,6 +17,16 @@
     "autotermination_minutes": 10,
     "spark_env_vars": {
       "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
-    }
+    },
+    "driver_node_type_id": "m4.large",
+    "spark_conf": {
+      "spark.databricks.delta.preview.enabled": "true",
+      "spark.driver.maxResultSize": "2g"
+    },
+    "cluster_log_conf": {},
+    "custom_tags": {
+      "tag": "value"
+    },
+    "ssh_public_keys": ["ssh_key1", "ssh_key2"]
   }
 ]

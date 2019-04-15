@@ -15,6 +15,7 @@
  */
 package com.edmunds.tools.databricks.maven;
 
+import com.edmunds.rest.databricks.DTO.ClusterTagDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
@@ -23,6 +24,7 @@ import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -35,7 +37,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
@@ -46,10 +47,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
  */
 @Mojo(name = "upsert-cluster")
 public class UpsertClusterMojo extends BaseDatabricksMojo {
-
-    private static final Map<String, String> SPARK_ENV_VARS = new HashMap<String, String>() {{
-        put("PYSPARK_PYTHON", "/databricks/python3/bin/python3");
-    }};
 
     /**
      * The databricks cluster json file that contains all of the information for how to create databricks cluster.
@@ -81,11 +78,20 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
             String clusterId = convertClusterNamesToIds(clusterService, Collections.singletonList(ct.getClusterName()))
                     .stream().findFirst().orElse(EMPTY);
 
-            CreateClusterRequest request = new CreateClusterRequest.CreateClusterRequestBuilder(
+            // setting mandatory fields
+            CreateClusterRequest.CreateClusterRequestBuilder requestBuilder = new CreateClusterRequest.CreateClusterRequestBuilder(
                     ct.getNumWorkers(), ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
                     .withAwsAttributes(ct.getAwsAttributes())
                     .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
-                    .withSparkEnvVars(SPARK_ENV_VARS)
+                    .withSparkEnvVars(ct.getSparkEnvVars());
+
+            // setting optional fields
+            CreateClusterRequest request = requestBuilder
+                    .withDriverNodeTypeId(ct.getDriverNodeTypeId())
+                    .withSparkConf(ct.getSparkConf())
+                    .withClusterLogConf(ct.getClusterLogConf())
+                    .withCustomTags(convertCustomTags(ct.getCustomTags()))
+                    .withSshPublicKeys(ct.getSshPublicKeys())
                     .build();
 
             String logMessage = EMPTY;
@@ -143,6 +149,20 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
             libs[i++] = lib;
         }
         return libs;
+    }
+
+    // TODO ClusterAttributesDTO.customTags - change type from Map<String, String> to ClusterTagDTO[]
+    private ClusterTagDTO[] convertCustomTags(Map<String, String> customTags) {
+        if (MapUtils.isEmpty(customTags)) {
+            return new ClusterTagDTO[]{};
+        }
+        return customTags.entrySet().stream()
+                .map(entry -> {
+                    ClusterTagDTO ct = new ClusterTagDTO();
+                    ct.setKey(entry.getKey());
+                    ct.setValue(entry.getValue());
+                    return ct;
+                }).toArray(ClusterTagDTO[]::new);
     }
 
 }

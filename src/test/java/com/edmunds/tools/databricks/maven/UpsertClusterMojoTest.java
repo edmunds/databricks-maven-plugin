@@ -2,6 +2,8 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
 import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
+import com.edmunds.rest.databricks.DTO.ClusterLogConfDTO;
+import com.edmunds.rest.databricks.DTO.ClusterTagDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -128,6 +130,7 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
     }
 
     private void assertCreateClusterRequestEquality(ArgumentCaptor<CreateClusterRequest> reqCaptor, Collection<String> clusterNames) {
+        // mandatory params
         Map<String, Object> reqData = reqCaptor.getValue().getData();
         assertEquals(1, reqData.get("num_workers"));
         assertTrue(clusterNames.contains(reqData.get("cluster_name")));
@@ -145,6 +148,20 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
         Map<String, String> sparkEnvVars = (Map<String, String>) reqData.get("spark_env_vars");
         assertEquals("/databricks/python3/bin/python3", sparkEnvVars.get("PYSPARK_PYTHON"));
         assertEquals(10, reqData.get("autotermination_minutes"));
+        // optional params
+        assertEquals("m4.large", reqData.get("driver_node_type_id"));
+        Map<String, String> sparkConf = (Map<String, String>) reqData.get("spark_conf");
+        assertEquals("true", sparkConf.get("spark.databricks.delta.preview.enabled"));
+        assertEquals("2g", sparkConf.get("spark.driver.maxResultSize"));
+        ClusterLogConfDTO clusterLogConf = (ClusterLogConfDTO) reqData.get("cluster_log_conf");
+        assertNull(clusterLogConf.getDbfs());
+        assertNull(clusterLogConf.getS3());
+        ClusterTagDTO[] customTags = (ClusterTagDTO[]) reqData.get("custom_tags");
+        assertEquals("tag", customTags[0].getKey());
+        assertEquals("value", customTags[0].getValue());
+        String[] sshPublicKeys = (String[]) reqData.get("ssh_public_keys");
+        assertEquals("ssh_key1", sshPublicKeys[0]);
+        assertEquals("ssh_key2", sshPublicKeys[1]);
     }
 
     private void assertLibraryDTOEquality(LibraryDTO libDTO, String jar) {
