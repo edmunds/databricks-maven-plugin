@@ -15,10 +15,13 @@
  */
 package com.edmunds.tools.databricks.maven;
 
+import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
 import com.edmunds.rest.databricks.DTO.ClusterTagDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
+import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
+import com.edmunds.rest.databricks.request.EditClusterRequest;
 import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
@@ -35,9 +38,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -53,12 +59,6 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
      */
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json", property = "dbClusterFile")
     protected File dbClusterFile;
-
-    /**
-     * If true, command will fail if cluster with specified name already exists.
-     */
-    @Parameter(property = "failOnClusterExists")
-    protected boolean failOnClusterExists = true;
 
     public void execute() throws MojoExecutionException {
         ClusterTemplateModel[] cts;
@@ -101,38 +101,89 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
                     logMessage = String.format("Creating cluster: name=[%s]", ct.getClusterName());
                     getLog().info(logMessage);
                     clusterId = clusterService.create(request);
-                    attachLibraries(ct, clusterId);
+                    attachLibraries(ct, clusterId, getLibrariesToInstall(ct.getArtifactPaths()));
                 }
                 // update existing cluster
                 else {
                     logMessage = String.format("Updating cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId);
                     getLog().info(logMessage);
-                    if (failOnClusterExists) {
-                        throw new MojoExecutionException("Exception while " + logMessage + ". Cluster already exists");
-                    }
-                    //note that delete is an alias to terminate: https://docs.databricks.com/api/latest/clusters.html#delete-terminate
-                    clusterService.delete(clusterId);
-                    clusterId = clusterService.create(request);
-                    attachLibraries(ct, clusterId);
+
+                    LibraryDTO[] libsToInstall = getLibrariesToInstall(ct.getArtifactPaths());
+                    detachLibraries(ct, clusterId, libsToInstall);
+                    startCluster(ct, clusterId);
+                    attachLibraries(ct, clusterId, libsToInstall);
+                    editCluster(ct, clusterId);
                 }
-            } catch (DatabricksRestException | IOException e) {
+            } catch (DatabricksRestException | IOException | InterruptedException e) {
                 throw new MojoExecutionException("Exception while " + logMessage + ". ClusterTemplateModel=" + ct, e);
             }
 
         }
     }
 
-    private void attachLibraries(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException {
-        getLog().info(String.format("Attaching libraries to the cluster: name=[%s], id=[%s], libs=[%s]",
-                ct.getClusterName(), clusterId, ct.getArtifactPaths()));
-        LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
-        LibraryDTO[] libs = getLibraryDTO(ct.getArtifactPaths());
-        if (ArrayUtils.isNotEmpty(libs)) {
-            libraryService.install(clusterId, libs);
+    private void editCluster(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException {
+        getLog().info(String.format("Applying cluster configuration: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
+
+        // setting mandatory fields
+        EditClusterRequest.EditClusterRequestBuilder requestBuilder = new EditClusterRequest.EditClusterRequestBuilder(
+                ct.getNumWorkers(), clusterId, ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId()
+        )
+                .withAwsAttributes(ct.getAwsAttributes())
+                .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
+                .withSparkEnvVars(ct.getSparkEnvVars());
+
+        // setting optional fields
+        EditClusterRequest request = requestBuilder
+                .withDriverNodeTypeId(ct.getDriverNodeTypeId())
+                .withSparkConf(ct.getSparkConf())
+                .withClusterLogConf(ct.getClusterLogConf())
+                .withCustomTags(convertCustomTags(ct.getCustomTags()))
+                .withSshPublicKeys(ct.getSshPublicKeys())
+                .build();
+
+        getDatabricksServiceFactory().getClusterService().edit(request);
+
+    }
+
+    private void startCluster(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException, InterruptedException {
+        getLog().info(String.format("Starting cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
+        ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
+        ClusterStateDTO clusterState = clusterService.getInfo(clusterId).getState();
+        if (clusterState == ClusterStateDTO.TERMINATED || clusterState == ClusterStateDTO.TERMINATING) {
+            clusterService.start(clusterId);
+        }
+        while (clusterService.getInfo(clusterId).getState() != ClusterStateDTO.RUNNING) {
+            Thread.sleep(5000);
         }
     }
 
-    private LibraryDTO[] getLibraryDTO(Collection<String> artifactPaths) {
+    private void detachLibraries(ClusterTemplateModel ct, String clusterId, LibraryDTO[] libsToInstall) throws IOException, DatabricksRestException {
+        getLog().info(String.format("Removing libraries from the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
+        Set<LibraryDTO> willBeInstalled = new HashSet<>(Arrays.asList(libsToInstall));
+
+        LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
+        LibraryDTO[] libsToDelete = Arrays.stream(libraryService.clusterStatus(clusterId).getLibraryFullStatuses())
+                // no need to delete shared libraries or libraries we're going to install next
+                .filter(libStatus -> !libStatus.isLibraryForAllClusters() || willBeInstalled.contains(libStatus.getLibrary()))
+                .map(LibraryFullStatusDTO::getLibrary)
+                .toArray(LibraryDTO[]::new);
+
+        if (ArrayUtils.isNotEmpty(libsToDelete)) {
+            getLog().info("Libraries to delete: " + Arrays.toString(libsToDelete));
+            libraryService.uninstall(clusterId, libsToDelete);
+        }
+    }
+
+    private void attachLibraries(ClusterTemplateModel ct, String clusterId, LibraryDTO[] libsToInstall) throws IOException, DatabricksRestException {
+        getLog().info(String.format("Attaching libraries to the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
+
+        if (ArrayUtils.isNotEmpty(libsToInstall)) {
+            getLog().info("Libraries to install: " + Arrays.toString(libsToInstall));
+            getDatabricksServiceFactory().getLibraryService().install(clusterId, libsToInstall);
+        }
+    }
+
+    private LibraryDTO[] getLibrariesToInstall(Collection<String> artifactPaths) {
         if (CollectionUtils.isEmpty(artifactPaths)) {
             return new LibraryDTO[]{};
         }

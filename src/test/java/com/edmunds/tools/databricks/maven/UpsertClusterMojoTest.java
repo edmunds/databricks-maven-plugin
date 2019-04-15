@@ -2,10 +2,14 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
 import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
+import com.edmunds.rest.databricks.DTO.ClusterLibraryStatusesDTO;
 import com.edmunds.rest.databricks.DTO.ClusterLogConfDTO;
+import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
 import com.edmunds.rest.databricks.DTO.ClusterTagDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
+import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
+import com.edmunds.rest.databricks.request.EditClusterRequest;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeClass;
@@ -14,13 +18,11 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 import static com.edmunds.rest.databricks.DTO.AwsAvailabilityDTO.SPOT_WITH_FALLBACK;
 import static com.edmunds.rest.databricks.DTO.EbsVolumeTypeDTO.GENERAL_PURPOSE_SSD;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -54,6 +56,7 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
         when(clusterService.list()).thenReturn(new ClusterInfoDTO[]{});
         ArgumentCaptor<CreateClusterRequest> reqCaptor = ArgumentCaptor.forClass(CreateClusterRequest.class);
         when(clusterService.create(reqCaptor.capture())).thenReturn(clusterId);
+
         ArgumentCaptor<LibraryDTO[]> libCaptor = ArgumentCaptor.forClass(LibraryDTO[].class);
         doNothing().when(libraryService).install(eq(clusterId), libCaptor.capture());
 
@@ -61,45 +64,41 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
 
         verify(clusterService, times(2)).create(reqCaptor.capture());
         assertCreateClusterRequestEquality(reqCaptor, Arrays.asList("my-cluster", "my-cluster-2"));
+        verify(clusterService, times(0)).edit(any(EditClusterRequest.class));
+        verify(clusterService, times(0)).restart(clusterId);
+        verify(clusterService, times(0)).getInfo(clusterId);
 
+        verify(libraryService, times(0)).uninstall(eq(clusterId), any(LibraryDTO[].class));
         verify(libraryService).install(eq(clusterId), libCaptor.capture());
         LibraryDTO[] libs = libCaptor.getValue();
         assertLibraryDTOEquality(libs[0], "s3://bucket-name/artifacts/com.company.project/my-artifact-name/1.0.132/my-artifact-name-1.0.132.jar");
         assertLibraryDTOEquality(libs[1], "dbfs:/Libs/jars/app_sdk_0_1_2-345.jar");
     }
 
-    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*Cluster already exists")
-    public void test_executeWithDefault_clusterAlreadyExistsException() throws Exception {
-        underTest = getNoOverridesMojo(GOAL);
-        when(clusterService.list()).thenReturn(new ClusterInfoDTO[]{createClusterInfoDTO()});
-
-        underTest.execute();
-    }
-
     @Test
     public void test_executeWithOverride_upsertCluster() throws Exception {
         underTest = getOverridesMojo(GOAL);
-        String clusterId = "newClusterId";
+        String clusterId = "clusterId";
 
         when(clusterService.list()).thenReturn(new ClusterInfoDTO[]{createClusterInfoDTO()});
-        ArgumentCaptor<CreateClusterRequest> reqCaptor = ArgumentCaptor.forClass(CreateClusterRequest.class);
-        when(clusterService.create(reqCaptor.capture())).thenReturn(clusterId);
+        ArgumentCaptor<EditClusterRequest> reqCaptor = ArgumentCaptor.forClass(EditClusterRequest.class);
+        when(clusterService.getInfo(clusterId)).thenReturn(createClusterInfoDTO());
+        when(libraryService.clusterStatus(clusterId)).thenReturn(createClusterLibraryStatusesDTO());
         ArgumentCaptor<LibraryDTO[]> libCaptor = ArgumentCaptor.forClass(LibraryDTO[].class);
-        doNothing().when(libraryService).install(eq(clusterId), libCaptor.capture());
 
         underTest.execute();
 
-        verify(clusterService).create(reqCaptor.capture());
-        assertCreateClusterRequestEquality(reqCaptor, Collections.singletonList("my-cluster"));
+        verify(clusterService).edit(reqCaptor.capture());
+        verify(clusterService, times(2)).getInfo(clusterId);
 
-        verify(libraryService, times(0)).install(eq(clusterId), libCaptor.capture());
+        verify(libraryService).uninstall(eq(clusterId), any(LibraryDTO[].class));
+        verify(libraryService).install(eq(clusterId), libCaptor.capture());
     }
 
     @Test
     public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
         underTest = getOverridesMojo(GOAL);
         assertTrue(underTest.dbClusterFile.getPath().endsWith("databricks-cluster-settings-override.json"));
-        assertThat(underTest.failOnClusterExists, is(false));
     }
 
     @Test(expectedExceptions = MojoExecutionException.class,
@@ -107,7 +106,6 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
     public void test_executeWithOverride_malformedConfigException() throws Exception {
         underTest = getOverridesMojo(GOAL, "-malformed");
         assertTrue(underTest.dbClusterFile.getPath().endsWith("databricks-cluster-settings-malformed.json"));
-        assertThat(underTest.failOnClusterExists, is(false));
 
         underTest.execute();
     }
@@ -117,16 +115,8 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
     public void test_executeWithOverride_badConfigPathException() throws Exception {
         underTest = getOverridesMojo(GOAL, "-missing");
         assertTrue(underTest.dbClusterFile.getPath().endsWith("databricks-cluster-settings-missing.json"));
-        assertThat(underTest.failOnClusterExists, is(false));
 
         underTest.execute();
-    }
-
-    private ClusterInfoDTO createClusterInfoDTO() {
-        ClusterInfoDTO clusterInfoDTO = new ClusterInfoDTO();
-        clusterInfoDTO.setClusterName("my-cluster");
-        clusterInfoDTO.setClusterId("clusterId");
-        return clusterInfoDTO;
     }
 
     private void assertCreateClusterRequestEquality(ArgumentCaptor<CreateClusterRequest> reqCaptor, Collection<String> clusterNames) {
@@ -162,6 +152,26 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
         String[] sshPublicKeys = (String[]) reqData.get("ssh_public_keys");
         assertEquals("ssh_key1", sshPublicKeys[0]);
         assertEquals("ssh_key2", sshPublicKeys[1]);
+    }
+
+    private ClusterInfoDTO createClusterInfoDTO() {
+        ClusterInfoDTO clusterInfoDTO = new ClusterInfoDTO();
+        clusterInfoDTO.setClusterName("my-cluster");
+        clusterInfoDTO.setClusterId("clusterId");
+        clusterInfoDTO.setState(ClusterStateDTO.RUNNING);
+        return clusterInfoDTO;
+    }
+
+    private ClusterLibraryStatusesDTO createClusterLibraryStatusesDTO() {
+        LibraryDTO libraryDTO = new LibraryDTO();
+        libraryDTO.setJar("dbfs:/Libs/jars/app_sdk_0_1_2-345.jar");
+        LibraryFullStatusDTO libraryFullStatusDTO = new LibraryFullStatusDTO();
+        libraryFullStatusDTO.setLibrary(libraryDTO);
+        ClusterLibraryStatusesDTO libraryStatusesDTO = new ClusterLibraryStatusesDTO();
+        libraryStatusesDTO.setLibraryFullStatuses(
+                new LibraryFullStatusDTO[]{libraryFullStatusDTO}
+        );
+        return libraryStatusesDTO;
     }
 
     private void assertLibraryDTOEquality(LibraryDTO libDTO, String jar) {
