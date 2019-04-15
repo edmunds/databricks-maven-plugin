@@ -231,7 +231,7 @@ mvn databricks:upsert-cluster
 ```
 By default cluster config should be located at
 ```bash
-${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings-test.json
+${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json
 ```
 but you can override the location:
 ```bash
