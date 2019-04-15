@@ -10,6 +10,8 @@ import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
 import com.edmunds.rest.databricks.request.EditClusterRequest;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.concurrent.ConcurrentUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeClass;
@@ -19,6 +21,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static com.edmunds.rest.databricks.DTO.AwsAvailabilityDTO.SPOT_WITH_FALLBACK;
 import static com.edmunds.rest.databricks.DTO.EbsVolumeTypeDTO.GENERAL_PURPOSE_SSD;
@@ -61,6 +64,7 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
         doNothing().when(libraryService).install(eq(clusterId), libCaptor.capture());
 
         underTest.execute();
+        Thread.sleep(100);
 
         verify(clusterService, times(2)).create(reqCaptor.capture());
         assertCreateClusterRequestEquality(reqCaptor, Arrays.asList("my-cluster", "my-cluster-2"));
@@ -70,9 +74,11 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
 
         verify(libraryService, times(0)).uninstall(eq(clusterId), any(LibraryDTO[].class));
         verify(libraryService).install(eq(clusterId), libCaptor.capture());
+        Set<String> jarPaths = Sets.newHashSet("dbfs:/Libs/jars/app_sdk_0_1_2-345.jar",
+                "s3://bucket-name/artifacts/com.company.project/my-artifact-name/1.0.132/my-artifact-name-1.0.132.jar");
         LibraryDTO[] libs = libCaptor.getValue();
-        assertLibraryDTOEquality(libs[0], "s3://bucket-name/artifacts/com.company.project/my-artifact-name/1.0.132/my-artifact-name-1.0.132.jar");
-        assertLibraryDTOEquality(libs[1], "dbfs:/Libs/jars/app_sdk_0_1_2-345.jar");
+        assertTrue(jarPaths.contains(libs[0].getJar()));
+        assertTrue(jarPaths.contains(libs[1].getJar()));
     }
 
     @Test
@@ -87,9 +93,10 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
         ArgumentCaptor<LibraryDTO[]> libCaptor = ArgumentCaptor.forClass(LibraryDTO[].class);
 
         underTest.execute();
+        Thread.sleep(100);
 
         verify(clusterService).edit(reqCaptor.capture());
-        verify(clusterService, times(2)).getInfo(clusterId);
+        verify(clusterService).getInfo(clusterId);
 
         verify(libraryService).uninstall(eq(clusterId), any(LibraryDTO[].class));
         verify(libraryService).install(eq(clusterId), libCaptor.capture());
@@ -172,14 +179,6 @@ public class UpsertClusterMojoTest extends DatabricksMavenPluginTestHarness {
                 new LibraryFullStatusDTO[]{libraryFullStatusDTO}
         );
         return libraryStatusesDTO;
-    }
-
-    private void assertLibraryDTOEquality(LibraryDTO libDTO, String jar) {
-        assertEquals(jar, libDTO.getJar());
-        assertNull(libDTO.getEgg());
-        assertNull(libDTO.getCran());
-        assertNull(libDTO.getMaven());
-        assertNull(libDTO.getPypi());
     }
 
 }

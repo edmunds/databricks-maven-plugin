@@ -28,7 +28,6 @@ import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -44,6 +43,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -68,56 +70,69 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
             String config = dbClusterFile.getName();
             try {
                 config = new String(Files.readAllBytes(Paths.get(dbClusterFile.toURI())));
-            } catch (IOException e1) {
+            } catch (IOException ex) {
             }
             throw new MojoExecutionException("Failed to parse config: " + config, e);
         }
 
+        ForkJoinPool forkJoinPool = new ForkJoinPool(cts.length);
         for (ClusterTemplateModel ct : cts) {
-            ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
-            String clusterId = convertClusterNamesToIds(clusterService, Collections.singletonList(ct.getClusterName()))
-                    .stream().findFirst().orElse(EMPTY);
+            forkJoinPool.execute(() -> {
+                        try {
+                            ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
+                            String clusterId = convertClusterNamesToIds(clusterService, Collections.singletonList(ct.getClusterName()))
+                                    .stream().findFirst().orElse(EMPTY);
 
-            // setting mandatory fields
-            CreateClusterRequest.CreateClusterRequestBuilder requestBuilder = new CreateClusterRequest.CreateClusterRequestBuilder(
-                    ct.getNumWorkers(), ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
-                    .withAwsAttributes(ct.getAwsAttributes())
-                    .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
-                    .withSparkEnvVars(ct.getSparkEnvVars());
+                            // setting mandatory fields
+                            CreateClusterRequest.CreateClusterRequestBuilder requestBuilder = new CreateClusterRequest.CreateClusterRequestBuilder(
+                                    ct.getNumWorkers(), ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
+                                    .withAwsAttributes(ct.getAwsAttributes())
+                                    .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
+                                    .withSparkEnvVars(ct.getSparkEnvVars());
 
-            // setting optional fields
-            CreateClusterRequest request = requestBuilder
-                    .withDriverNodeTypeId(ct.getDriverNodeTypeId())
-                    .withSparkConf(ct.getSparkConf())
-                    .withClusterLogConf(ct.getClusterLogConf())
-                    .withCustomTags(convertCustomTags(ct.getCustomTags()))
-                    .withSshPublicKeys(ct.getSshPublicKeys())
-                    .build();
+                            // setting optional fields
+                            CreateClusterRequest request = requestBuilder
+                                    .withDriverNodeTypeId(ct.getDriverNodeTypeId())
+                                    .withSparkConf(ct.getSparkConf())
+                                    .withClusterLogConf(ct.getClusterLogConf())
+                                    .withCustomTags(convertCustomTags(ct.getCustomTags()))
+                                    .withSshPublicKeys(ct.getSshPublicKeys())
+                                    .build();
 
-            String logMessage = EMPTY;
-            try {
-                // create new cluster
-                if (StringUtils.isEmpty(clusterId)) {
-                    logMessage = String.format("Creating cluster: name=[%s]", ct.getClusterName());
-                    getLog().info(logMessage);
-                    clusterId = clusterService.create(request);
-                    attachLibraries(ct, clusterId, getLibrariesToInstall(ct.getArtifactPaths()));
-                }
-                // update existing cluster
-                else {
-                    logMessage = String.format("Updating cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId);
-                    getLog().info(logMessage);
+                            String logMessage = EMPTY;
+                            try {
+                                // create new cluster
+                                if (StringUtils.isEmpty(clusterId)) {
+                                    logMessage = String.format("Creating cluster: name=[%s]", ct.getClusterName());
+                                    getLog().info(logMessage);
+                                    clusterId = clusterService.create(request);
+                                    attachLibraries(ct, clusterId, Collections.emptySet());
+                                }
+                                // update existing cluster
+                                else {
+                                    logMessage = String.format("Updating cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId);
+                                    getLog().info(logMessage);
 
-                    LibraryDTO[] libsToInstall = getLibrariesToInstall(ct.getArtifactPaths());
-                    detachLibraries(ct, clusterId, libsToInstall);
-                    startCluster(ct, clusterId);
-                    attachLibraries(ct, clusterId, libsToInstall);
-                    editCluster(ct, clusterId);
-                }
-            } catch (DatabricksRestException | IOException | InterruptedException e) {
-                throw new MojoExecutionException("Exception while " + logMessage + ". ClusterTemplateModel=" + ct, e);
-            }
-
+                                    Set<LibraryDTO> clusterLibraries = getClusterLibraries(clusterId);
+                                    detachLibraries(ct, clusterId, clusterLibraries);
+                                    startCluster(ct, clusterId);
+                                    attachLibraries(ct, clusterId, clusterLibraries);
+                                    editCluster(ct, clusterId);
+                                }
+                            } catch (DatabricksRestException | IOException | InterruptedException e) {
+                                throw new MojoExecutionException("Exception while " + logMessage + ". ClusterTemplateModel=" + ct, e);
+                            }
+                        } catch (MojoExecutionException e) {
+                            getLog().error(e);
+                        }
+                    }
+            );
+        }
+        forkJoinPool.shutdown();
+        try {
+            forkJoinPool.awaitTermination(15, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            getLog().error(e);
         }
     }
 
@@ -142,64 +157,79 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
                 .build();
 
         getDatabricksServiceFactory().getClusterService().edit(request);
-
     }
 
     private void startCluster(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException, InterruptedException {
-        getLog().info(String.format("Starting cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
         ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
         ClusterStateDTO clusterState = clusterService.getInfo(clusterId).getState();
-        if (clusterState == ClusterStateDTO.TERMINATED || clusterState == ClusterStateDTO.TERMINATING) {
-            clusterService.start(clusterId);
-        }
-        while (clusterService.getInfo(clusterId).getState() != ClusterStateDTO.RUNNING) {
-            Thread.sleep(5000);
+        if (clusterState != ClusterStateDTO.RUNNING) {
+            getLog().info(String.format("Starting cluster: name=[%s], id=[%s]. Current state=[%s]", ct.getClusterName(), clusterId, clusterState));
+            if (clusterState == ClusterStateDTO.TERMINATED || clusterState == ClusterStateDTO.TERMINATING
+                    || clusterState == ClusterStateDTO.ERROR || clusterState == ClusterStateDTO.UNKNOWN) {
+                clusterService.start(clusterId);
+            }
+            while (clusterService.getInfo(clusterId).getState() != ClusterStateDTO.RUNNING) {
+                Thread.sleep(5000);
+            }
         }
     }
 
-    private void detachLibraries(ClusterTemplateModel ct, String clusterId, LibraryDTO[] libsToInstall) throws IOException, DatabricksRestException {
-        getLog().info(String.format("Removing libraries from the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
-        Set<LibraryDTO> willBeInstalled = new HashSet<>(Arrays.asList(libsToInstall));
-
-        LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
-        LibraryDTO[] libsToDelete = Arrays.stream(libraryService.clusterStatus(clusterId).getLibraryFullStatuses())
-                // no need to delete shared libraries or libraries we're going to install next
-                .filter(libStatus -> !libStatus.isLibraryForAllClusters() || willBeInstalled.contains(libStatus.getLibrary()))
+    private Set<LibraryDTO> getClusterLibraries(String clusterId) throws IOException, DatabricksRestException {
+        return Arrays.stream(getDatabricksServiceFactory().getLibraryService().clusterStatus(clusterId).getLibraryFullStatuses())
+                .filter(status -> !status.isLibraryForAllClusters())
                 .map(LibraryFullStatusDTO::getLibrary)
-                .toArray(LibraryDTO[]::new);
+                .collect(Collectors.toSet());
+    }
 
-        if (ArrayUtils.isNotEmpty(libsToDelete)) {
-            getLog().info("Libraries to delete: " + Arrays.toString(libsToDelete));
-            libraryService.uninstall(clusterId, libsToDelete);
+    private void detachLibraries(ClusterTemplateModel ct, String clusterId, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
+        getLog().info(String.format("Removing libraries from the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
+        Set<LibraryDTO> libsToDelete = getLibrariesToDelete(clusterLibraries, ct.getArtifactPaths());
+        if (CollectionUtils.isNotEmpty(libsToDelete)) {
+            LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
+            libraryService.uninstall(clusterId, libsToDelete.toArray(new LibraryDTO[]{}));
         }
     }
 
-    private void attachLibraries(ClusterTemplateModel ct, String clusterId, LibraryDTO[] libsToInstall) throws IOException, DatabricksRestException {
+    private void attachLibraries(ClusterTemplateModel ct, String clusterId, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
         getLog().info(String.format("Attaching libraries to the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
-
-        if (ArrayUtils.isNotEmpty(libsToInstall)) {
-            getLog().info("Libraries to install: " + Arrays.toString(libsToInstall));
-            getDatabricksServiceFactory().getLibraryService().install(clusterId, libsToInstall);
+        Set<LibraryDTO> libsToInstall = getLibrariesToInstall(clusterLibraries, ct.getArtifactPaths());
+        if (CollectionUtils.isNotEmpty(libsToInstall)) {
+            getDatabricksServiceFactory().getLibraryService().install(clusterId, libsToInstall.toArray(new LibraryDTO[]{}));
         }
     }
 
-    private LibraryDTO[] getLibrariesToInstall(Collection<String> artifactPaths) {
+    private Set<LibraryDTO> getLibrariesToInstall(Set<LibraryDTO> clusterLibraries, Collection<String> artifactPaths) {
         if (CollectionUtils.isEmpty(artifactPaths)) {
-            return new LibraryDTO[]{};
+            return Collections.emptySet();
         }
 
-        LibraryDTO[] libs = new LibraryDTO[artifactPaths.size()];
-        int i = 0;
+        Set clusterLibrariesPaths = clusterLibraries.stream().map(LibraryDTO::getJar).collect(Collectors.toSet());
+        Set<LibraryDTO> libsToInstall = new HashSet<>();
         for (String artifactPath : artifactPaths) {
+            // library already installed
+            if (clusterLibrariesPaths.contains(artifactPath)) {
+                continue;
+            }
             if (!artifactPath.endsWith(".jar")) {
                 getLog().error("Cannot attach library " + artifactPath + " - only .jar files supported");
                 continue;
             }
             LibraryDTO lib = new LibraryDTO();
             lib.setJar(artifactPath);
-            libs[i++] = lib;
+            libsToInstall.add(lib);
         }
-        return libs;
+
+        getLog().info("Libraries to install: " + libsToInstall);
+        return libsToInstall;
+    }
+
+    private Set<LibraryDTO> getLibrariesToDelete(Set<LibraryDTO> clusterLibraries, Collection<String> artifactPaths) {
+        Set<LibraryDTO> libsToDelete = clusterLibraries.stream()
+                .filter(lib -> !artifactPaths.contains(lib.getJar()))
+                .collect(Collectors.toSet());
+
+        getLog().info("Libraries to delete: " + libsToDelete);
+        return libsToDelete;
     }
 
     // TODO ClusterAttributesDTO.customTags - change type from Map<String, String> to ClusterTagDTO[]
