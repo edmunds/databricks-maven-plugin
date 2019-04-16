@@ -71,10 +71,12 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
             try {
                 config = new String(Files.readAllBytes(Paths.get(dbClusterFile.toURI())));
             } catch (IOException ex) {
+                // Exception while trying to read configuration file content. No need to log it
             }
             throw new MojoExecutionException("Failed to parse config: " + config, e);
         }
 
+        // Upserting clusters in parallel manner
         ForkJoinPool forkJoinPool = new ForkJoinPool(cts.length);
         for (ClusterTemplateModel ct : cts) {
             forkJoinPool.execute(() -> {
@@ -120,7 +122,7 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
                                     editCluster(ct, clusterId);
                                 }
                             } catch (DatabricksRestException | IOException | InterruptedException e) {
-                                throw new MojoExecutionException("Exception while " + logMessage + ". ClusterTemplateModel=" + ct, e);
+                                throw new MojoExecutionException(String.format("Exception while [%s]. ClusterTemplateModel=[%s]", logMessage, ct), e);
                             }
                         } catch (MojoExecutionException e) {
                             getLog().error(e);
@@ -136,6 +138,14 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         }
     }
 
+    /**
+     * Apply cluster configuration changes. This action is being followed by cluster restart.
+     *
+     * @param ct        cluster configuration to be applied
+     * @param clusterId cluster id
+     * @throws IOException
+     * @throws DatabricksRestException
+     */
     private void editCluster(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException {
         getLog().info(String.format("Applying cluster configuration: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
 
@@ -159,6 +169,15 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         getDatabricksServiceFactory().getClusterService().edit(request);
     }
 
+    /**
+     * Check whether the cluster in a RUNNING state and do start if required.
+     *
+     * @param ct        cluster configuration
+     * @param clusterId cluster id
+     * @throws IOException
+     * @throws DatabricksRestException
+     * @throws InterruptedException
+     */
     private void startCluster(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException, InterruptedException {
         ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
         ClusterStateDTO clusterState = clusterService.getInfo(clusterId).getState();
@@ -168,19 +187,40 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
                     || clusterState == ClusterStateDTO.ERROR || clusterState == ClusterStateDTO.UNKNOWN) {
                 clusterService.start(clusterId);
             }
-            while (clusterService.getInfo(clusterId).getState() != ClusterStateDTO.RUNNING) {
+            while (clusterState != ClusterStateDTO.RUNNING) {
+                getLog().info(String.format("Current cluster state is [%s]. Waiting for RUNNING state", clusterState));
+                // sleep some time to avoid excessive requests to databricks API
                 Thread.sleep(5000);
+                clusterState = clusterService.getInfo(clusterId).getState();
             }
         }
     }
 
+    /**
+     * Retrieve libraries currently deployed on specified cluster.
+     *
+     * @param clusterId cluster id
+     * @return cluster libraries
+     * @throws IOException
+     * @throws DatabricksRestException
+     */
     private Set<LibraryDTO> getClusterLibraries(String clusterId) throws IOException, DatabricksRestException {
         return Arrays.stream(getDatabricksServiceFactory().getLibraryService().clusterStatus(clusterId).getLibraryFullStatuses())
+                // skip all clusters libraries
                 .filter(status -> !status.isLibraryForAllClusters())
                 .map(LibraryFullStatusDTO::getLibrary)
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Delete redundant libraries from the cluster.
+     *
+     * @param ct               cluster configuration
+     * @param clusterId        cluster id
+     * @param clusterLibraries libraries already installed on the cluster
+     * @throws IOException
+     * @throws DatabricksRestException
+     */
     private void detachLibraries(ClusterTemplateModel ct, String clusterId, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
         getLog().info(String.format("Removing libraries from the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
         Set<LibraryDTO> libsToDelete = getLibrariesToDelete(clusterLibraries, ct.getArtifactPaths());
@@ -190,6 +230,15 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         }
     }
 
+    /**
+     * Install new libraries on the cluster.
+     *
+     * @param ct               cluster configuration
+     * @param clusterId        cluster id
+     * @param clusterLibraries libraries already installed on the cluster
+     * @throws IOException
+     * @throws DatabricksRestException
+     */
     private void attachLibraries(ClusterTemplateModel ct, String clusterId, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
         getLog().info(String.format("Attaching libraries to the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
         Set<LibraryDTO> libsToInstall = getLibrariesToInstall(clusterLibraries, ct.getArtifactPaths());
@@ -198,6 +247,14 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         }
     }
 
+    /**
+     * Distinguish libraries which should be deployed on the cluster to achieve desired configuration.
+     * At the moment only JAR files supported.
+     *
+     * @param clusterLibraries libraries already installed on the cluster
+     * @param artifactPaths    libraries which should be installed in the end
+     * @return libraries to install
+     */
     private Set<LibraryDTO> getLibrariesToInstall(Set<LibraryDTO> clusterLibraries, Collection<String> artifactPaths) {
         if (CollectionUtils.isEmpty(artifactPaths)) {
             return Collections.emptySet();
@@ -208,10 +265,12 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         for (String artifactPath : artifactPaths) {
             // library already installed
             if (clusterLibrariesPaths.contains(artifactPath)) {
+                getLog().info(String.format("Omitting deployment for [%s]. This library already installed", artifactPath));
                 continue;
             }
+            // library extension differs from .jar
             if (!artifactPath.endsWith(".jar")) {
-                getLog().error("Cannot attach library " + artifactPath + " - only .jar files supported");
+                getLog().error(String.format("Cannot attach [%s]. Only .jar files supported", artifactPath));
                 continue;
             }
             LibraryDTO lib = new LibraryDTO();
@@ -223,6 +282,13 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         return libsToInstall;
     }
 
+    /**
+     * Distinguish libraries which should be deleted from the cluster to achieve desired configuration.
+     *
+     * @param clusterLibraries libraries already installed on the cluster
+     * @param artifactPaths    libraries which should be installed in the end
+     * @return libraries to delete
+     */
     private Set<LibraryDTO> getLibrariesToDelete(Set<LibraryDTO> clusterLibraries, Collection<String> artifactPaths) {
         Set<LibraryDTO> libsToDelete = clusterLibraries.stream()
                 .filter(lib -> !artifactPaths.contains(lib.getJar()))

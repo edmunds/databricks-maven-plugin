@@ -237,10 +237,8 @@ but you can override the location:
 ```bash
 mvn databricks:upsert-cluster -DdbClusterFile=${project.build.resources[0].directory}/my.json
 ```
-Also you can specify whether to fail if cluster with the same name already exists:
-```bash
-mvn databricks:upsert-cluster -DfailOnClusterExists=false
-```
+Note that you can simultaneously manage multiple clusters with a single .json file.
+All configurations will be applied at once in a parallel manner.  
 
 ## Building, Installing and Running
 
