@@ -53,7 +53,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 /**
  * Cluster mojo, to perform databricks cluster upsert (create or update through recreation).
  */
-@Mojo(name = "upsert-cluster")
+@Mojo(name = "upsert-cluster", requiresProject = false)
 public class UpsertClusterMojo extends BaseDatabricksMojo {
 
     /**
@@ -190,7 +190,7 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
             while (clusterState != ClusterStateDTO.RUNNING) {
                 getLog().info(String.format("Current cluster state is [%s]. Waiting for RUNNING state", clusterState));
                 // sleep some time to avoid excessive requests to databricks API
-                Thread.sleep(5000);
+                TimeUnit.SECONDS.sleep(15);
                 clusterState = clusterService.getInfo(clusterId).getState();
             }
         }

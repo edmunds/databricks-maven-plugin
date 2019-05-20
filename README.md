@@ -233,10 +233,12 @@ By default cluster config should be located at
 ```bash
 ${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json
 ```
-but you can override the location:
+but you can overwrite the location:
 ```bash
 mvn databricks:upsert-cluster -DdbClusterFile=${project.build.resources[0].directory}/my.json
 ```
+And also you ought to do it in case of out-of-project plugin usage.
+
 Note that you can simultaneously manage multiple clusters with a single .json file.
 All configurations will be applied at once in a parallel manner.  
 
