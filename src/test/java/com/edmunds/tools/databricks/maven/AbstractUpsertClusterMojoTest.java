@@ -10,6 +10,7 @@ import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
 import com.edmunds.rest.databricks.request.EditClusterRequest;
+import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
 import com.google.common.collect.Sets;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
@@ -102,7 +103,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
     }
 
     @Test
-    public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
+    public void test_CreateArtifactPath_succeedsWithOverrides() throws Exception {
         underTest = getOverridesMojo(GOAL);
         assertTrue(getPath().endsWith("databricks-cluster-settings-override.json"));
     }
@@ -116,13 +117,15 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         underTest.execute();
     }
 
-    @Test(expectedExceptions = MojoExecutionException.class,
-            expectedExceptionsMessageRegExp = "Failed to parse config: databricks-cluster-settings-missing.json")
-    public void test_executeWithOverride_badConfigPathException() throws Exception {
+    @Test
+    public void test_getClusterSettings_returnsNoFile() throws Exception {
         underTest = getOverridesMojo(GOAL, "-missing");
         assertTrue(getPath().endsWith("databricks-cluster-settings-missing.json"));
 
         underTest.execute();
+        ClusterTemplateModel[] clusterTemplateModels = underTest.getClusterTemplateModels();
+
+        assertEquals(0, clusterTemplateModels.length);
     }
 
     protected abstract String getPath();

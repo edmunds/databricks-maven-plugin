@@ -64,6 +64,9 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
 
     public void execute() throws MojoExecutionException {
         ClusterTemplateModel[] cts = getClusterTemplateModels();
+        if (cts.length == 0) {
+            return;
+        }
 
         // Upserting clusters in parallel manner
         ForkJoinPool forkJoinPool = new ForkJoinPool(cts.length);
@@ -132,6 +135,10 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
     }
 
     protected ClusterTemplateModel[] loadClusterTemplateModelsFromFile(File clustersConfig) throws MojoExecutionException {
+        if (!clustersConfig.exists()) {
+            getLog().info("No clusters config file exists");
+            return new ClusterTemplateModel[]{};
+        }
         ClusterTemplateModel[] cts;
         try {
             cts = ObjectMapperUtils.deserialize(clustersConfig, ClusterTemplateModel[].class);
