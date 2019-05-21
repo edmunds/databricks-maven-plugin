@@ -53,7 +53,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 /**
  * Cluster mojo, to perform databricks cluster upsert (create or update through recreation).
  */
-@Mojo(name = "upsert-cluster", requiresProject = false)
+@Mojo(name = "upsert-cluster", requiresProject = true)
 public class UpsertClusterMojo extends BaseDatabricksMojo {
 
     /**
@@ -63,18 +63,7 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
     protected File dbClusterFile;
 
     public void execute() throws MojoExecutionException {
-        ClusterTemplateModel[] cts;
-        try {
-            cts = ObjectMapperUtils.deserialize(dbClusterFile, ClusterTemplateModel[].class);
-        } catch (IOException e) {
-            String config = dbClusterFile.getName();
-            try {
-                config = new String(Files.readAllBytes(Paths.get(dbClusterFile.toURI())));
-            } catch (IOException ex) {
-                // Exception while trying to read configuration file content. No need to log it
-            }
-            throw new MojoExecutionException("Failed to parse config: " + config, e);
-        }
+        ClusterTemplateModel[] cts = getClusterTemplateModels();
 
         // Upserting clusters in parallel manner
         ForkJoinPool forkJoinPool = new ForkJoinPool(cts.length);
@@ -136,6 +125,26 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         } catch (InterruptedException e) {
             getLog().error(e);
         }
+    }
+
+    protected ClusterTemplateModel[] getClusterTemplateModels() throws MojoExecutionException {
+        return loadClusterTemplateModelsFromFile(dbClusterFile);
+    }
+
+    protected ClusterTemplateModel[] loadClusterTemplateModelsFromFile(File clustersConfig) throws MojoExecutionException {
+        ClusterTemplateModel[] cts;
+        try {
+            cts = ObjectMapperUtils.deserialize(clustersConfig, ClusterTemplateModel[].class);
+        } catch (IOException e) {
+            String config = clustersConfig.getName();
+            try {
+                config = new String(Files.readAllBytes(Paths.get(clustersConfig.toURI())));
+            } catch (IOException ex) {
+                // Exception while trying to read configuration file content. No need to log it
+            }
+            throw new MojoExecutionException("Failed to parse config: " + config, e);
+        }
+        return cts;
     }
 
     /**
