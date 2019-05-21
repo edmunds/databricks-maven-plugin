@@ -1,0 +1,11 @@
+[
+  {
+    "num_workers": 1,
+    "cluster_name": "my-cluster-malformed",
+    "spark_version": "5.2.x-scala2.11",
+    "aws_attributes": ["SPOT_WITH_FALLBACK", "us-east-1c"],
+    "node_type_id": "m4.large",
+    "autotermination_minutes": 10,
+    "spark_env_vars": "/databricks/python3/bin/python3"
+  }
+]

@@ -1,13 +1,13 @@
 package com.edmunds.tools.databricks.maven;
 
 /**
- * Tests for @{@link UpsertClusterMojo}.
+ * Tests for @{@link UpsertClusterMojoNoProject}.
  */
-public class UpsertClusterMojoTest extends AbstractUpsertClusterMojoTest<UpsertClusterMojo> {
+public class UpsertClusterMojoNoProjectTest extends AbstractUpsertClusterMojoTest<UpsertClusterMojoNoProject> {
 
     @Override
     protected void setGoal() {
-        GOAL = "upsert-cluster";
+        GOAL = "upsert-cluster-np";
     }
 
     @Override
