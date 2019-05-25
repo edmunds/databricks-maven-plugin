@@ -45,6 +45,12 @@ public class JobMojoNoProject extends JobMojo {
 
     @Override
     protected JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
-        return JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
+        JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
+        //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+        //I consider this code ugly
+        if (environment != null) {
+            serializedJobTemplate.setEnvironment(environment);
+        }
+        return serializedJobTemplate;
     }
 }
