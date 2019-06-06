@@ -26,9 +26,6 @@ import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import freemarker.cache.StringTemplateLoader;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SerializationUtils;
@@ -39,7 +36,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,9 +48,9 @@ import static com.edmunds.tools.databricks.maven.util.SettingsUtils.OBJECT_MAPPE
 //TODO this class is doing too much.
 public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
-    public static final String TEAM_TAG = "team";
-    public static final String DELTA_TAG = "delta";
-    private SettingsUtils<JobTemplateModel> settingsUtils = new SettingsUtils<>();
+    static final String TEAM_TAG = "team";
+    static final String DELTA_TAG = "delta";
+    private final SettingsUtils<JobTemplateModel> settingsUtils = new SettingsUtils<>();
 
     /**
      * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
@@ -88,21 +84,6 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
             throw new MojoExecutionException("databricksRepo property is missing");
         }
         return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
-    }
-
-    String getJobSettingsFromTemplate(String templateText, JobTemplateModel jobTemplateModel) throws MojoExecutionException {
-        StringWriter stringWriter = new StringWriter();
-        try {
-            StringTemplateLoader templateLoader = new StringTemplateLoader();
-            templateLoader.putTemplate("defaultTemplate", templateText);
-
-            Template temp = settingsUtils.getFreemarkerConfiguration(templateLoader).getTemplate("defaultTemplate");
-            temp.process(jobTemplateModel, stringWriter);
-        } catch (IOException | TemplateException e) {
-            throw new MojoExecutionException(String.format("Failed to process job template: [%s]\nFreemarker message:\n%s", templateText, e.getMessage()), e);
-        }
-
-        return stringWriter.toString();
     }
 
     JobSettingsDTO[] buildJobSettingsDTOsWithDefault() throws MojoExecutionException {
@@ -168,18 +149,11 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
      * @throws MojoExecutionException
      */
     public JobSettingsDTO defaultJobSettingDTO() throws MojoExecutionException {
-        return deserializeJobSettingsDTOs(getJobSettingsFromTemplate(readDefaultJob(), getJobTemplateModel()), readDefaultJob())[0];
+        return deserializeJobSettingsDTOs(settingsUtils.getModelFromTemplate(readDefaultJob(), getJobTemplateModel()), readDefaultJob())[0];
     }
 
     protected JobService getJobService() {
         return getDatabricksServiceFactory().getJobService();
-    }
-
-    /**
-     * NOTE - only for unit testing!
-     */
-    void setFailOnDuplicateJobName(boolean failOnDuplicateJobName) {
-        this.failOnDuplicateJobName = failOnDuplicateJobName;
     }
 
     /**

@@ -19,6 +19,7 @@ package com.edmunds.tools.databricks.maven.util;
 import com.edmunds.tools.databricks.maven.model.BaseModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.StringTemplateLoader;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -70,6 +71,21 @@ public class SettingsUtils<T extends BaseModel> {
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 
         return cfg;
+    }
+
+    public String getModelFromTemplate(String templateText, T templateModel) throws MojoExecutionException {
+        StringWriter stringWriter = new StringWriter();
+        try {
+            StringTemplateLoader templateLoader = new StringTemplateLoader();
+            templateLoader.putTemplate("defaultTemplate", templateText);
+
+            Template temp = getFreemarkerConfiguration(templateLoader).getTemplate("defaultTemplate");
+            temp.process(templateModel, stringWriter);
+        } catch (IOException | TemplateException e) {
+            throw new MojoExecutionException(String.format("Failed to process template model: [%s]\nFreemarker message:\n%s", templateText, e.getMessage()), e);
+        }
+
+        return stringWriter.toString();
     }
 
 }

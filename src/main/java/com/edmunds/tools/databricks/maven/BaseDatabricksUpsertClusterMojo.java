@@ -24,9 +24,6 @@ import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import freemarker.cache.StringTemplateLoader;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
@@ -37,7 +34,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -46,7 +42,7 @@ import java.util.Map;
 
 public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo {
 
-    private SettingsUtils<ClusterTemplateModel> settingsUtils = new SettingsUtils<>();
+    private final SettingsUtils<ClusterTemplateModel> settingsUtils = new SettingsUtils<>();
 
     /**
      * The databricks cluster json file that contains all of the information for how to create databricks cluster.
@@ -128,7 +124,7 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
      * @throws MojoExecutionException
      */
     public ClusterTemplateDTO defaultClusterTemplateDTO() throws MojoExecutionException {
-        return deserializeClusterTemplateDTOs(getClusterSettingsFromTemplate(readDefaultCluster(), getClusterTemplateModel()), readDefaultCluster())[0];
+        return deserializeClusterTemplateDTOs(settingsUtils.getModelFromTemplate(readDefaultCluster(), getClusterTemplateModel()), readDefaultCluster())[0];
     }
 
     private static ClusterTemplateDTO[] deserializeClusterTemplateDTOs(String settingsJson, String defaultSettingsJson) throws MojoExecutionException {
@@ -139,21 +135,6 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
                     settingsJson,
                     defaultSettingsJson), e);
         }
-    }
-
-    String getClusterSettingsFromTemplate(String templateText, ClusterTemplateModel clusterTemplateModel) throws MojoExecutionException {
-        StringWriter stringWriter = new StringWriter();
-        try {
-            StringTemplateLoader templateLoader = new StringTemplateLoader();
-            templateLoader.putTemplate("defaultTemplate", templateText);
-
-            Template temp = settingsUtils.getFreemarkerConfiguration(templateLoader).getTemplate("defaultTemplate");
-            temp.process(clusterTemplateModel, stringWriter);
-        } catch (IOException | TemplateException e) {
-            throw new MojoExecutionException(String.format("Failed to process cluster template: [%s]\nFreemarker message:\n%s", templateText, e.getMessage()), e);
-        }
-
-        return stringWriter.toString();
     }
 
     private static String readDefaultCluster() {

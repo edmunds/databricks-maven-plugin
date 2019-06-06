@@ -161,7 +161,7 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
     @Test
     public void testGetJobId_multiple_no_exception() throws Exception {
-        underTest.setFailOnDuplicateJobName(false);
+        underTest.failOnDuplicateJobName = false;
         when(jobService.listAllJobs()).thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
 
         when(jobService.getJobByName("test-job", false)).thenReturn(createJobDTO("test-job", 123L));
