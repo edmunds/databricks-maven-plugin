@@ -37,7 +37,7 @@ import java.io.File;
 public class UpsertJobMojoNoProject extends UpsertJobMojo {
 
     /**
-     * The serialized job model is requierd to be passed in a NoProject scenario.
+     * The serialized job model is required to be passed in a NoProject scenario.
      */
     @Parameter(name = "jobTemplateModelFile", property = "jobTemplateModelFile", required = true)
     protected File jobTemplateModelFile;

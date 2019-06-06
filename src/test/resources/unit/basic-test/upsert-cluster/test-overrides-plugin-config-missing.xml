@@ -30,6 +30,7 @@
                 <version>${project.version}</version>
                 <configuration>
                     <dbClusterFile>${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings-missing.json</dbClusterFile>
+                    <databricksRepo>my-bucket</databricksRepo>
                 </configuration>
                 <executions>
                     <execution>

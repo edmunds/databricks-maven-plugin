@@ -30,6 +30,7 @@
                 <version>${project.version}</version>
                 <configuration>
                     <dbClusterFile>databricks-cluster-settings-missing.json</dbClusterFile>
+                    <clusterTemplateModelFile>mySerializedProperties.json</clusterTemplateModelFile>
                 </configuration>
                 <executions>
                     <execution>

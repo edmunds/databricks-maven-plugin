@@ -17,36 +17,18 @@
 package com.edmunds.tools.databricks.maven.model;
 
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
-
-import static org.apache.commons.lang3.StringUtils.defaultString;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * Simple POJO to pass properties to the job template.
  */
-public class JobTemplateModel {
-
-    public static final String DEPLOY_VERSION = "deploy-version";
-
-    private Properties projectProperties;
-    private Properties systemProperties;
-    private String groupId;
-    private String artifactId;
-    private String version;
-    //This must be in this file due to reliance on this variable for freemarker
-    private String environment;
-    private String groupWithoutCompany;
-    // The rationale for persisting these properties is because a deployed artifact will already have been deployed
-    // to a specific place. You cannot change that after the fact!
-    private String databricksRepo;
-    private String databricksRepoKey;
+public class JobTemplateModel extends BaseModel {
 
     /**
      * Don't use this - it's for jackson deserialization only!
@@ -56,74 +38,7 @@ public class JobTemplateModel {
 
     public JobTemplateModel(MavenProject project,
                             String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
-        this.groupId = project.getGroupId();
-        this.artifactId = project.getArtifactId();
-        this.projectProperties = project.getProperties();
-        this.systemProperties = System.getProperties();
-        this.version = defaultString(systemProperties.getProperty(DEPLOY_VERSION), project.getVersion());
-        this.groupWithoutCompany = stripCompanyPackage(prefixToStrip, project.getGroupId());
-        this.databricksRepo = databricksRepo;
-        this.databricksRepoKey = databricksRepoKey;
-        this.environment = environment;
-        //TODO NEED TO GET RID OF this once we are ready. This is for backwards compatibility
-        projectProperties.setProperty("databricks.repo", databricksRepo);
-        projectProperties.setProperty("databricks.repo.key", databricksRepoKey);
-    }
-
-    public static String stripCompanyPackage(String prefixToStrip, String path) {
-        return path.replaceAll(prefixToStrip, "");
-    }
-
-    public Properties getProjectProperties() {
-        return projectProperties;
-    }
-
-    public Properties getSystemProperties() {
-        return systemProperties;
-    }
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public String getArtifactId() {
-        return artifactId;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
-
-    public String getGroupWithoutCompany() {
-        return groupWithoutCompany;
-    }
-
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
-
-    public String getDatabricksRepo() {
-        return databricksRepo;
-    }
-
-    public void setDatabricksRepo(String databricksRepo) {
-        this.databricksRepo = databricksRepo;
-    }
-
-    public String getDatabricksRepoKey() {
-        return databricksRepoKey;
-    }
-
-    public void setDatabricksRepoKey(String databricksRepoKey) {
-        this.databricksRepoKey = databricksRepoKey;
+        super(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
     }
 
     public static JobTemplateModel loadJobTemplateModelFromFile(File jobTemplateModelFile) throws
@@ -132,7 +47,7 @@ public class JobTemplateModel {
             throw new MojoExecutionException("jobTemplateModelFile must be set!");
         }
         try {
-            String jobTemplateModelJson = FileUtils.readFileToString(jobTemplateModelFile);
+            String jobTemplateModelJson = FileUtils.readFileToString(jobTemplateModelFile, Charset.defaultCharset());
             return ObjectMapperUtils.deserialize(jobTemplateModelJson, JobTemplateModel.class);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);

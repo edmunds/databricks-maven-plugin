@@ -18,29 +18,17 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DTO.JobDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
-import com.edmunds.rest.databricks.DTO.JobsDTO;
-import com.edmunds.rest.databricks.DTO.NewClusterDTO;
-import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.testng.collections.Maps;
 
-import java.io.File;
-import java.util.Map;
-
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.DELTA_TAG;
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.TEAM_TAG;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for @{@link UpsertJobMojo}.

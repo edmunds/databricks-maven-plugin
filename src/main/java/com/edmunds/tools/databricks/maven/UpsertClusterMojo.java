@@ -17,6 +17,8 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
 import com.edmunds.rest.databricks.DTO.ClusterTagDTO;
+import com.edmunds.rest.databricks.DTO.JobDTO;
+import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
@@ -24,19 +26,15 @@ import com.edmunds.rest.databricks.request.CreateClusterRequest;
 import com.edmunds.rest.databricks.request.EditClusterRequest;
 import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
-import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
-import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
+import com.edmunds.tools.databricks.maven.model.ClusterTemplateDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,29 +46,31 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
+import static com.edmunds.tools.databricks.maven.util.SettingsUtils.OBJECT_MAPPER;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
  * Cluster mojo, to perform databricks cluster upsert (create or update through recreation).
  */
 @Mojo(name = "upsert-cluster", requiresProject = true)
-public class UpsertClusterMojo extends BaseDatabricksMojo {
+public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
 
-    /**
-     * The databricks cluster json file that contains all of the information for how to create databricks cluster.
-     */
-    @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json", property = "dbClusterFile")
-    protected File dbClusterFile;
-
+    @Override
     public void execute() throws MojoExecutionException {
-        ClusterTemplateModel[] cts = getClusterTemplateModels();
+        upsertJobSettings();
+    }
+
+    void upsertJobSettings() throws MojoExecutionException {
+        ClusterTemplateDTO[] cts = buildClusterTemplateDTOsWithDefault();
         if (cts.length == 0) {
             return;
         }
 
+        getLog().info("Environment: " + environment);
+
         // Upserting clusters in parallel manner
         ForkJoinPool forkJoinPool = new ForkJoinPool(cts.length);
-        for (ClusterTemplateModel ct : cts) {
+        for (ClusterTemplateDTO ct : cts) {
             forkJoinPool.execute(() -> {
                         try {
                             ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
@@ -114,7 +114,7 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
                                     editCluster(ct, clusterId);
                                 }
                             } catch (DatabricksRestException | IOException | InterruptedException e) {
-                                throw new MojoExecutionException(String.format("Exception while [%s]. ClusterTemplateModel=[%s]", logMessage, ct), e);
+                                throw new MojoExecutionException(String.format("Exception while [%s]. ClusterTemplateDTO=[%s]", logMessage, ct), e);
                             }
                         } catch (MojoExecutionException e) {
                             getLog().error(e);
@@ -130,30 +130,6 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
         }
     }
 
-    protected ClusterTemplateModel[] getClusterTemplateModels() throws MojoExecutionException {
-        return loadClusterTemplateModelsFromFile(dbClusterFile);
-    }
-
-    protected ClusterTemplateModel[] loadClusterTemplateModelsFromFile(File clustersConfig) throws MojoExecutionException {
-        if (!clustersConfig.exists()) {
-            getLog().info("No clusters config file exists");
-            return new ClusterTemplateModel[]{};
-        }
-        ClusterTemplateModel[] cts;
-        try {
-            cts = ObjectMapperUtils.deserialize(clustersConfig, ClusterTemplateModel[].class);
-        } catch (IOException e) {
-            String config = clustersConfig.getName();
-            try {
-                config = new String(Files.readAllBytes(Paths.get(clustersConfig.toURI())));
-            } catch (IOException ex) {
-                // Exception while trying to read configuration file content. No need to log it
-            }
-            throw new MojoExecutionException("Failed to parse config: " + config, e);
-        }
-        return cts;
-    }
-
     /**
      * Apply cluster configuration changes. This action is being followed by cluster restart.
      *
@@ -162,7 +138,7 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
      * @throws IOException
      * @throws DatabricksRestException
      */
-    private void editCluster(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException {
+    private void editCluster(ClusterTemplateDTO ct, String clusterId) throws IOException, DatabricksRestException {
         getLog().info(String.format("Applying cluster configuration: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
 
         // setting mandatory fields
@@ -194,7 +170,7 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
      * @throws DatabricksRestException
      * @throws InterruptedException
      */
-    private void startCluster(ClusterTemplateModel ct, String clusterId) throws IOException, DatabricksRestException, InterruptedException {
+    private void startCluster(ClusterTemplateDTO ct, String clusterId) throws IOException, DatabricksRestException, InterruptedException {
         ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
         ClusterStateDTO clusterState = clusterService.getInfo(clusterId).getState();
         if (clusterState != ClusterStateDTO.RUNNING) {
@@ -237,7 +213,7 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
      * @throws IOException
      * @throws DatabricksRestException
      */
-    private void detachLibraries(ClusterTemplateModel ct, String clusterId, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
+    private void detachLibraries(ClusterTemplateDTO ct, String clusterId, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
         getLog().info(String.format("Removing libraries from the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
         Set<LibraryDTO> libsToDelete = getLibrariesToDelete(clusterLibraries, ct.getArtifactPaths());
         if (CollectionUtils.isNotEmpty(libsToDelete)) {
@@ -255,7 +231,7 @@ public class UpsertClusterMojo extends BaseDatabricksMojo {
      * @throws IOException
      * @throws DatabricksRestException
      */
-    private void attachLibraries(ClusterTemplateModel ct, String clusterId, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
+    private void attachLibraries(ClusterTemplateDTO ct, String clusterId, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
         getLog().info(String.format("Attaching libraries to the cluster: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
         Set<LibraryDTO> libsToInstall = getLibrariesToInstall(clusterLibraries, ct.getArtifactPaths());
         if (CollectionUtils.isNotEmpty(libsToInstall)) {

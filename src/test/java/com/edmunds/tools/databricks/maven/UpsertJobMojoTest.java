@@ -20,9 +20,8 @@ import com.edmunds.rest.databricks.DTO.JobDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.JobsDTO;
 import com.edmunds.rest.databricks.DTO.NewClusterDTO;
+import com.edmunds.tools.databricks.maven.util.SettingsUtils;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
-import java.io.File;
-import java.util.Map;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -31,10 +30,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.collections.Maps;
 
+import java.io.File;
+import java.util.Map;
 
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.DEFAULT_JOB_JSON;
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.DELTA_TAG;
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.TEAM_TAG;
+import static com.edmunds.tools.databricks.maven.util.SettingsUtils.DELTA_TAG;
+import static com.edmunds.tools.databricks.maven.util.SettingsUtils.TEAM_TAG;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -42,8 +42,6 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
 
 /**
  * Tests for @{@link UpsertJobMojo}.
@@ -147,12 +145,13 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertThat(jobSettingsDTOs.length, is(0));
     }
 
+    // TODO SettingsUtils test
     @Test
     public void testGetJobSettingsFromTemplate_missing_freemarker_variable() throws Exception {
-        // annotation no longer works with regex
-        underTest.setDbJobFile(new File(classLoader.getResource("bad-example-job.json").getFile()));
         try {
-            underTest.getJobSettingsFromTemplate(underTest.getJobTemplateModel());
+            SettingsUtils.getJobSettingsFromTemplate("jobSettings",
+                    new File(classLoader.getResource("bad-example-job.json").getFile()),
+                    underTest.getJobTemplateModel());
         } catch (MojoExecutionException e) {
             String regex = "The following has evaluated to null or missing:\n==> foo  [in template " +
                     "\"bad-example-job.json\" at line 28, column 12]";
@@ -202,6 +201,7 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertThat(jobId, nullValue());
     }
 
+    // TODO SettingsUtils test
     @Test
     public void testDefaultIfNull_JobSettingsDTO() throws Exception {
 
@@ -209,7 +209,7 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
         JobSettingsDTO targetDTO = new JobSettingsDTO();
 
-        underTest.fillInDefaultJobSettings(targetDTO, exampleSettingsDTOs, underTest.getJobTemplateModel());
+        SettingsUtils.fillInDefaultJobSettings(targetDTO, exampleSettingsDTOs, underTest.getJobTemplateModel());
         assertEquals(targetDTO.getName(), "unit-test-group/unit-test-artifact");
 
         assertEquals(targetDTO.getNewCluster().getSparkVersion(), exampleSettingsDTOs.getNewCluster().getSparkVersion());
@@ -256,39 +256,43 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         return jobSettingsDTO;
     }
 
+    // TODO SettingsUtils test
     @Test
     public void validateInstanceTags_whenNull_fillsInDefault() throws Exception {
 
         JobSettingsDTO targetDTO = createTestJobSettings(null);
 
-        underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
+        SettingsUtils.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "unit-test-group");
 
     }
 
+    // TODO SettingsUtils test
     @Test
     public void validateInstanceTags_whenWrongTeamTag_fillsInDefault() throws Exception {
         Map<String, String> tags = Maps.newHashMap();
         tags.put("team", "overrideTeam");
         JobSettingsDTO targetDTO = createTestJobSettings(tags);
 
-        underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
+        SettingsUtils.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "overrideTeam");
     }
 
+    // TODO SettingsUtils test
     @Test
     public void validateInstanceTags_whenMissingDeltaTag_fillsInDefault() throws Exception {
         Map<String, String> tags = Maps.newHashMap();
         tags.put("team", "myteam");
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
-        underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
+        SettingsUtils.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }
 
+    // TODO SettingsUtils test
     @Test
     public void validateInstanceTags_whenDeltaTag_noException() throws Exception {
         Map<String, String> tags = Maps.newHashMap();
@@ -297,7 +301,7 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
-        underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
+        SettingsUtils.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }

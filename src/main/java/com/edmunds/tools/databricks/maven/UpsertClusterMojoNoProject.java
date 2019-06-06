@@ -17,15 +17,20 @@ import java.io.File;
 public class UpsertClusterMojoNoProject extends UpsertClusterMojo {
 
     /**
-     * The databricks cluster json file that contains all of the information for how to create databricks cluster.
-     * Must be specified in case of non-project run.
+     * The serialized cluster model is required to be passed in a NoProject scenario.
      */
-    @Parameter(name = "dbClusterFile", property = "dbClusterFile", required = true)
-    protected File dbClusterFile;
+    @Parameter(name = "clusterTemplateModelFile", property = "clusterTemplateModelFile", required = true)
+    protected File clusterTemplateModelFile;
 
     @Override
-    protected ClusterTemplateModel[] getClusterTemplateModels() throws MojoExecutionException {
-        return loadClusterTemplateModelsFromFile(dbClusterFile);
+    protected ClusterTemplateModel getClusterTemplateModel() throws MojoExecutionException {
+        ClusterTemplateModel serializedClusterTemplate = ClusterTemplateModel.loadClusterTemplateModelFromFile(clusterTemplateModelFile);
+        //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+        //I consider this code ugly
+        if (environment != null) {
+            serializedClusterTemplate.setEnvironment(environment);
+        }
+        return serializedClusterTemplate;
     }
 
 }

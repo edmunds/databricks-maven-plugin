@@ -16,20 +16,16 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
-import com.edmunds.rest.databricks.DTO.ClusterAttributesDTO;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 
-import java.util.Collection;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
-/**
- * Simple POJO to pass properties to the cluster template.
- */
-public class ClusterTemplateModel extends ClusterAttributesDTO {
-
-    @JsonProperty("num_workers")
-    private int numWorkers;
-    @JsonProperty("artifact_paths")
-    private Collection<String> artifactPaths;
+public class ClusterTemplateModel extends BaseModel {
 
     /**
      * Don't use this - it's for jackson deserialization only!
@@ -37,60 +33,21 @@ public class ClusterTemplateModel extends ClusterAttributesDTO {
     public ClusterTemplateModel() {
     }
 
-    public int getNumWorkers() {
-        return numWorkers;
+    public ClusterTemplateModel(MavenProject project,
+                                String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
+        super(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
     }
 
-    public void setNumWorkers(int numWorkers) {
-        this.numWorkers = numWorkers;
-    }
-
-    public Collection<String> getArtifactPaths() {
-        return artifactPaths;
-    }
-
-    public void setArtifactPaths(Collection<String> artifactPaths) {
-        this.artifactPaths = artifactPaths;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (super.equals(o)) {
-            ClusterTemplateModel other = (ClusterTemplateModel) o;
-
-            if (this.getNumWorkers() != other.getNumWorkers()) {
-                return false;
-            }
-
-            Object this$artifactPaths = this.getArtifactPaths();
-            Object other$artifactPaths = other.getArtifactPaths();
-            if (this$artifactPaths == null) {
-                return other$artifactPaths == null;
-            } else {
-                return this$artifactPaths.equals(other$artifactPaths);
-            }
+    public static ClusterTemplateModel loadClusterTemplateModelFromFile(File clusterTemplateModelFile) throws
+            MojoExecutionException {
+        if (clusterTemplateModelFile == null) {
+            throw new MojoExecutionException("clusterTemplateModelFile must be set!");
         }
-        return false;
-    }
-
-    @Override
-    protected boolean canEqual(Object other) {
-        return other instanceof ClusterTemplateModel;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = result * 59 + this.getNumWorkers();
-        Object $artifactPaths = this.getArtifactPaths();
-        result = result * 59 + ($artifactPaths == null ? 43 : $artifactPaths.hashCode());
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        String result = super.toString();
-        return result.substring(0, result.length() - 1) +
-                ", numWorkers=" + this.getNumWorkers() + ", artifactPaths=" + this.getArtifactPaths() + ")";
+        try {
+            String clusterTemplateModelJson = FileUtils.readFileToString(clusterTemplateModelFile, Charset.defaultCharset());
+            return ObjectMapperUtils.deserialize(clusterTemplateModelJson, ClusterTemplateModel.class);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
     }
 }
