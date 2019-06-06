@@ -16,15 +16,19 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
+import com.edmunds.rest.databricks.DTO.AwsAvailabilityDTO;
+import com.edmunds.rest.databricks.DTO.EbsVolumeTypeDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
-import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -37,8 +41,12 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Map;
 
 public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo {
+
+    private SettingsUtils<ClusterTemplateModel> settingsUtils = new SettingsUtils<>();
 
     /**
      * The databricks cluster json file that contains all of the information for how to create databricks cluster.
@@ -79,7 +87,7 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
 
     ClusterTemplateDTO[] buildClusterTemplateDTOsWithDefault() throws MojoExecutionException {
         ClusterTemplateModel clusterTemplateModel = getClusterTemplateModel();
-        String clusterSettings = SettingsUtils.getJobSettingsFromTemplate("clusterSettings", dbClusterFile, clusterTemplateModel);
+        String clusterSettings = settingsUtils.getSettingsFromTemplate("clusterSettings", dbClusterFile, clusterTemplateModel);
         if (clusterSettings == null) {
             return new ClusterTemplateDTO[]{};
         }
@@ -89,12 +97,12 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
         ClusterTemplateDTO[] clusterTemplateDTOs = deserializeClusterTemplateDTOs(clusterSettings, readDefaultCluster());
         for (ClusterTemplateDTO clusterTemplateDTO : clusterTemplateDTOs) {
             try {
-                SettingsUtils.fillInDefaultClusterSettings(clusterTemplateDTO, defaultClusterTemplateDTO, clusterTemplateModel);
+                fillInDefaultClusterSettings(clusterTemplateDTO, defaultClusterTemplateDTO, clusterTemplateModel);
             } catch (JsonProcessingException e) {
                 throw new MojoExecutionException("Fail to fill empty-value with default", e);
             }
 
-            // Validate all job settings. If any fail terminate.
+            // Validate all cluster settings. If any fail terminate.
             if (validate) {
                 validateClusterTemplate(clusterTemplateDTO, clusterTemplateModel);
             }
@@ -133,28 +141,182 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
         }
     }
 
-    String getClusterSettingsFromTemplate(String templateText, ClusterTemplateModel jobTemplateModel) throws MojoExecutionException {
+    String getClusterSettingsFromTemplate(String templateText, ClusterTemplateModel clusterTemplateModel) throws MojoExecutionException {
         StringWriter stringWriter = new StringWriter();
         try {
             StringTemplateLoader templateLoader = new StringTemplateLoader();
             templateLoader.putTemplate("defaultTemplate", templateText);
 
-            Template temp = SettingsUtils.getFreemarkerConfiguration(templateLoader).getTemplate("defaultTemplate");
-            temp.process(jobTemplateModel, stringWriter);
+            Template temp = settingsUtils.getFreemarkerConfiguration(templateLoader).getTemplate("defaultTemplate");
+            temp.process(clusterTemplateModel, stringWriter);
         } catch (IOException | TemplateException e) {
-            throw new MojoExecutionException(String.format("Failed to process job template: [%s]\nFreemarker message:\n%s", templateText, e.getMessage()), e);
+            throw new MojoExecutionException(String.format("Failed to process cluster template: [%s]\nFreemarker message:\n%s", templateText, e.getMessage()), e);
         }
 
         return stringWriter.toString();
     }
 
-
     private static String readDefaultCluster() {
         try {
-            return IOUtils.toString(BaseDatabricksJobMojo.class.getResourceAsStream("/default-cluster.json"), Charset.defaultCharset());
+            return IOUtils.toString(BaseDatabricksUpsertClusterMojo.class.getResourceAsStream("/default-cluster.json"), Charset.defaultCharset());
         } catch (Exception e) {
             return ExceptionUtils.getStackTrace(e);
         }
+    }
+
+    /**
+     * Check the value of targetDTO and fill targetDTO with defaultDTO if value do not exist.
+     *
+     * @param targetDTO
+     * @param defaultDTO
+     * @throws JsonProcessingException
+     */
+    public void fillInDefaultClusterSettings(ClusterTemplateDTO targetDTO, ClusterTemplateDTO defaultDTO, ClusterTemplateModel clusterTemplateModel) throws JsonProcessingException {
+
+        String clusterName = targetDTO.getClusterName();
+        if (StringUtils.isEmpty(clusterName)) {
+            clusterName = clusterTemplateModel.getGroupWithoutCompany() + "/" + clusterTemplateModel.getArtifactId();
+            targetDTO.setClusterName(clusterName);
+            getLog().info(String.format("set CusterName with %s", clusterName));
+        }
+
+        int numWorkers = targetDTO.getNumWorkers();
+        if (numWorkers == 0) {
+            numWorkers = defaultDTO.getNumWorkers();
+            targetDTO.setNumWorkers(numWorkers);
+            getLog().info(String.format("%s|set NumWorkers with %s", clusterName, numWorkers));
+        }
+
+        String sparkVersion = targetDTO.getSparkVersion();
+        if (StringUtils.isEmpty(sparkVersion)) {
+            sparkVersion = defaultDTO.getSparkVersion();
+            targetDTO.setSparkVersion(sparkVersion);
+            getLog().info(String.format("%s|set SparkVersion with %s", clusterName, sparkVersion));
+        }
+
+        // AwsAttributes
+        AwsAttributesDTO awsAttributes = targetDTO.getAwsAttributes();
+        AwsAttributesDTO awsAttributesDefault = defaultDTO.getAwsAttributes();
+        if (awsAttributes == null) {
+            awsAttributes = awsAttributesDefault;
+            targetDTO.setAwsAttributes(awsAttributes);
+            getLog().info(String.format("%s|set AwsAttributes with %s", clusterName, awsAttributes));
+        } else {
+            AwsAvailabilityDTO availability = awsAttributes.getAvailability();
+            if (availability == null) {
+                availability = awsAttributesDefault.getAvailability();
+                awsAttributes.setAvailability(availability);
+                getLog().info(String.format("%s|set Availability with %s", clusterName, availability));
+            }
+
+            int ebsVolumeCount = awsAttributes.getEbsVolumeCount();
+            if (ebsVolumeCount == 0) {
+                ebsVolumeCount = awsAttributesDefault.getEbsVolumeCount();
+                awsAttributes.setEbsVolumeCount(ebsVolumeCount);
+                getLog().info(String.format("%s|set EbsVolumeCount with %s", clusterName, ebsVolumeCount));
+            }
+
+            int ebsVolumeSize = awsAttributes.getEbsVolumeSize();
+            if (ebsVolumeSize == 0) {
+                ebsVolumeSize = awsAttributesDefault.getEbsVolumeSize();
+                awsAttributes.setEbsVolumeSize(ebsVolumeSize);
+                getLog().info(String.format("%s|set EbsVolumeSize with %s", clusterName, ebsVolumeSize));
+            }
+
+            EbsVolumeTypeDTO ebsVolumeType = awsAttributes.getEbsVolumeType();
+            if (ebsVolumeType == null) {
+                ebsVolumeType = awsAttributesDefault.getEbsVolumeType();
+                awsAttributes.setEbsVolumeType(ebsVolumeType);
+                getLog().info(String.format("%s|set EbsVolumeType with %s", clusterName, ebsVolumeType));
+            }
+
+            // Should we handle this?
+            int firstOnDemand = awsAttributes.getFirstOnDemand();
+            if (firstOnDemand == 0) {
+                firstOnDemand = awsAttributesDefault.getFirstOnDemand();
+                awsAttributes.setFirstOnDemand(firstOnDemand);
+                getLog().info(String.format("%s|set FirstOnDemand with %s", clusterName, firstOnDemand));
+            }
+
+            // Or just throw an exception here
+            String instanceProfileArn = awsAttributes.getInstanceProfileArn();
+            if (StringUtils.isEmpty(instanceProfileArn)) {
+                instanceProfileArn = awsAttributesDefault.getInstanceProfileArn();
+                awsAttributes.setInstanceProfileArn(instanceProfileArn);
+                getLog().info(String.format("%s|set InstanceProfileArn with %s", clusterName, instanceProfileArn));
+            }
+
+            int spotBidPricePercent = awsAttributes.getSpotBidPricePercent();
+            if (spotBidPricePercent == 0) {
+                spotBidPricePercent = awsAttributesDefault.getSpotBidPricePercent();
+                awsAttributes.setSpotBidPricePercent(spotBidPricePercent);
+                getLog().info(String.format("%s|set SpotBidPricePercent with %s", clusterName, spotBidPricePercent));
+            }
+
+            String zoneId = awsAttributes.getZoneId();
+            if (StringUtils.isEmpty(zoneId)) {
+                zoneId = awsAttributesDefault.getZoneId();
+                awsAttributes.setZoneId(zoneId);
+                getLog().info(String.format("%s|set ZoneId with %s", clusterName, zoneId));
+            }
+        }
+
+        String nodeTypeId = targetDTO.getNodeTypeId();
+        if (StringUtils.isEmpty(nodeTypeId)) {
+            nodeTypeId = defaultDTO.getNodeTypeId();
+            targetDTO.setNodeTypeId(nodeTypeId);
+            getLog().info(String.format("%s|set NodeTypeId with %s", clusterName, nodeTypeId));
+        }
+
+        // Do we need it?
+        Map<String, String> sparkEnvVars = targetDTO.getSparkEnvVars();
+        if (MapUtils.isEmpty(sparkEnvVars)) {
+            sparkEnvVars = defaultDTO.getSparkEnvVars();
+            targetDTO.setSparkEnvVars(sparkEnvVars);
+            getLog().info(String.format("%s|set SparkEnvVars with %s", clusterName, sparkEnvVars));
+        }
+
+        int autoTerminationMinutes = targetDTO.getAutoTerminationMinutes();
+        if (autoTerminationMinutes == 0) {
+            autoTerminationMinutes = defaultDTO.getAutoTerminationMinutes();
+            targetDTO.setAutoTerminationMinutes(autoTerminationMinutes);
+            getLog().info(String.format("%s|set AutoTerminationMinutes with %s", clusterName, autoTerminationMinutes));
+        }
+
+        Collection<String> artifactPaths = targetDTO.getArtifactPaths();
+        if (CollectionUtils.isEmpty(artifactPaths)) {
+            artifactPaths = defaultDTO.getArtifactPaths();
+            targetDTO.setArtifactPaths(artifactPaths);
+            getLog().info(String.format("%s|set ArtifactPaths with %s", clusterName, artifactPaths));
+        }
+
+        String driverNodeTypeId = targetDTO.getDriverNodeTypeId();
+        if (StringUtils.isEmpty(driverNodeTypeId)) {
+            driverNodeTypeId = defaultDTO.getDriverNodeTypeId();
+            targetDTO.setDriverNodeTypeId(driverNodeTypeId);
+            getLog().info(String.format("%s|set DriverNodeTypeId with %s", clusterName, driverNodeTypeId));
+        }
+
+        Map<String, String> sparkConf = targetDTO.getSparkConf();
+        if (MapUtils.isEmpty(sparkConf)) {
+            sparkConf = defaultDTO.getSparkConf();
+            targetDTO.setSparkConf(sparkConf);
+            getLog().info(String.format("%s|set SparkConf with %s", clusterName, sparkConf));
+        }
+
+//        Map<String, String> customTags = targetDTO.getCustomTags();
+//        if (MapUtils.isEmpty(customTags)) {
+//            customTags = defaultDTO.getCustomTags();
+//            targetDTO.setCustomTags(customTags);
+//            getLog().info(String.format("%s|set CustomTags with %s", clusterName, customTags));
+//        }
+
+//        ClusterLogConfDTO clusterLogConf = targetDTO.getClusterLogConf();
+//        if (clusterLogConf == null) {
+//            clusterLogConf = defaultDTO.getClusterLogConf();
+//            targetDTO.setClusterLogConf(clusterLogConf);
+//            getLog().info(String.format("%s|set ClusterLogConf with %s", clusterName, clusterLogConf));
+//        }
     }
 
 }

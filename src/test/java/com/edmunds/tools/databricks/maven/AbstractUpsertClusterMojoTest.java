@@ -11,7 +11,6 @@ import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
 import com.edmunds.rest.databricks.request.EditClusterRequest;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateDTO;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.google.common.collect.Sets;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
