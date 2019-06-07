@@ -18,6 +18,7 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
 import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -40,18 +41,26 @@ public class UpsertJobMojoNoProject extends UpsertJobMojo {
      * The serialized job model is required to be passed in a NoProject scenario.
      */
     @Parameter(name = "jobTemplateModelFile", property = "jobTemplateModelFile", required = true)
-    protected File jobTemplateModelFile;
+    private File jobTemplateModelFile;
 
     @Override
     protected TemplateModelSupplier<JobTemplateModel> createTemplateModelSupplier() {
-        return () -> {
-            JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
-            //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
-            //I consider this code ugly
-            if (environment != null) {
-                serializedJobTemplate.setEnvironment(environment);
+        return new TemplateModelSupplier<JobTemplateModel>() {
+            @Override
+            public JobTemplateModel get() throws MojoExecutionException {
+                JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
+                //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+                //I consider this code ugly
+                if (environment != null) {
+                    serializedJobTemplate.setEnvironment(environment);
+                }
+                return serializedJobTemplate;
             }
-            return serializedJobTemplate;
+
+            @Override
+            public File getSettingsFile() {
+                return UpsertJobMojoNoProject.super.dbJobFile;
+            }
         };
     }
 

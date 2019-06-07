@@ -18,6 +18,7 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
 import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -30,7 +31,7 @@ import java.io.File;
  * </p>
  * <p>
  * NOTE 2: If a job has more than 1 active run, ALL of them will be cancelled on STOP\RESTART.
- *
+ * <p>
  * NoProject is split out so that we have a mojo that will work with multi module projects.
  * </p>
  */
@@ -41,18 +42,26 @@ public class JobMojoNoProject extends JobMojo {
      * The serialized job model is requierd to be passed in a NoProject scenario.
      */
     @Parameter(name = "jobTemplateModelFile", property = "jobTemplateModelFile", required = true)
-    protected File jobTemplateModelFile;
+    File jobTemplateModelFile;
 
     @Override
     protected TemplateModelSupplier<JobTemplateModel> createTemplateModelSupplier() {
-        return () -> {
-            JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
-            //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
-            //I consider this code ugly
-            if (environment != null) {
-                serializedJobTemplate.setEnvironment(environment);
+        return new TemplateModelSupplier<JobTemplateModel>() {
+            @Override
+            public JobTemplateModel get() throws MojoExecutionException {
+                JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
+                //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+                //I consider this code ugly
+                if (environment != null) {
+                    serializedJobTemplate.setEnvironment(environment);
+                }
+                return serializedJobTemplate;
             }
-            return serializedJobTemplate;
+
+            @Override
+            public File getSettingsFile() {
+                return jobTemplateModelFile;
+            }
         };
     }
 }

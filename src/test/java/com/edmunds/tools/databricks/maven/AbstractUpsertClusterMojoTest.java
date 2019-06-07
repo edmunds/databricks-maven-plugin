@@ -124,7 +124,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         assertTrue(getPath().endsWith("databricks-cluster-settings-missing.json"));
 
         underTest.execute();
-        List<ClusterTemplateDTO> clusterTemplateDTOs = underTest.getSettingsUtils().buildTemplateDTOsWithDefault();
+        List<ClusterTemplateDTO> clusterTemplateDTOs = underTest.getSettingsUtils().buildTemplateDTOsWithDefaults();
 
         assertEquals(0, clusterTemplateDTOs.size());
     }

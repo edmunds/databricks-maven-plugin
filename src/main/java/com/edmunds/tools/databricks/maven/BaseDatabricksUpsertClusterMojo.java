@@ -56,21 +56,24 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     protected File dbClusterFile;
 
     protected TemplateModelSupplier<ClusterTemplateModel> createTemplateModelSupplier() {
-        return () -> {
-            if (StringUtils.isBlank(databricksRepo)) {
-                throw new MojoExecutionException("databricksRepo property is missing");
+        return new TemplateModelSupplier<ClusterTemplateModel>() {
+            @Override
+            public ClusterTemplateModel get() throws MojoExecutionException {
+                if (StringUtils.isBlank(databricksRepo)) {
+                    throw new MojoExecutionException("databricksRepo property is missing");
+                }
+                return new ClusterTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
             }
-            return new ClusterTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
+
+            @Override
+            public File getSettingsFile() {
+                return dbClusterFile;
+            }
         };
     }
 
     private SettingsInitializer<ClusterTemplateModel, ClusterTemplateDTO> createSettingsInitializer() {
         return new SettingsInitializer<ClusterTemplateModel, ClusterTemplateDTO>() {
-            @Override
-            public File getSettingsFile() {
-                return dbClusterFile;
-            }
-
             @Override
             public void fillInDefaults(ClusterTemplateDTO settings, ClusterTemplateDTO defaultSettings, ClusterTemplateModel templateModel) {
                 String clusterName = settings.getClusterName();
@@ -210,10 +213,11 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
                     getLog().info(String.format("%s|set CustomTags with %s", clusterName, defaultCustomTags));
                 }
 
-                ClusterLogConfDTO defaultClusterLogCong = defaultSettings.getClusterLogConf();
-                if (settings.getClusterLogConf() == null && defaultClusterLogCong != null) {
-                    settings.setClusterLogConf(defaultClusterLogCong);
-                    getLog().info(String.format("%s|set ClusterLogConf with %s", clusterName, defaultClusterLogCong));
+                ClusterLogConfDTO defaultClusterLogConf = defaultSettings.getClusterLogConf();
+                if (settings.getClusterLogConf() == null && defaultClusterLogConf != null
+                        && (defaultClusterLogConf.getDbfs() != null || defaultClusterLogConf.getS3() != null)) {
+                    settings.setClusterLogConf(defaultClusterLogConf);
+                    getLog().info(String.format("%s|set ClusterLogConf with %s", clusterName, defaultClusterLogConf));
                 }
             }
 

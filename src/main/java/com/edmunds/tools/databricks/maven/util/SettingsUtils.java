@@ -56,11 +56,11 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
     private final Class<D[]> dtoArrayClass;
     private final String defaultSettingsFileName;
     private final TemplateModelSupplier<T> templateModelSupplier;
-    public final SettingsInitializer<T, D> settingsInitializer;
+    private final SettingsInitializer<T, D> settingsInitializer;
 
     public SettingsUtils(Class<M> mojoClass, Class<D[]> dtoArrayClass, String defaultSettingsFileName,
                          TemplateModelSupplier<T> templateModelSupplier, SettingsInitializer<T, D> settingsInitializer) {
-        this.settingsFile = settingsInitializer.getSettingsFile();
+        this.settingsFile = templateModelSupplier.getSettingsFile();
         this.mojoClass = mojoClass;
         this.dtoArrayClass = dtoArrayClass;
         this.defaultSettingsFileName = defaultSettingsFileName;
@@ -68,7 +68,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
         this.settingsInitializer = settingsInitializer;
     }
 
-    public String getSettingsFromTemplate(T templateModel) throws MojoExecutionException {
+    String getSettingsFromTemplate(T templateModel) throws MojoExecutionException {
         if (!settingsFile.exists()) {
             log.info("No settings template file exists");
             return null;
@@ -85,21 +85,11 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
         return stringWriter.toString();
     }
 
-    private Configuration getFreemarkerConfiguration(TemplateLoader templateLoader) throws IOException {
-        Configuration cfg = new Configuration(Configuration.VERSION_2_3_22);
-        cfg.setTemplateLoader(templateLoader);
-        cfg.setDefaultEncoding(Charset.defaultCharset().name());
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-
-        return cfg;
-    }
-
     private String getModelFromTemplate(String templateText, T templateModel) throws MojoExecutionException {
         StringWriter stringWriter = new StringWriter();
         try {
             StringTemplateLoader templateLoader = new StringTemplateLoader();
             templateLoader.putTemplate("defaultTemplate", templateText);
-
             Template temp = getFreemarkerConfiguration(templateLoader).getTemplate("defaultTemplate");
             temp.process(templateModel, stringWriter);
         } catch (IOException | TemplateException e) {
@@ -109,7 +99,16 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
         return stringWriter.toString();
     }
 
-    public D[] deserializeSettings(String settingsJson, String defaultSettingsJson) throws MojoExecutionException {
+    private Configuration getFreemarkerConfiguration(TemplateLoader templateLoader) throws IOException {
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_22);
+        cfg.setTemplateLoader(templateLoader);
+        cfg.setDefaultEncoding(Charset.defaultCharset().name());
+        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+
+        return cfg;
+    }
+
+    private D[] deserializeSettings(String settingsJson, String defaultSettingsJson) throws MojoExecutionException {
         try {
             return ObjectMapperUtils.deserialize(settingsJson, dtoArrayClass);
         } catch (IOException e) {
@@ -119,7 +118,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
         }
     }
 
-    public String readDefaultSettings() {
+    private String readDefaultSettings() {
         try {
             return IOUtils.toString(mojoClass.getResourceAsStream(defaultSettingsFileName), Charset.defaultCharset());
         } catch (Exception e) {
@@ -145,7 +144,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
         return templateModelSupplier.get();
     }
 
-    public List<D> buildTemplateDTOsWithDefault() throws MojoExecutionException {
+    public List<D> buildTemplateDTOsWithDefaults() throws MojoExecutionException {
         T templateModel = getTemplateModel();
         String jobSettings = getSettingsFromTemplate(templateModel);
         if (jobSettings == null) {
@@ -153,8 +152,8 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
         }
 
         D defaultSettingDTO = defaultTemplateDTO();
-        List<D> settingsDTOS = Arrays.asList(deserializeSettings(jobSettings, readDefaultSettings()));
-        for (D settingsDTO : settingsDTOS) {
+        List<D> settingsDTOs = Arrays.asList(deserializeSettings(jobSettings, readDefaultSettings()));
+        for (D settingsDTO : settingsDTOs) {
             try {
                 settingsInitializer.fillInDefaults(settingsDTO, defaultSettingDTO, templateModel);
             } catch (JsonProcessingException e) {
@@ -164,7 +163,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
             settingsInitializer.validate(settingsDTO, templateModel);
         }
 
-        return settingsDTOS;
+        return settingsDTOs;
     }
 
 }

@@ -25,6 +25,7 @@ import com.edmunds.rest.databricks.request.EditClusterRequest;
 import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateDTO;
+import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,8 +58,8 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
         upsertJobSettings();
     }
 
-    void upsertJobSettings() throws MojoExecutionException {
-        List<ClusterTemplateDTO> cts = getSettingsUtils().buildTemplateDTOsWithDefault();
+    private void upsertJobSettings() throws MojoExecutionException {
+        List<ClusterTemplateDTO> cts = getSettingsUtils().buildTemplateDTOsWithDefaults();
         if (cts.size() == 0) {
             return;
         }
@@ -110,7 +111,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
                                     attachLibraries(ct, clusterId, clusterLibraries);
                                     editCluster(ct, clusterId);
                                 }
-                            } catch (DatabricksRestException | IOException | InterruptedException e) {
+                            } catch (DatabricksRestException | IOException e) {
                                 throw new MojoExecutionException(String.format("Exception while [%s]. ClusterTemplateDTO=[%s]", logMessage, ct), e);
                             }
                         } catch (MojoExecutionException e) {
@@ -165,9 +166,8 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
      * @param clusterId cluster id
      * @throws IOException
      * @throws DatabricksRestException
-     * @throws InterruptedException
      */
-    private void startCluster(ClusterTemplateDTO ct, String clusterId) throws IOException, DatabricksRestException, InterruptedException {
+    private void startCluster(ClusterTemplateDTO ct, String clusterId) throws IOException, DatabricksRestException {
         ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
         ClusterStateDTO clusterState = clusterService.getInfo(clusterId).getState();
         if (clusterState != ClusterStateDTO.RUNNING) {
@@ -179,7 +179,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
             while (clusterState != ClusterStateDTO.RUNNING) {
                 getLog().info(String.format("Current cluster state is [%s]. Waiting for RUNNING state", clusterState));
                 // sleep some time to avoid excessive requests to databricks API
-                TimeUnit.SECONDS.sleep(15);
+                Uninterruptibles.sleepUninterruptibly(20, TimeUnit.SECONDS);
                 clusterState = clusterService.getInfo(clusterId).getState();
             }
         }

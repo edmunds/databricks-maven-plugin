@@ -51,7 +51,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
     public SettingsUtils<BaseDatabricksJobMojo, JobTemplateModel, JobSettingsDTO> getSettingsUtils() {
         if (settingsUtils == null) {
-            settingsUtils  = new SettingsUtils<>(
+            settingsUtils = new SettingsUtils<>(
                     BaseDatabricksJobMojo.class, JobSettingsDTO[].class, "/default-job.json",
                     createTemplateModelSupplier(), createSettingsInitializer());
         }
@@ -62,7 +62,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
      * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
      */
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-job-settings.json", property = "dbJobFile")
-    protected File dbJobFile;
+    File dbJobFile;
 
     /**
      * If true, any command that involves working by databricks job name, will fail if more then one job exists
@@ -72,21 +72,24 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     boolean failOnDuplicateJobName = true;
 
     protected TemplateModelSupplier<JobTemplateModel> createTemplateModelSupplier() {
-        return () -> {
-            if (StringUtils.isBlank(databricksRepo)) {
-                throw new MojoExecutionException("databricksRepo property is missing");
+        return new TemplateModelSupplier<JobTemplateModel>() {
+            @Override
+            public JobTemplateModel get() throws MojoExecutionException {
+                if (StringUtils.isBlank(databricksRepo)) {
+                    throw new MojoExecutionException("databricksRepo property is missing");
+                }
+                return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
             }
-            return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
-        };
-    }
 
-    protected SettingsInitializer<JobTemplateModel, JobSettingsDTO> createSettingsInitializer() {
-        return new SettingsInitializer<JobTemplateModel, JobSettingsDTO>() {
             @Override
             public File getSettingsFile() {
                 return dbJobFile;
             }
+        };
+    }
 
+    private SettingsInitializer<JobTemplateModel, JobSettingsDTO> createSettingsInitializer() {
+        return new SettingsInitializer<JobTemplateModel, JobSettingsDTO>() {
             @Override
             public void fillInDefaults(JobSettingsDTO settings, JobSettingsDTO defaultSettings,
                                        JobTemplateModel templateModel) throws JsonProcessingException {
@@ -177,7 +180,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
                     String groupId = templateModel.getGroupWithoutCompany();
                     Map<String, String> tagMap = settings.getNewCluster().getCustomTags();
                     if (tagMap == null) {
-                        tagMap = new HashMap();
+                        tagMap = new HashMap<>();
                         settings.getNewCluster().setCustomTags(tagMap);
                     }
 

@@ -18,13 +18,15 @@ package com.edmunds.tools.databricks.maven.util;
 
 import org.apache.maven.plugin.MojoExecutionException;
 
+import java.io.File;
+
 /**
- *
  * @param <T> Template Model
  */
-@FunctionalInterface
 public interface TemplateModelSupplier<T> {
 
     T get() throws MojoExecutionException;
+
+    File getSettingsFile();
 
 }
