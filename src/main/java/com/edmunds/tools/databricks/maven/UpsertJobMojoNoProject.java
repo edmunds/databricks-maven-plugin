@@ -43,7 +43,7 @@ public class UpsertJobMojoNoProject extends UpsertJobMojo {
     protected File jobTemplateModelFile;
 
     @Override
-    protected TemplateModelSupplier<JobTemplateModel> createSupplier() {
+    protected TemplateModelSupplier<JobTemplateModel> createTemplateModelSupplier() {
         return () -> {
             JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
             //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.

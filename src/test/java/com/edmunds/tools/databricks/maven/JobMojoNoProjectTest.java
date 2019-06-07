@@ -44,7 +44,7 @@ public class JobMojoNoProjectTest extends BaseDatabricksMojoTest {
 
     @Test
     public void testStopRun_no_job() throws Exception {
-        JobTemplateModel model = underTest.settingsUtils.getTemplateModel();
+        JobTemplateModel model = underTest.getSettingsUtils().getTemplateModel();
 
         assertEquals(model.getEnvironment(), "PROD");
     }

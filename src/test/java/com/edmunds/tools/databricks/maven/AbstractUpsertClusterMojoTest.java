@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,9 +124,9 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         assertTrue(getPath().endsWith("databricks-cluster-settings-missing.json"));
 
         underTest.execute();
-        ClusterTemplateDTO[] clusterTemplateDTOs = underTest.getClusterTemplateDTOs();
+        List<ClusterTemplateDTO> clusterTemplateDTOs = underTest.getSettingsUtils().buildTemplateDTOsWithDefault();
 
-        assertEquals(0, clusterTemplateDTOs.length);
+        assertEquals(0, clusterTemplateDTOs.size());
     }
 
     protected abstract String getPath();

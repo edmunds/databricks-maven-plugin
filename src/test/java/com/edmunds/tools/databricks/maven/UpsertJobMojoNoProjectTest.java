@@ -25,6 +25,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.List;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyBoolean;
@@ -50,19 +52,19 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
     }
 
     @Test
-    public void execute_NoJobFile_NothingHappens() throws Exception{
+    public void execute_NoJobFile_NothingHappens() throws Exception {
         UpsertJobMojoNoProject underTest = getNoOverridesMojo(GOAL);
         Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
-            ("unit-test-group/unit-test-artifact", 1));
+                ("unit-test-group/unit-test-artifact", 1));
         underTest.execute();
 
-        JobSettingsDTO[] jobSettingsDTOS = underTest.buildJobSettingsDTOsWithDefault();
-        assert(jobSettingsDTOS.length == 0);
+        List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildTemplateDTOsWithDefault();
+        assert (jobSettingsDTOS.size() == 0);
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "" +
-        ".*jobTemplateModelFile must be set.*")
-    public void execute_whenMissingProperties_fail() throws Exception{
+            ".*jobTemplateModelFile must be set.*")
+    public void execute_whenMissingProperties_fail() throws Exception {
         UpsertJobMojoNoProject underTest = getMissingMandatoryMojo(GOAL);
         underTest.execute();
     }
@@ -80,35 +82,35 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
     public void execute_whenJobFileAndTemplateExists_upsertsJob() throws Exception {
         UpsertJobMojoNoProject underTest = getOverridesMojo(GOAL, "2");
         Mockito.when(jobService.getJobByName("dwh/inventory-databricks", true)).thenReturn(createJobDTO
-            ("dwh/inventory-databricks", 1));
+                ("dwh/inventory-databricks", 1));
 
         underTest.execute();
 
-        JobSettingsDTO[] jobSettingsDTOS = underTest.buildJobSettingsDTOsWithDefault();
-        assertThat(jobSettingsDTOS.length, is(1));
-        assertThat(jobSettingsDTOS[0].getEmailNotifications().getOnFailure(), is(new String[]{"QA.com"}));
-        assertThat(jobSettingsDTOS[0].getName(), is("dwh/inventory-databricks"));
-        assertThat(jobSettingsDTOS[0].getLibraries()[0].getJar(), is
-            ("s3://edmunds-repos/artifacts/com.edmunds" +
-                ".dwh/inventory-databricks/1.1.182-SNAPSHOT/inventory-databricks-1.1.182-SNAPSHOT" +
-                ".jar"));
+        List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildTemplateDTOsWithDefault();
+        assertThat(jobSettingsDTOS.size(), is(1));
+        assertThat(jobSettingsDTOS.get(0).getEmailNotifications().getOnFailure(), is(new String[]{"QA.com"}));
+        assertThat(jobSettingsDTOS.get(0).getName(), is("dwh/inventory-databricks"));
+        assertThat(jobSettingsDTOS.get(0).getLibraries()[0].getJar(), is
+                ("s3://edmunds-repos/artifacts/com.edmunds" +
+                        ".dwh/inventory-databricks/1.1.182-SNAPSHOT/inventory-databricks-1.1.182-SNAPSHOT" +
+                        ".jar"));
 
         ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
         verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
-        assertEquals(jobSettingsDTOS[0], jobCaptor.getValue());
+        assertEquals(jobSettingsDTOS.get(0), jobCaptor.getValue());
     }
 
     @Test
     public void execute_whenJobFileAndTemplateExistsAndEnvironmentIsProd_upsertsJob() throws Exception {
         UpsertJobMojoNoProject underTest = getOverridesMojo(GOAL, "-prod");
         Mockito.when(jobService.getJobByName("dwh/inventory-databricks", true)).thenReturn(createJobDTO
-            ("dwh/inventory-databricks", 1));
+                ("dwh/inventory-databricks", 1));
 
         underTest.execute();
 
-        JobSettingsDTO[] jobSettingsDTOS = underTest.buildJobSettingsDTOsWithDefault();
-        assertThat(jobSettingsDTOS.length, is(1));
-        assertThat(jobSettingsDTOS[0].getEmailNotifications().getOnFailure(), is(new String[]{"PROD.com"}));
+        List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildTemplateDTOsWithDefault();
+        assertThat(jobSettingsDTOS.size(), is(1));
+        assertThat(jobSettingsDTOS.get(0).getEmailNotifications().getOnFailure(), is(new String[]{"PROD.com"}));
     }
 
     private JobDTO createJobDTO(String jobName, long jobId) {

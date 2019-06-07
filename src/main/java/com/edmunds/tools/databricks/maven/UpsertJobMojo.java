@@ -24,6 +24,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.edmunds.tools.databricks.maven.util.SettingsUtils.OBJECT_MAPPER;
 
@@ -44,7 +45,7 @@ public class UpsertJobMojo extends BaseDatabricksJobMojo {
     }
 
     void upsertJobSettings() throws MojoExecutionException {
-        JobSettingsDTO[] jobSettingsDTOS = buildJobSettingsDTOsWithDefault();
+        List<JobSettingsDTO> jobSettingsDTOS = getSettingsUtils().buildTemplateDTOsWithDefault();
         for (JobSettingsDTO settingsDTO : jobSettingsDTOS) {
             try {
                 getJobService().upsertJob(settingsDTO, failOnDuplicateJobName);

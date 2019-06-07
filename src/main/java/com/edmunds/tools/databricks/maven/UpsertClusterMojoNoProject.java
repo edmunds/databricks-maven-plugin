@@ -23,7 +23,7 @@ public class UpsertClusterMojoNoProject extends UpsertClusterMojo {
     protected File clusterTemplateModelFile;
 
     @Override
-    protected TemplateModelSupplier<ClusterTemplateModel> createSupplier() {
+    protected TemplateModelSupplier<ClusterTemplateModel> createTemplateModelSupplier() {
         return () -> {
             ClusterTemplateModel serializedClusterTemplate = ClusterTemplateModel.loadClusterTemplateModelFromFile(clusterTemplateModelFile);
             //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.

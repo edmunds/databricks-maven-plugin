@@ -47,7 +47,7 @@ public class PrepareJobResources extends BaseDatabricksJobMojo {
     void prepareJobTemplateModel() throws MojoExecutionException {
         try {
             FileUtils.writeStringToFile(jobTemplateModelFileOutput,
-                    ObjectMapperUtils.serialize(settingsUtils.getTemplateModel()),
+                    ObjectMapperUtils.serialize(getSettingsUtils().getTemplateModel()),
                     Charset.defaultCharset());
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);

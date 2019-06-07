@@ -18,6 +18,7 @@ package com.edmunds.tools.databricks.maven.util;
 
 import com.edmunds.tools.databricks.maven.BaseDatabricksMojo;
 import com.edmunds.tools.databricks.maven.model.BaseModel;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.StringTemplateLoader;
@@ -36,6 +37,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @param <M> Databricks Mojo
@@ -46,21 +50,27 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
 
     public static final ObjectMapper OBJECT_MAPPER = ObjectMapperUtils.getObjectMapper();
     private static final Log log = new SystemStreamLog();
+
+    private final File settingsFile;
     private final Class<M> mojoClass;
     private final Class<D[]> dtoArrayClass;
     private final String defaultSettingsFileName;
     private final TemplateModelSupplier<T> templateModelSupplier;
+    public final SettingsInitializer<T, D> settingsInitializer;
 
-    public SettingsUtils(Class<M> mojoClass, Class<D[]> dtoArrayClass, String defaultSettingsFileName, TemplateModelSupplier<T> templateModelSupplier) {
+    public SettingsUtils(Class<M> mojoClass, Class<D[]> dtoArrayClass, String defaultSettingsFileName,
+                         TemplateModelSupplier<T> templateModelSupplier, SettingsInitializer<T, D> settingsInitializer) {
+        this.settingsFile = settingsInitializer.getSettingsFile();
         this.mojoClass = mojoClass;
         this.dtoArrayClass = dtoArrayClass;
         this.defaultSettingsFileName = defaultSettingsFileName;
         this.templateModelSupplier = templateModelSupplier;
+        this.settingsInitializer = settingsInitializer;
     }
 
-    public String getSettingsFromTemplate(String settingsName, File settingsFile, T templateModel) throws MojoExecutionException {
+    public String getSettingsFromTemplate(T templateModel) throws MojoExecutionException {
         if (!settingsFile.exists()) {
-            log.info(String.format("No %s file exists", settingsName));
+            log.info("No settings template file exists");
             return null;
         }
         StringWriter stringWriter = new StringWriter();
@@ -69,7 +79,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
             Template temp = getFreemarkerConfiguration(templateLoader).getTemplate(settingsFile.getName());
             temp.process(templateModel, stringWriter);
         } catch (IOException | TemplateException e) {
-            throw new MojoExecutionException(String.format("Failed to process %s file as template: [%s]\nFreemarker message:\n%s", settingsName, settingsFile.getAbsolutePath(), e.getMessage()), e);
+            throw new MojoExecutionException(String.format("Failed to process settings template file: [%s]\nFreemarker message:\n%s", settingsFile.getAbsolutePath(), e.getMessage()), e);
         }
 
         return stringWriter.toString();
@@ -133,6 +143,28 @@ public class SettingsUtils<M extends BaseDatabricksMojo, T extends BaseModel, D>
 
     public T getTemplateModel() throws MojoExecutionException {
         return templateModelSupplier.get();
+    }
+
+    public List<D> buildTemplateDTOsWithDefault() throws MojoExecutionException {
+        T templateModel = getTemplateModel();
+        String jobSettings = getSettingsFromTemplate(templateModel);
+        if (jobSettings == null) {
+            return Collections.emptyList();
+        }
+
+        D defaultSettingDTO = defaultTemplateDTO();
+        List<D> settingsDTOS = Arrays.asList(deserializeSettings(jobSettings, readDefaultSettings()));
+        for (D settingsDTO : settingsDTOS) {
+            try {
+                settingsInitializer.fillInDefaults(settingsDTO, defaultSettingDTO, templateModel);
+            } catch (JsonProcessingException e) {
+                throw new MojoExecutionException("Fail to fill empty-value with default", e);
+            }
+            // Validate all job settings. If any fail terminate.
+            settingsInitializer.validate(settingsDTO, templateModel);
+        }
+
+        return settingsDTOS;
     }
 
 }

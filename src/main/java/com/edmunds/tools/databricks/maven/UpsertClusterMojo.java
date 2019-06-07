@@ -17,8 +17,6 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
 import com.edmunds.rest.databricks.DTO.ClusterTagDTO;
-import com.edmunds.rest.databricks.DTO.JobDTO;
-import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
@@ -27,7 +25,6 @@ import com.edmunds.rest.databricks.request.EditClusterRequest;
 import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateDTO;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
@@ -46,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
-import static com.edmunds.tools.databricks.maven.util.SettingsUtils.OBJECT_MAPPER;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
@@ -61,15 +58,15 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
     }
 
     void upsertJobSettings() throws MojoExecutionException {
-        ClusterTemplateDTO[] cts = buildClusterTemplateDTOsWithDefault();
-        if (cts.length == 0) {
+        List<ClusterTemplateDTO> cts = getSettingsUtils().buildTemplateDTOsWithDefault();
+        if (cts.size() == 0) {
             return;
         }
 
         getLog().info("Environment: " + environment);
 
         // Upserting clusters in parallel manner
-        ForkJoinPool forkJoinPool = new ForkJoinPool(cts.length);
+        ForkJoinPool forkJoinPool = new ForkJoinPool(cts.size());
         for (ClusterTemplateDTO ct : cts) {
             forkJoinPool.execute(() -> {
                         try {
