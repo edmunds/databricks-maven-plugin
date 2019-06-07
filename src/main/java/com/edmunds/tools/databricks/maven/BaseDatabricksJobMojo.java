@@ -22,21 +22,18 @@ import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.JobService;
 import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
-import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
+import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,12 +42,14 @@ import static com.edmunds.tools.databricks.maven.util.SettingsUtils.OBJECT_MAPPE
 /**
  * Base class for databricks job mojos.
  */
-//TODO this class is doing too much.
 public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
     static final String TEAM_TAG = "team";
     static final String DELTA_TAG = "delta";
-    private final SettingsUtils<JobTemplateModel> settingsUtils = new SettingsUtils<>();
+    protected final SettingsUtils<BaseDatabricksJobMojo, JobTemplateModel, JobSettingsDTO> settingsUtils =
+            new SettingsUtils<>(
+                    BaseDatabricksJobMojo.class, JobSettingsDTO[].class, "/default-job.json",
+                    createSupplier());
 
     /**
      * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
@@ -65,7 +64,14 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     @Parameter(property = "failOnDuplicateJobName")
     boolean failOnDuplicateJobName = true;
 
-    public final static String MODEL_FILE_NAME = "job-template-model.json";
+    protected TemplateModelSupplier<JobTemplateModel> createSupplier() {
+        return () -> {
+            if (StringUtils.isBlank(databricksRepo)) {
+                throw new MojoExecutionException("databricksRepo property is missing");
+            }
+            return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
+        };
+    }
 
     Long getJobId(String jobName) throws MojoExecutionException {
         try {
@@ -79,23 +85,17 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
         }
     }
 
-    protected JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
-        if (StringUtils.isBlank(databricksRepo)) {
-            throw new MojoExecutionException("databricksRepo property is missing");
-        }
-        return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
-    }
-
     JobSettingsDTO[] buildJobSettingsDTOsWithDefault() throws MojoExecutionException {
-        JobTemplateModel jobTemplateModel = getJobTemplateModel();
+        JobTemplateModel jobTemplateModel = settingsUtils.getTemplateModel();
         String jobSettings = settingsUtils.getSettingsFromTemplate("jobSettings", dbJobFile, jobTemplateModel);
         if (jobSettings == null) {
             return new JobSettingsDTO[]{};
         }
 
-        JobSettingsDTO defaultJobSettingDTO = defaultJobSettingDTO();
+        JobSettingsDTO defaultJobSettingDTO = settingsUtils.defaultTemplateDTO();
 
-        JobSettingsDTO[] jobSettingsDTOS = deserializeJobSettingsDTOs(jobSettings, readDefaultJob());
+        JobSettingsDTO[] jobSettingsDTOS = settingsUtils.deserializeSettings(
+                jobSettings, settingsUtils.readDefaultSettings());
         for (JobSettingsDTO settingsDTO : jobSettingsDTOS) {
             try {
                 fillInDefaultJobSettings(settingsDTO, defaultJobSettingDTO, jobTemplateModel);
@@ -112,16 +112,6 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
         return jobSettingsDTOS;
     }
 
-    private static JobSettingsDTO[] deserializeJobSettingsDTOs(String settingsJson, String defaultSettingsJson) throws MojoExecutionException {
-        try {
-            return ObjectMapperUtils.deserialize(settingsJson, JobSettingsDTO[].class);
-        } catch (IOException e) {
-            throw new MojoExecutionException(String.format("Failed to unmarshal job settings to object:\n[%s]\nHere is an example, of what it should look like:\n[%s]\n",
-                    settingsJson,
-                    defaultSettingsJson), e);
-        }
-    }
-
     private void validateJobSettings(JobSettingsDTO settingsDTO, JobTemplateModel jobTemplateModel) throws MojoExecutionException {
         JobEmailNotificationsDTO emailNotifications = settingsDTO.getEmailNotifications();
         if (emailNotifications == null || ArrayUtils.isEmpty(emailNotifications.getOnFailure())) {
@@ -131,28 +121,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
         ValidationUtil.validatePath(settingsDTO.getName(), jobTemplateModel.getGroupWithoutCompany(), jobTemplateModel.getArtifactId(), prefixToStrip);
     }
 
-    private static String readDefaultJob() {
-        try {
-            return IOUtils.toString(BaseDatabricksJobMojo.class.getResourceAsStream("/default-job.json"), Charset.defaultCharset());
-        } catch (Exception e) {
-            return ExceptionUtils.getStackTrace(e);
-        }
-    }
-
-    /**
-     * FIXME - it is possible for the example to be invalid, and the job file being valid. This should be fixed.
-     *
-     * <p>
-     * Default JobSettingsDTO is used to fill the value when user job has missing value.
-     *
-     * @return
-     * @throws MojoExecutionException
-     */
-    public JobSettingsDTO defaultJobSettingDTO() throws MojoExecutionException {
-        return deserializeJobSettingsDTOs(settingsUtils.getModelFromTemplate(readDefaultJob(), getJobTemplateModel()), readDefaultJob())[0];
-    }
-
-    protected JobService getJobService() {
+    JobService getJobService() {
         return getDatabricksServiceFactory().getJobService();
     }
 
@@ -163,7 +132,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
      * @param defaultDTO
      * @param jobTemplateModel
      */
-    public void fillInDefaultJobSettings(JobSettingsDTO targetDTO, JobSettingsDTO defaultDTO, JobTemplateModel jobTemplateModel) throws JsonProcessingException {
+    void fillInDefaultJobSettings(JobSettingsDTO targetDTO, JobSettingsDTO defaultDTO, JobTemplateModel jobTemplateModel) throws JsonProcessingException {
 
         String jobName = targetDTO.getName();
         if (StringUtils.isEmpty(targetDTO.getName())) {

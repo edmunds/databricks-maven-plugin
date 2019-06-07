@@ -17,7 +17,7 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -44,13 +44,15 @@ public class JobMojoNoProject extends JobMojo {
     protected File jobTemplateModelFile;
 
     @Override
-    protected JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
-        JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
-        //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
-        //I consider this code ugly
-        if (environment != null) {
-            serializedJobTemplate.setEnvironment(environment);
-        }
-        return serializedJobTemplate;
+    protected TemplateModelSupplier<JobTemplateModel> createSupplier() {
+        return () -> {
+            JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
+            //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+            //I consider this code ugly
+            if (environment != null) {
+                serializedJobTemplate.setEnvironment(environment);
+            }
+            return serializedJobTemplate;
+        };
     }
 }

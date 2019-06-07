@@ -109,7 +109,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
     }
 
     @Test(expectedExceptions = MojoExecutionException.class,
-            expectedExceptionsMessageRegExp = "Failed to unmarshal cluster templates to object.*")
+            expectedExceptionsMessageRegExp = "Failed to unmarshal Settings DTO.*")
     public void test_executeWithOverride_malformedConfigException() throws Exception {
         underTest = getOverridesMojo(GOAL, "-malformed");
         assertTrue(getPath().endsWith("databricks-cluster-settings-malformed.json"));

@@ -17,7 +17,7 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -30,7 +30,7 @@ import java.io.File;
  * should be a serialized form of an array of type JobSettingsDTO.
  * <p>
  * NOTE: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false, in which case only the first one will be updated.
- *
+ * <p>
  * no project is split out so we have a mojo that will work with multi-module projects
  */
 @Mojo(name = "upsert-job-np", requiresProject = false)
@@ -43,13 +43,16 @@ public class UpsertJobMojoNoProject extends UpsertJobMojo {
     protected File jobTemplateModelFile;
 
     @Override
-    protected JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
-        JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
-        //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
-        //I consider this code ugly
-        if (environment != null) {
-            serializedJobTemplate.setEnvironment(environment);
-        }
-        return serializedJobTemplate;
+    protected TemplateModelSupplier<JobTemplateModel> createSupplier() {
+        return () -> {
+            JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
+            //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+            //I consider this code ugly
+            if (environment != null) {
+                serializedJobTemplate.setEnvironment(environment);
+            }
+            return serializedJobTemplate;
+        };
     }
+
 }

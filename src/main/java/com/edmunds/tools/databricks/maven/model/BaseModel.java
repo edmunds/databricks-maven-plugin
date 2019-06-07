@@ -23,7 +23,7 @@ import java.util.Properties;
 
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
-public class BaseModel {
+public abstract class BaseModel {
 
     public static final String DEPLOY_VERSION = "deploy-version";
 

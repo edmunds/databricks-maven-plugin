@@ -23,18 +23,16 @@ import com.edmunds.tools.databricks.maven.model.ClusterTemplateDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
+import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -42,7 +40,10 @@ import java.util.Map;
 
 public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo {
 
-    private final SettingsUtils<ClusterTemplateModel> settingsUtils = new SettingsUtils<>();
+    private final SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterTemplateModel, ClusterTemplateDTO> settingsUtils =
+            new SettingsUtils<>(
+                    BaseDatabricksUpsertClusterMojo.class, ClusterTemplateDTO[].class, "/default-cluster.json",
+                    createSupplier());
 
     /**
      * The databricks cluster json file that contains all of the information for how to create databricks cluster.
@@ -50,11 +51,20 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json", property = "dbClusterFile")
     protected File dbClusterFile;
 
-    protected ClusterTemplateDTO[] getClusterTemplateDTOs() throws MojoExecutionException {
+    protected TemplateModelSupplier<ClusterTemplateModel> createSupplier() {
+        return () -> {
+            if (StringUtils.isBlank(databricksRepo)) {
+                throw new MojoExecutionException("databricksRepo property is missing");
+            }
+            return new ClusterTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
+        };
+    }
+
+    ClusterTemplateDTO[] getClusterTemplateDTOs() throws MojoExecutionException {
         return loadClusterTemplateDTOsFromFile(dbClusterFile);
     }
 
-    protected ClusterTemplateDTO[] loadClusterTemplateDTOsFromFile(File clustersConfig) throws MojoExecutionException {
+    private ClusterTemplateDTO[] loadClusterTemplateDTOsFromFile(File clustersConfig) throws MojoExecutionException {
         if (!clustersConfig.exists()) {
             getLog().info("No clusters config file exists");
             return new ClusterTemplateDTO[]{};
@@ -74,23 +84,16 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
         return cts;
     }
 
-    protected ClusterTemplateModel getClusterTemplateModel() throws MojoExecutionException {
-        if (StringUtils.isBlank(databricksRepo)) {
-            throw new MojoExecutionException("databricksRepo property is missing");
-        }
-        return new ClusterTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
-    }
-
     ClusterTemplateDTO[] buildClusterTemplateDTOsWithDefault() throws MojoExecutionException {
-        ClusterTemplateModel clusterTemplateModel = getClusterTemplateModel();
+        ClusterTemplateModel clusterTemplateModel = settingsUtils.getTemplateModel();
         String clusterSettings = settingsUtils.getSettingsFromTemplate("clusterSettings", dbClusterFile, clusterTemplateModel);
         if (clusterSettings == null) {
             return new ClusterTemplateDTO[]{};
         }
 
-        ClusterTemplateDTO defaultClusterTemplateDTO = defaultClusterTemplateDTO();
+        ClusterTemplateDTO defaultClusterTemplateDTO = settingsUtils.defaultTemplateDTO();
 
-        ClusterTemplateDTO[] clusterTemplateDTOs = deserializeClusterTemplateDTOs(clusterSettings, readDefaultCluster());
+        ClusterTemplateDTO[] clusterTemplateDTOs = settingsUtils.deserializeSettings(clusterSettings, settingsUtils.readDefaultSettings());
         for (ClusterTemplateDTO clusterTemplateDTO : clusterTemplateDTOs) {
             try {
                 fillInDefaultClusterSettings(clusterTemplateDTO, defaultClusterTemplateDTO, clusterTemplateModel);
@@ -115,44 +118,13 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     }
 
     /**
-     * FIXME - it is possible for the example to be invalid, and the cluster file being valid. This should be fixed.
-     *
-     * <p>
-     * Default ClusterTemplateDTO is used to fill the value when user cluster has missing value.
-     *
-     * @return
-     * @throws MojoExecutionException
-     */
-    public ClusterTemplateDTO defaultClusterTemplateDTO() throws MojoExecutionException {
-        return deserializeClusterTemplateDTOs(settingsUtils.getModelFromTemplate(readDefaultCluster(), getClusterTemplateModel()), readDefaultCluster())[0];
-    }
-
-    private static ClusterTemplateDTO[] deserializeClusterTemplateDTOs(String settingsJson, String defaultSettingsJson) throws MojoExecutionException {
-        try {
-            return ObjectMapperUtils.deserialize(settingsJson, ClusterTemplateDTO[].class);
-        } catch (IOException e) {
-            throw new MojoExecutionException(String.format("Failed to unmarshal cluster templates to object:\n[%s]\nHere is an example, of what it should look like:\n[%s]\n",
-                    settingsJson,
-                    defaultSettingsJson), e);
-        }
-    }
-
-    private static String readDefaultCluster() {
-        try {
-            return IOUtils.toString(BaseDatabricksUpsertClusterMojo.class.getResourceAsStream("/default-cluster.json"), Charset.defaultCharset());
-        } catch (Exception e) {
-            return ExceptionUtils.getStackTrace(e);
-        }
-    }
-
-    /**
      * Check the value of targetDTO and fill targetDTO with defaultDTO if value do not exist.
      *
      * @param targetDTO
      * @param defaultDTO
      * @throws JsonProcessingException
      */
-    public void fillInDefaultClusterSettings(ClusterTemplateDTO targetDTO, ClusterTemplateDTO defaultDTO, ClusterTemplateModel clusterTemplateModel) throws JsonProcessingException {
+    private void fillInDefaultClusterSettings(ClusterTemplateDTO targetDTO, ClusterTemplateDTO defaultDTO, ClusterTemplateModel clusterTemplateModel) throws JsonProcessingException {
 
         String clusterName = targetDTO.getClusterName();
         if (StringUtils.isEmpty(clusterName)) {

@@ -19,32 +19,36 @@ package com.edmunds.tools.databricks.maven;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 @Mojo(name = "prepare-job-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareJobResources extends BaseDatabricksJobMojo {
+
+    private final static String MODEL_FILE_NAME = "job-template-model.json";
 
     /**
      * The destination of where to serialize the job template model.
      */
     @Parameter(property = "jobTemplateModelFileOutput", defaultValue = "${project.build" +
-        ".directory}/databricks-plugin/" + MODEL_FILE_NAME)
+            ".directory}/databricks-plugin/" + MODEL_FILE_NAME)
     protected File jobTemplateModelFileOutput;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException {
         prepareJobTemplateModel();
     }
 
     void prepareJobTemplateModel() throws MojoExecutionException {
         try {
-            FileUtils.writeStringToFile(jobTemplateModelFileOutput, ObjectMapperUtils.serialize(getJobTemplateModel()));
+            FileUtils.writeStringToFile(jobTemplateModelFileOutput,
+                    ObjectMapperUtils.serialize(settingsUtils.getTemplateModel()),
+                    Charset.defaultCharset());
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }

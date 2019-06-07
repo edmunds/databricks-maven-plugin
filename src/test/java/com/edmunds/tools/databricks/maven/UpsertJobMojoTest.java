@@ -182,11 +182,11 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     @Test
     public void testDefaultIfNull_JobSettingsDTO() throws Exception {
 
-        JobSettingsDTO exampleSettingsDTOs = underTest.defaultJobSettingDTO();
+        JobSettingsDTO exampleSettingsDTOs = underTest.settingsUtils.defaultTemplateDTO();
 
         JobSettingsDTO targetDTO = new JobSettingsDTO();
 
-        underTest.fillInDefaultJobSettings(targetDTO, exampleSettingsDTOs, underTest.getJobTemplateModel());
+        underTest.fillInDefaultJobSettings(targetDTO, exampleSettingsDTOs, underTest.settingsUtils.getTemplateModel());
         assertEquals(targetDTO.getName(), "unit-test-group/unit-test-artifact");
 
         assertEquals(targetDTO.getNewCluster().getSparkVersion(), exampleSettingsDTOs.getNewCluster().getSparkVersion());
@@ -207,7 +207,9 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
         JobSettingsDTO targetDTO = createTestJobSettings(null);
 
-        underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
+        underTest.fillInDefaultJobSettings(targetDTO,
+                underTest.settingsUtils.defaultTemplateDTO(),
+                underTest.settingsUtils.getTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "unit-test-group");
 
@@ -219,7 +221,9 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         tags.put("team", "overrideTeam");
         JobSettingsDTO targetDTO = createTestJobSettings(tags);
 
-        underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
+        underTest.fillInDefaultJobSettings(targetDTO,
+                underTest.settingsUtils.defaultTemplateDTO(),
+                underTest.settingsUtils.getTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "overrideTeam");
     }
@@ -230,7 +234,9 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         tags.put("team", "myteam");
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
-        underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
+        underTest.fillInDefaultJobSettings(targetDTO,
+                underTest.settingsUtils.defaultTemplateDTO(),
+                underTest.settingsUtils.getTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }
@@ -243,7 +249,9 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
-        underTest.fillInDefaultJobSettings(targetDTO, underTest.defaultJobSettingDTO(), underTest.getJobTemplateModel());
+        underTest.fillInDefaultJobSettings(targetDTO,
+                underTest.settingsUtils.defaultTemplateDTO(),
+                underTest.settingsUtils.getTemplateModel());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }

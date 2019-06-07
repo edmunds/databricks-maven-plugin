@@ -1,7 +1,7 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -23,14 +23,16 @@ public class UpsertClusterMojoNoProject extends UpsertClusterMojo {
     protected File clusterTemplateModelFile;
 
     @Override
-    protected ClusterTemplateModel getClusterTemplateModel() throws MojoExecutionException {
-        ClusterTemplateModel serializedClusterTemplate = ClusterTemplateModel.loadClusterTemplateModelFromFile(clusterTemplateModelFile);
-        //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
-        //I consider this code ugly
-        if (environment != null) {
-            serializedClusterTemplate.setEnvironment(environment);
-        }
-        return serializedClusterTemplate;
+    protected TemplateModelSupplier<ClusterTemplateModel> createSupplier() {
+        return () -> {
+            ClusterTemplateModel serializedClusterTemplate = ClusterTemplateModel.loadClusterTemplateModelFromFile(clusterTemplateModelFile);
+            //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+            //I consider this code ugly
+            if (environment != null) {
+                serializedClusterTemplate.setEnvironment(environment);
+            }
+            return serializedClusterTemplate;
+        };
     }
 
 }
