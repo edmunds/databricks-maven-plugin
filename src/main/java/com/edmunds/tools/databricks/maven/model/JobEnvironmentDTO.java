@@ -1,5 +1,5 @@
 /*
- *  Copyright 2019 Edmunds.com, Inc.
+ *  Copyright 2018 Edmunds.com, Inc.
  *
  *      Licensed under the Apache License, Version 2.0 (the "License");
  *      you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
+import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -25,27 +26,28 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-public class ClusterTemplateModel extends BaseModel {
+/**
+ * Simple POJO to pass Project and Environment properties to the {@link JobSettingsDTO}.
+ */
+public class JobEnvironmentDTO extends BaseEnvironmentDTO {
 
     /**
      * Don't use this - it's for jackson deserialization only!
      */
-    public ClusterTemplateModel() {
+    public JobEnvironmentDTO() {
     }
 
-    public ClusterTemplateModel(MavenProject project,
-                                String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
+    public JobEnvironmentDTO(MavenProject project, String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
         super(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
     }
 
-    public static ClusterTemplateModel loadClusterTemplateModelFromFile(File clusterTemplateModelFile) throws
-            MojoExecutionException {
-        if (clusterTemplateModelFile == null) {
-            throw new MojoExecutionException("clusterTemplateModelFile must be set!");
+    public static JobEnvironmentDTO loadJobEnvironmentDTOFromFile(File jobEnvironmentDTOFile) throws MojoExecutionException {
+        if (jobEnvironmentDTOFile == null) {
+            throw new MojoExecutionException("jobEnvironmentDTOFile must be set!");
         }
         try {
-            String clusterTemplateModelJson = FileUtils.readFileToString(clusterTemplateModelFile, Charset.defaultCharset());
-            return ObjectMapperUtils.deserialize(clusterTemplateModelJson, ClusterTemplateModel.class);
+            String jobEnvironmentDTOJson = FileUtils.readFileToString(jobEnvironmentDTOFile, Charset.defaultCharset());
+            return ObjectMapperUtils.deserialize(jobEnvironmentDTOJson, JobEnvironmentDTO.class);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }

@@ -22,6 +22,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.nio.charset.Charset;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -40,16 +42,16 @@ public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test
-    public void executeJobTemplateFile_default_outputsFile() throws Exception {
+    public void executeJobEnvironmentDTOFile_default_outputsFile() throws Exception {
         PrepareJobResources underTest = getNoOverridesMojo(GOAL);
         // MUST be done otherwise invocations will read from an existing file instead.
-        underTest.jobTemplateModelFileOutput.delete();
+        underTest.jobEnvironmentDTOFileOutput.delete();
         underTest.execute();
 
         String key = "unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT" +
-            ".jar";
+                ".jar";
 
-        String lines = FileUtils.readFileToString(underTest.jobTemplateModelFileOutput);
+        String lines = FileUtils.readFileToString(underTest.jobEnvironmentDTOFileOutput, Charset.defaultCharset());
         assertThat(lines, containsString("  \"groupId\" : \"unit-test-group\","));
         assertThat(lines, containsString("  \"artifactId\" : \"unit-test-artifact\","));
         assertThat(lines, containsString("  \"version\" : \"1.0.0-SNAPSHOT\","));
@@ -57,15 +59,15 @@ public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
         assertThat(lines, containsString("  \"groupWithoutCompany\" : \"unit-test-group\""));
         assertThat(lines, containsString("  \"databricks.repo\" : \"my-bucket/artifacts\""));
         assertThat(lines, containsString("  \"databricksRepo\" : \"my-bucket/artifacts\""));
-        assertThat(lines, containsString("  \"databricks.repo.key\" : \"" + key +"\""));
-        assertThat(lines, containsString("  \"databricksRepoKey\" : \""+key+"\""));
+        assertThat(lines, containsString("  \"databricks.repo.key\" : \"" + key + "\""));
+        assertThat(lines, containsString("  \"databricksRepoKey\" : \"" + key + "\""));
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*databricksRepo.*")
-    public void executeJobTemplateFile_missingProperties_ThrowsException() throws Exception {
+    public void executeJobEnvironmentDTOFile_missingProperties_ThrowsException() throws Exception {
         PrepareJobResources underTest = getMissingMandatoryMojo(GOAL);
         // MUST be done otherwise invocations will read from an existing file instead.
-        underTest.jobTemplateModelFileOutput.delete();
+        underTest.jobEnvironmentDTOFileOutput.delete();
         underTest.execute();
     }
 }

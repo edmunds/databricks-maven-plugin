@@ -22,9 +22,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 
 /**
- * Simple POJO to pass properties to the cluster template.
+ * POJO with parameters for databricks cluster upsertion.
  */
-public class ClusterTemplateDTO extends ClusterAttributesDTO {
+public class ClusterSettingsDTO extends ClusterAttributesDTO {
 
     @JsonProperty("num_workers")
     private int numWorkers;
@@ -34,7 +34,7 @@ public class ClusterTemplateDTO extends ClusterAttributesDTO {
     /**
      * Don't use this - it's for jackson deserialization only!
      */
-    public ClusterTemplateDTO() {
+    public ClusterSettingsDTO() {
     }
 
     public int getNumWorkers() {
@@ -56,7 +56,7 @@ public class ClusterTemplateDTO extends ClusterAttributesDTO {
     @Override
     public boolean equals(Object o) {
         if (super.equals(o)) {
-            ClusterTemplateDTO other = (ClusterTemplateDTO) o;
+            ClusterSettingsDTO other = (ClusterSettingsDTO) o;
 
             if (this.getNumWorkers() != other.getNumWorkers()) {
                 return false;
@@ -75,7 +75,7 @@ public class ClusterTemplateDTO extends ClusterAttributesDTO {
 
     @Override
     protected boolean canEqual(Object other) {
-        return other instanceof ClusterTemplateDTO;
+        return other instanceof ClusterSettingsDTO;
     }
 
     @Override

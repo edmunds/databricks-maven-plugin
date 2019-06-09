@@ -30,7 +30,7 @@
                 <version>${project.version}</version>
                 <configuration>
                     <dbClusterFile>databricks-cluster-settings-malformed.json</dbClusterFile>
-                    <clusterTemplateModelFile>mySerializedProperties.json</clusterTemplateModelFile>
+                    <clusterEnvironmentDTOFile>mySerializedProperties.json</clusterEnvironmentDTOFile>
                 </configuration>
                 <executions>
                     <execution>

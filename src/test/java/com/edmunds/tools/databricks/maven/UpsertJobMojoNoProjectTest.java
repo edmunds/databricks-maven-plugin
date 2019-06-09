@@ -58,12 +58,12 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
                 ("unit-test-group/unit-test-artifact", 1));
         underTest.execute();
 
-        List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildTemplateDTOsWithDefaults();
+        List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
         assert (jobSettingsDTOS.size() == 0);
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "" +
-            ".*jobTemplateModelFile must be set.*")
+            ".*jobEnvironmentDTOFile must be set.*")
     public void execute_whenMissingProperties_fail() throws Exception {
         UpsertJobMojoNoProject underTest = getMissingMandatoryMojo(GOAL);
         underTest.execute();
@@ -86,7 +86,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
 
         underTest.execute();
 
-        List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildTemplateDTOsWithDefaults();
+        List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
         assertThat(jobSettingsDTOS.size(), is(1));
         assertThat(jobSettingsDTOS.get(0).getEmailNotifications().getOnFailure(), is(new String[]{"QA.com"}));
         assertThat(jobSettingsDTOS.get(0).getName(), is("dwh/inventory-databricks"));
@@ -108,9 +108,9 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
 
         underTest.execute();
 
-        List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildTemplateDTOsWithDefaults();
-        assertThat(jobSettingsDTOS.size(), is(1));
-        assertThat(jobSettingsDTOS.get(0).getEmailNotifications().getOnFailure(), is(new String[]{"PROD.com"}));
+        List<JobSettingsDTO> jobSettingsDTOs = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
+        assertThat(jobSettingsDTOs.size(), is(1));
+        assertThat(jobSettingsDTOs.get(0).getEmailNotifications().getOnFailure(), is(new String[]{"PROD.com"}));
     }
 
     private JobDTO createJobDTO(String jobName, long jobId) {

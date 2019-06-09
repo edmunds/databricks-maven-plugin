@@ -20,11 +20,11 @@ import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
 import com.edmunds.rest.databricks.DTO.AwsAvailabilityDTO;
 import com.edmunds.rest.databricks.DTO.ClusterLogConfDTO;
 import com.edmunds.rest.databricks.DTO.EbsVolumeTypeDTO;
-import com.edmunds.tools.databricks.maven.model.ClusterTemplateDTO;
-import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
+import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
+import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
-import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
+import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,17 +37,7 @@ import java.util.Map;
 
 public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo {
 
-    private SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterTemplateModel, ClusterTemplateDTO> settingsUtils;
-
-
-    public SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterTemplateModel, ClusterTemplateDTO> getSettingsUtils() {
-        if (settingsUtils == null) {
-            settingsUtils = new SettingsUtils<>(
-                    BaseDatabricksUpsertClusterMojo.class, ClusterTemplateDTO[].class, "/default-cluster.json",
-                    createTemplateModelSupplier(), createSettingsInitializer());
-        }
-        return settingsUtils;
-    }
+    private SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
 
     /**
      * The databricks cluster json file that contains all of the information for how to create databricks cluster.
@@ -55,54 +45,63 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json", property = "dbClusterFile")
     protected File dbClusterFile;
 
-    protected TemplateModelSupplier<ClusterTemplateModel> createTemplateModelSupplier() {
-        return new TemplateModelSupplier<ClusterTemplateModel>() {
+    public SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> getSettingsUtils() {
+        if (settingsUtils == null) {
+            settingsUtils = new SettingsUtils<>(
+                    BaseDatabricksUpsertClusterMojo.class, ClusterSettingsDTO[].class, "/default-cluster.json",
+                    createEnvironmentDTOSupplier(), createSettingsInitializer());
+        }
+        return settingsUtils;
+    }
+
+    protected EnvironmentDTOSupplier<ClusterEnvironmentDTO> createEnvironmentDTOSupplier() {
+        return new EnvironmentDTOSupplier<ClusterEnvironmentDTO>() {
             @Override
-            public ClusterTemplateModel get() throws MojoExecutionException {
+            public ClusterEnvironmentDTO get() throws MojoExecutionException {
                 if (StringUtils.isBlank(databricksRepo)) {
                     throw new MojoExecutionException("databricksRepo property is missing");
                 }
-                return new ClusterTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
+                return new ClusterEnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
             }
 
             @Override
-            public File getSettingsFile() {
+            public File getEnvironmentDTOFile() {
                 return dbClusterFile;
             }
         };
     }
 
-    private SettingsInitializer<ClusterTemplateModel, ClusterTemplateDTO> createSettingsInitializer() {
-        return new SettingsInitializer<ClusterTemplateModel, ClusterTemplateDTO>() {
+    private SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> createSettingsInitializer() {
+        return new SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO>() {
             @Override
-            public void fillInDefaults(ClusterTemplateDTO settings, ClusterTemplateDTO defaultSettings, ClusterTemplateModel templateModel) {
-                String clusterName = settings.getClusterName();
+            public void fillInDefaults(ClusterSettingsDTO settingsDTO, ClusterSettingsDTO defaultSettingsDTO, ClusterEnvironmentDTO environmentDTO) {
+                String clusterName = settingsDTO.getClusterName();
                 if (StringUtils.isEmpty(clusterName)) {
-                    clusterName = templateModel.getGroupWithoutCompany() + "/" + templateModel.getArtifactId();
-                    settings.setClusterName(clusterName);
+                    clusterName = environmentDTO.getGroupWithoutCompany() + "/" + environmentDTO.getArtifactId();
+                    settingsDTO.setClusterName(clusterName);
                     getLog().info(String.format("set CusterName with %s", clusterName));
                 }
 
-                int numWorkers = settings.getNumWorkers();
+                int numWorkers = settingsDTO.getNumWorkers();
                 if (numWorkers == 0) {
-                    numWorkers = defaultSettings.getNumWorkers();
-                    settings.setNumWorkers(numWorkers);
+                    numWorkers = defaultSettingsDTO.getNumWorkers();
+                    settingsDTO.setNumWorkers(numWorkers);
                     getLog().info(String.format("%s|set NumWorkers with %s", clusterName, numWorkers));
                 }
 
-                String sparkVersion = settings.getSparkVersion();
+                String sparkVersion = settingsDTO.getSparkVersion();
                 if (StringUtils.isEmpty(sparkVersion)) {
-                    sparkVersion = defaultSettings.getSparkVersion();
-                    settings.setSparkVersion(sparkVersion);
+                    sparkVersion = defaultSettingsDTO.getSparkVersion();
+                    settingsDTO.setSparkVersion(sparkVersion);
                     getLog().info(String.format("%s|set SparkVersion with %s", clusterName, sparkVersion));
                 }
 
                 // AwsAttributes
-                AwsAttributesDTO awsAttributes = settings.getAwsAttributes();
-                AwsAttributesDTO awsAttributesDefault = defaultSettings.getAwsAttributes();
+                AwsAttributesDTO awsAttributes = settingsDTO.getAwsAttributes();
+                AwsAttributesDTO awsAttributesDefault = defaultSettingsDTO.getAwsAttributes();
                 if (awsAttributes == null) {
                     awsAttributes = awsAttributesDefault;
-                    settings.setAwsAttributes(awsAttributes);
+                    settingsDTO.setAwsAttributes(awsAttributes);
                     getLog().info(String.format("%s|set AwsAttributes with %s", clusterName, awsAttributes));
                 } else {
                     AwsAvailabilityDTO availability = awsAttributes.getAvailability();
@@ -164,68 +163,68 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
                     }
                 }
 
-                String nodeTypeId = settings.getNodeTypeId();
+                String nodeTypeId = settingsDTO.getNodeTypeId();
                 if (StringUtils.isEmpty(nodeTypeId)) {
-                    nodeTypeId = defaultSettings.getNodeTypeId();
-                    settings.setNodeTypeId(nodeTypeId);
+                    nodeTypeId = defaultSettingsDTO.getNodeTypeId();
+                    settingsDTO.setNodeTypeId(nodeTypeId);
                     getLog().info(String.format("%s|set NodeTypeId with %s", clusterName, nodeTypeId));
                 }
 
                 // Do we need it?
-                Map<String, String> sparkEnvVars = settings.getSparkEnvVars();
+                Map<String, String> sparkEnvVars = settingsDTO.getSparkEnvVars();
                 if (MapUtils.isEmpty(sparkEnvVars)) {
-                    sparkEnvVars = defaultSettings.getSparkEnvVars();
-                    settings.setSparkEnvVars(sparkEnvVars);
+                    sparkEnvVars = defaultSettingsDTO.getSparkEnvVars();
+                    settingsDTO.setSparkEnvVars(sparkEnvVars);
                     getLog().info(String.format("%s|set SparkEnvVars with %s", clusterName, sparkEnvVars));
                 }
 
-                int autoTerminationMinutes = settings.getAutoTerminationMinutes();
+                int autoTerminationMinutes = settingsDTO.getAutoTerminationMinutes();
                 if (autoTerminationMinutes == 0) {
-                    autoTerminationMinutes = defaultSettings.getAutoTerminationMinutes();
-                    settings.setAutoTerminationMinutes(autoTerminationMinutes);
+                    autoTerminationMinutes = defaultSettingsDTO.getAutoTerminationMinutes();
+                    settingsDTO.setAutoTerminationMinutes(autoTerminationMinutes);
                     getLog().info(String.format("%s|set AutoTerminationMinutes with %s", clusterName, autoTerminationMinutes));
                 }
 
-                Collection<String> artifactPaths = settings.getArtifactPaths();
+                Collection<String> artifactPaths = settingsDTO.getArtifactPaths();
                 if (CollectionUtils.isEmpty(artifactPaths)) {
-                    artifactPaths = defaultSettings.getArtifactPaths();
-                    settings.setArtifactPaths(artifactPaths);
+                    artifactPaths = defaultSettingsDTO.getArtifactPaths();
+                    settingsDTO.setArtifactPaths(artifactPaths);
                     getLog().info(String.format("%s|set ArtifactPaths with %s", clusterName, artifactPaths));
                 }
 
-                String driverNodeTypeId = settings.getDriverNodeTypeId();
+                String driverNodeTypeId = settingsDTO.getDriverNodeTypeId();
                 if (StringUtils.isEmpty(driverNodeTypeId)) {
-                    driverNodeTypeId = defaultSettings.getDriverNodeTypeId();
-                    settings.setDriverNodeTypeId(driverNodeTypeId);
+                    driverNodeTypeId = defaultSettingsDTO.getDriverNodeTypeId();
+                    settingsDTO.setDriverNodeTypeId(driverNodeTypeId);
                     getLog().info(String.format("%s|set DriverNodeTypeId with %s", clusterName, driverNodeTypeId));
                 }
 
-                Map<String, String> sparkConf = settings.getSparkConf();
+                Map<String, String> sparkConf = settingsDTO.getSparkConf();
                 if (MapUtils.isEmpty(sparkConf)) {
-                    sparkConf = defaultSettings.getSparkConf();
-                    settings.setSparkConf(sparkConf);
+                    sparkConf = defaultSettingsDTO.getSparkConf();
+                    settingsDTO.setSparkConf(sparkConf);
                     getLog().info(String.format("%s|set SparkConf with %s", clusterName, sparkConf));
                 }
 
-                Map<String, String> defaultCustomTags = defaultSettings.getCustomTags();
-                if (MapUtils.isEmpty(settings.getCustomTags()) && MapUtils.isNotEmpty(defaultCustomTags)) {
-                    settings.setCustomTags(defaultCustomTags);
+                Map<String, String> defaultCustomTags = defaultSettingsDTO.getCustomTags();
+                if (MapUtils.isEmpty(settingsDTO.getCustomTags()) && MapUtils.isNotEmpty(defaultCustomTags)) {
+                    settingsDTO.setCustomTags(defaultCustomTags);
                     getLog().info(String.format("%s|set CustomTags with %s", clusterName, defaultCustomTags));
                 }
 
-                ClusterLogConfDTO defaultClusterLogConf = defaultSettings.getClusterLogConf();
-                if (settings.getClusterLogConf() == null && defaultClusterLogConf != null
+                ClusterLogConfDTO defaultClusterLogConf = defaultSettingsDTO.getClusterLogConf();
+                if (settingsDTO.getClusterLogConf() == null && defaultClusterLogConf != null
                         && (defaultClusterLogConf.getDbfs() != null || defaultClusterLogConf.getS3() != null)) {
-                    settings.setClusterLogConf(defaultClusterLogConf);
+                    settingsDTO.setClusterLogConf(defaultClusterLogConf);
                     getLog().info(String.format("%s|set ClusterLogConf with %s", clusterName, defaultClusterLogConf));
                 }
             }
 
             @Override
-            public void validate(ClusterTemplateDTO settings, ClusterTemplateModel templateModel) throws MojoExecutionException {
+            public void validate(ClusterSettingsDTO settingsDTO, ClusterEnvironmentDTO environmentDTO) throws MojoExecutionException {
                 // Validate all cluster settings. If any fail terminate.
                 if (validate) {
-                    int numWorkers = settings.getNumWorkers();
+                    int numWorkers = settingsDTO.getNumWorkers();
                     if (numWorkers == 0) {
                         throw new MojoExecutionException("REQUIRED FIELD [num_workers] was empty. VALIDATION FAILED.");
                     }
@@ -233,6 +232,5 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
             }
         };
     }
-
 
 }

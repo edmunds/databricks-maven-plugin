@@ -10,7 +10,7 @@ import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
 import com.edmunds.rest.databricks.request.EditClusterRequest;
-import com.edmunds.tools.databricks.maven.model.ClusterTemplateDTO;
+import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
 import com.google.common.collect.Sets;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
@@ -124,9 +124,9 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         assertTrue(getPath().endsWith("databricks-cluster-settings-missing.json"));
 
         underTest.execute();
-        List<ClusterTemplateDTO> clusterTemplateDTOs = underTest.getSettingsUtils().buildTemplateDTOsWithDefaults();
+        List<ClusterSettingsDTO> clusterSettingsDTOs = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
 
-        assertEquals(0, clusterTemplateDTOs.size());
+        assertEquals(0, clusterSettingsDTOs.size());
     }
 
     protected abstract String getPath();

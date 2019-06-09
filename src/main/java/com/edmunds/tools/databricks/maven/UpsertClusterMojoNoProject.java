@@ -1,7 +1,7 @@
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
-import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
+import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -18,27 +18,27 @@ import java.io.File;
 public class UpsertClusterMojoNoProject extends UpsertClusterMojo {
 
     /**
-     * The serialized cluster model is required to be passed in a NoProject scenario.
+     * The serialized cluster environment dto is required to be passed in a NoProject scenario.
      */
-    @Parameter(name = "clusterTemplateModelFile", property = "clusterTemplateModelFile", required = true)
-    private File clusterTemplateModelFile;
+    @Parameter(name = "clusterEnvironmentDTOFile", property = "clusterEnvironmentDTOFile", required = true)
+    private File clusterEnvironmentDTOFile;
 
     @Override
-    protected TemplateModelSupplier<ClusterTemplateModel> createTemplateModelSupplier() {
-        return new TemplateModelSupplier<ClusterTemplateModel>() {
+    protected EnvironmentDTOSupplier<ClusterEnvironmentDTO> createEnvironmentDTOSupplier() {
+        return new EnvironmentDTOSupplier<ClusterEnvironmentDTO>() {
             @Override
-            public ClusterTemplateModel get() throws MojoExecutionException {
-                ClusterTemplateModel serializedClusterTemplate = ClusterTemplateModel.loadClusterTemplateModelFromFile(clusterTemplateModelFile);
+            public ClusterEnvironmentDTO get() throws MojoExecutionException {
+                ClusterEnvironmentDTO serializedClusterEnvironment = ClusterEnvironmentDTO.loadClusterEnvironmentDTOFromFile(clusterEnvironmentDTOFile);
                 //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
                 //I consider this code ugly
                 if (environment != null) {
-                    serializedClusterTemplate.setEnvironment(environment);
+                    serializedClusterEnvironment.setEnvironment(environment);
                 }
-                return serializedClusterTemplate;
+                return serializedClusterEnvironment;
             }
 
             @Override
-            public File getSettingsFile() {
+            public File getEnvironmentDTOFile() {
                 return UpsertClusterMojoNoProject.super.dbClusterFile;
             }
         };

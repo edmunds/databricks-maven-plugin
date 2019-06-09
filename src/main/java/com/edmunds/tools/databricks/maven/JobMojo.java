@@ -83,7 +83,7 @@ public class JobMojo extends BaseDatabricksJobMojo {
     public void execute() throws MojoExecutionException {
 
         if (isBlank(jobName)) {
-            for (JobSettingsDTO settingsDTO : getSettingsUtils().buildTemplateDTOsWithDefaults()) {
+            for (JobSettingsDTO settingsDTO : getSettingsUtils().buildSettingsDTOsWithDefaults()) {
                 jobName = settingsDTO.getName();
                 controlJob();
             }

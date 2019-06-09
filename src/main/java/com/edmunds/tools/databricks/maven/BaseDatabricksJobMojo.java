@@ -21,10 +21,10 @@ import com.edmunds.rest.databricks.DTO.JobEmailNotificationsDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.JobService;
-import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
+import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
-import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.ArrayUtils;
@@ -47,16 +47,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
     static final String TEAM_TAG = "team";
     static final String DELTA_TAG = "delta";
-    private SettingsUtils<BaseDatabricksJobMojo, JobTemplateModel, JobSettingsDTO> settingsUtils;
-
-    public SettingsUtils<BaseDatabricksJobMojo, JobTemplateModel, JobSettingsDTO> getSettingsUtils() {
-        if (settingsUtils == null) {
-            settingsUtils = new SettingsUtils<>(
-                    BaseDatabricksJobMojo.class, JobSettingsDTO[].class, "/default-job.json",
-                    createTemplateModelSupplier(), createSettingsInitializer());
-        }
-        return settingsUtils;
-    }
+    private SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
 
     /**
      * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
@@ -71,144 +62,34 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     @Parameter(property = "failOnDuplicateJobName")
     boolean failOnDuplicateJobName = true;
 
-    protected TemplateModelSupplier<JobTemplateModel> createTemplateModelSupplier() {
-        return new TemplateModelSupplier<JobTemplateModel>() {
+    public SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> getSettingsUtils() {
+        if (settingsUtils == null) {
+            settingsUtils = new SettingsUtils<>(
+                    BaseDatabricksJobMojo.class, JobSettingsDTO[].class, "/default-job.json",
+                    createEnvironmentDTOSupplier(), createSettingsInitializer());
+        }
+        return settingsUtils;
+    }
+
+    protected EnvironmentDTOSupplier<JobEnvironmentDTO> createEnvironmentDTOSupplier() {
+        return new EnvironmentDTOSupplier<JobEnvironmentDTO>() {
             @Override
-            public JobTemplateModel get() throws MojoExecutionException {
+            public JobEnvironmentDTO get() throws MojoExecutionException {
                 if (StringUtils.isBlank(databricksRepo)) {
                     throw new MojoExecutionException("databricksRepo property is missing");
                 }
-                return new JobTemplateModel(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
+                return new JobEnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
             }
 
             @Override
-            public File getSettingsFile() {
+            public File getEnvironmentDTOFile() {
                 return dbJobFile;
             }
         };
     }
 
-    private SettingsInitializer<JobTemplateModel, JobSettingsDTO> createSettingsInitializer() {
-        return new SettingsInitializer<JobTemplateModel, JobSettingsDTO>() {
-            @Override
-            public void fillInDefaults(JobSettingsDTO settings, JobSettingsDTO defaultSettings,
-                                       JobTemplateModel templateModel) throws JsonProcessingException {
-                String jobName = settings.getName();
-                if (StringUtils.isEmpty(settings.getName())) {
-                    jobName = templateModel.getGroupWithoutCompany() + "/" + templateModel.getArtifactId();
-                    settings.setName(jobName);
-                    getLog().info(String.format("set JobName with %s", jobName));
-                }
-
-                // email_notifications
-                if (settings.getEmailNotifications() == null) {
-                    settings.setEmailNotifications(SerializationUtils.clone(defaultSettings.getEmailNotifications()));
-                    getLog().info(String.format("%s|set email_notifications with %s", jobName,
-                            OBJECT_MAPPER.writeValueAsString(defaultSettings.getEmailNotifications())));
-
-                } else if (settings.getEmailNotifications().getOnFailure() == null
-                        || settings.getEmailNotifications().getOnFailure().length == 0
-                        || StringUtils.isEmpty(settings.getEmailNotifications().getOnFailure()[0])) {
-                    settings.getEmailNotifications().setOnFailure(defaultSettings.getEmailNotifications().getOnFailure());
-                    getLog().info(String.format("%s|set email_notifications.on_failure with %s", jobName,
-                            OBJECT_MAPPER.writeValueAsString(defaultSettings.getEmailNotifications().getOnFailure())));
-                }
-
-                // ClusterInfo
-                if (StringUtils.isEmpty(settings.getExistingClusterId())) {
-                    if (settings.getNewCluster() == null) {
-                        settings.setNewCluster(SerializationUtils.clone(defaultSettings.getNewCluster()));
-                        getLog().info(String.format("%s|set new_cluster with %s", jobName,
-                                OBJECT_MAPPER.writeValueAsString(defaultSettings.getNewCluster())));
-
-                    } else {
-                        if (StringUtils.isEmpty(settings.getNewCluster().getSparkVersion())) {
-                            settings.getNewCluster().setSparkVersion(defaultSettings.getNewCluster().getSparkVersion());
-                            getLog().info(String.format("%s|set new_cluster.spark_version with %s", jobName,
-                                    defaultSettings.getNewCluster().getSparkVersion()));
-                        }
-
-                        if (StringUtils.isEmpty(settings.getNewCluster().getNodeTypeId())) {
-                            settings.getNewCluster().setNodeTypeId(defaultSettings.getNewCluster().getNodeTypeId());
-                            getLog().info(String.format("%s|set new_cluster.node_type_id with %s", jobName,
-                                    defaultSettings.getNewCluster().getNodeTypeId()));
-                        }
-
-                        if (settings.getNewCluster().getAutoScale() == null && settings.getNewCluster().getNumWorkers() < 1) {
-                            settings.getNewCluster().setNumWorkers(defaultSettings.getNewCluster().getNumWorkers());
-                            getLog().info(String.format("%s|set new_cluster.num_workers with %s", jobName,
-                                    defaultSettings.getNewCluster().getNumWorkers()));
-                        }
-
-                        //aws_attributes
-                        if (settings.getNewCluster().getAwsAttributes() == null) {
-                            settings.getNewCluster().setAwsAttributes(SerializationUtils.clone(defaultSettings.getNewCluster().getAwsAttributes()));
-                            getLog().info(String.format("%s|set new_cluster.aws_attributes with %s", jobName,
-                                    OBJECT_MAPPER.writeValueAsString(defaultSettings.getNewCluster().getAwsAttributes())));
-                        }
-                    }
-                }
-
-                if (settings.getTimeoutSeconds() == null) {
-                    settings.setTimeoutSeconds(defaultSettings.getTimeoutSeconds());
-                    getLog().info(String.format("%s|set timeout_seconds with %s", jobName, defaultSettings.getTimeoutSeconds()));
-                }
-
-                // Can't have libraries if its a spark submit task
-                if ((settings.getLibraries() == null || settings.getLibraries().length == 0) && settings.getSparkSubmitTask() == null) {
-                    settings.setLibraries(SerializationUtils.clone(defaultSettings.getLibraries()));
-                    getLog().info(String.format("%s|set libraries with %s", jobName, OBJECT_MAPPER.writeValueAsString(defaultSettings.getLibraries())));
-                }
-
-                if (settings.getMaxConcurrentRuns() == null) {
-                    settings.setMaxConcurrentRuns(defaultSettings.getMaxConcurrentRuns());
-                    getLog().info(String.format("%s|set max_concurrent_runs with %s", jobName, defaultSettings.getMaxConcurrentRuns()));
-                }
-
-                if (settings.getMaxRetries() == null) {
-                    settings.setMaxRetries(defaultSettings.getMaxRetries());
-                    getLog().info(String.format("%s|set max_retries with %s", jobName, defaultSettings.getMaxRetries()));
-                }
-
-                if (settings.getMaxRetries() != 0 && settings.getMinRetryIntervalMillis() == null) {
-                    settings.setMinRetryIntervalMillis(defaultSettings.getMinRetryIntervalMillis());
-                    getLog().info(String.format("%s|set min_retry_interval_millis with %s", jobName, defaultSettings.getMinRetryIntervalMillis()));
-                }
-
-                //set InstanceTags
-                if (settings.getNewCluster() != null) {
-                    String groupId = templateModel.getGroupWithoutCompany();
-                    Map<String, String> tagMap = settings.getNewCluster().getCustomTags();
-                    if (tagMap == null) {
-                        tagMap = new HashMap<>();
-                        settings.getNewCluster().setCustomTags(tagMap);
-                    }
-
-                    if (!tagMap.containsKey(TEAM_TAG) || StringUtils.isEmpty(tagMap.get(TEAM_TAG))) {
-                        tagMap.put(TEAM_TAG, groupId);
-                        getLog().info(String.format("%s|set new_cluster.custom_tags.%s from [%s] to [%s]", jobName, TEAM_TAG, tagMap.get(TEAM_TAG), groupId));
-                    }
-
-
-                    if (ValidationUtil.isDeltaEnabled(settings.getNewCluster())
-                            && !"true".equalsIgnoreCase(tagMap.get(DELTA_TAG))) {
-                        tagMap.put(DELTA_TAG, "true");
-                        getLog().info(String.format("%s|set new_cluster.custom_tags.%s from [%s] to true", jobName, DELTA_TAG, tagMap.get(DELTA_TAG)));
-                    }
-                }
-            }
-
-            @Override
-            public void validate(JobSettingsDTO settingsDTO, JobTemplateModel jobTemplateModel) throws MojoExecutionException {
-                if (validate) {
-                    JobEmailNotificationsDTO emailNotifications = settingsDTO.getEmailNotifications();
-                    if (emailNotifications == null || ArrayUtils.isEmpty(emailNotifications.getOnFailure())) {
-                        throw new MojoExecutionException("REQUIRED FIELD [email_notifications.on_failure] was empty. VALIDATION FAILED.");
-                    }
-                    ValidationUtil.validatePath(settingsDTO.getName(), jobTemplateModel.getGroupWithoutCompany(), jobTemplateModel.getArtifactId(), prefixToStrip);
-                }
-            }
-        };
+    JobService getJobService() {
+        return getDatabricksServiceFactory().getJobService();
     }
 
     Long getJobId(String jobName) throws MojoExecutionException {
@@ -223,8 +104,127 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
         }
     }
 
-    JobService getJobService() {
-        return getDatabricksServiceFactory().getJobService();
+    private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> createSettingsInitializer() {
+        return new SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO>() {
+            @Override
+            public void fillInDefaults(JobSettingsDTO settingsDTO, JobSettingsDTO defaultSettingsDTO,
+                                       JobEnvironmentDTO environmentDTO) throws JsonProcessingException {
+                String jobName = settingsDTO.getName();
+                if (StringUtils.isEmpty(settingsDTO.getName())) {
+                    jobName = environmentDTO.getGroupWithoutCompany() + "/" + environmentDTO.getArtifactId();
+                    settingsDTO.setName(jobName);
+                    getLog().info(String.format("set JobName with %s", jobName));
+                }
+
+                // email_notifications
+                if (settingsDTO.getEmailNotifications() == null) {
+                    settingsDTO.setEmailNotifications(SerializationUtils.clone(defaultSettingsDTO.getEmailNotifications()));
+                    getLog().info(String.format("%s|set email_notifications with %s", jobName,
+                            OBJECT_MAPPER.writeValueAsString(defaultSettingsDTO.getEmailNotifications())));
+
+                } else if (settingsDTO.getEmailNotifications().getOnFailure() == null
+                        || settingsDTO.getEmailNotifications().getOnFailure().length == 0
+                        || StringUtils.isEmpty(settingsDTO.getEmailNotifications().getOnFailure()[0])) {
+                    settingsDTO.getEmailNotifications().setOnFailure(defaultSettingsDTO.getEmailNotifications().getOnFailure());
+                    getLog().info(String.format("%s|set email_notifications.on_failure with %s", jobName,
+                            OBJECT_MAPPER.writeValueAsString(defaultSettingsDTO.getEmailNotifications().getOnFailure())));
+                }
+
+                // ClusterInfo
+                if (StringUtils.isEmpty(settingsDTO.getExistingClusterId())) {
+                    if (settingsDTO.getNewCluster() == null) {
+                        settingsDTO.setNewCluster(SerializationUtils.clone(defaultSettingsDTO.getNewCluster()));
+                        getLog().info(String.format("%s|set new_cluster with %s", jobName,
+                                OBJECT_MAPPER.writeValueAsString(defaultSettingsDTO.getNewCluster())));
+
+                    } else {
+                        if (StringUtils.isEmpty(settingsDTO.getNewCluster().getSparkVersion())) {
+                            settingsDTO.getNewCluster().setSparkVersion(defaultSettingsDTO.getNewCluster().getSparkVersion());
+                            getLog().info(String.format("%s|set new_cluster.spark_version with %s", jobName,
+                                    defaultSettingsDTO.getNewCluster().getSparkVersion()));
+                        }
+
+                        if (StringUtils.isEmpty(settingsDTO.getNewCluster().getNodeTypeId())) {
+                            settingsDTO.getNewCluster().setNodeTypeId(defaultSettingsDTO.getNewCluster().getNodeTypeId());
+                            getLog().info(String.format("%s|set new_cluster.node_type_id with %s", jobName,
+                                    defaultSettingsDTO.getNewCluster().getNodeTypeId()));
+                        }
+
+                        if (settingsDTO.getNewCluster().getAutoScale() == null && settingsDTO.getNewCluster().getNumWorkers() < 1) {
+                            settingsDTO.getNewCluster().setNumWorkers(defaultSettingsDTO.getNewCluster().getNumWorkers());
+                            getLog().info(String.format("%s|set new_cluster.num_workers with %s", jobName,
+                                    defaultSettingsDTO.getNewCluster().getNumWorkers()));
+                        }
+
+                        //aws_attributes
+                        if (settingsDTO.getNewCluster().getAwsAttributes() == null) {
+                            settingsDTO.getNewCluster().setAwsAttributes(SerializationUtils.clone(defaultSettingsDTO.getNewCluster().getAwsAttributes()));
+                            getLog().info(String.format("%s|set new_cluster.aws_attributes with %s", jobName,
+                                    OBJECT_MAPPER.writeValueAsString(defaultSettingsDTO.getNewCluster().getAwsAttributes())));
+                        }
+                    }
+                }
+
+                if (settingsDTO.getTimeoutSeconds() == null) {
+                    settingsDTO.setTimeoutSeconds(defaultSettingsDTO.getTimeoutSeconds());
+                    getLog().info(String.format("%s|set timeout_seconds with %s", jobName, defaultSettingsDTO.getTimeoutSeconds()));
+                }
+
+                // Can't have libraries if its a spark submit task
+                if ((settingsDTO.getLibraries() == null || settingsDTO.getLibraries().length == 0) && settingsDTO.getSparkSubmitTask() == null) {
+                    settingsDTO.setLibraries(SerializationUtils.clone(defaultSettingsDTO.getLibraries()));
+                    getLog().info(String.format("%s|set libraries with %s", jobName, OBJECT_MAPPER.writeValueAsString(defaultSettingsDTO.getLibraries())));
+                }
+
+                if (settingsDTO.getMaxConcurrentRuns() == null) {
+                    settingsDTO.setMaxConcurrentRuns(defaultSettingsDTO.getMaxConcurrentRuns());
+                    getLog().info(String.format("%s|set max_concurrent_runs with %s", jobName, defaultSettingsDTO.getMaxConcurrentRuns()));
+                }
+
+                if (settingsDTO.getMaxRetries() == null) {
+                    settingsDTO.setMaxRetries(defaultSettingsDTO.getMaxRetries());
+                    getLog().info(String.format("%s|set max_retries with %s", jobName, defaultSettingsDTO.getMaxRetries()));
+                }
+
+                if (settingsDTO.getMaxRetries() != 0 && settingsDTO.getMinRetryIntervalMillis() == null) {
+                    settingsDTO.setMinRetryIntervalMillis(defaultSettingsDTO.getMinRetryIntervalMillis());
+                    getLog().info(String.format("%s|set min_retry_interval_millis with %s", jobName, defaultSettingsDTO.getMinRetryIntervalMillis()));
+                }
+
+                //set InstanceTags
+                if (settingsDTO.getNewCluster() != null) {
+                    String groupId = environmentDTO.getGroupWithoutCompany();
+                    Map<String, String> tagMap = settingsDTO.getNewCluster().getCustomTags();
+                    if (tagMap == null) {
+                        tagMap = new HashMap<>();
+                        settingsDTO.getNewCluster().setCustomTags(tagMap);
+                    }
+
+                    if (!tagMap.containsKey(TEAM_TAG) || StringUtils.isEmpty(tagMap.get(TEAM_TAG))) {
+                        tagMap.put(TEAM_TAG, groupId);
+                        getLog().info(String.format("%s|set new_cluster.custom_tags.%s from [%s] to [%s]", jobName, TEAM_TAG, tagMap.get(TEAM_TAG), groupId));
+                    }
+
+
+                    if (ValidationUtil.isDeltaEnabled(settingsDTO.getNewCluster())
+                            && !"true".equalsIgnoreCase(tagMap.get(DELTA_TAG))) {
+                        tagMap.put(DELTA_TAG, "true");
+                        getLog().info(String.format("%s|set new_cluster.custom_tags.%s from [%s] to true", jobName, DELTA_TAG, tagMap.get(DELTA_TAG)));
+                    }
+                }
+            }
+
+            @Override
+            public void validate(JobSettingsDTO settingsDTO, JobEnvironmentDTO environmentDTO) throws MojoExecutionException {
+                if (validate) {
+                    JobEmailNotificationsDTO emailNotifications = settingsDTO.getEmailNotifications();
+                    if (emailNotifications == null || ArrayUtils.isEmpty(emailNotifications.getOnFailure())) {
+                        throw new MojoExecutionException("REQUIRED FIELD [email_notifications.on_failure] was empty. VALIDATION FAILED.");
+                    }
+                    ValidationUtil.validatePath(settingsDTO.getName(), environmentDTO.getGroupWithoutCompany(), environmentDTO.getArtifactId(), prefixToStrip);
+                }
+            }
+        };
     }
 
 }

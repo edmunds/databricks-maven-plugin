@@ -17,13 +17,13 @@
 package com.edmunds.tools.databricks.maven.validation;
 
 import com.edmunds.rest.databricks.DTO.NewClusterDTO;
-import java.util.Map;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
+import java.util.Map;
+import java.util.Objects;
 
-import static com.edmunds.tools.databricks.maven.model.JobTemplateModel.stripCompanyPackage;
+import static com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO.stripCompanyPackage;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**

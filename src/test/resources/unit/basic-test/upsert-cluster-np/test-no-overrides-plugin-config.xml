@@ -31,7 +31,7 @@
                 <configuration>
                     <environment>QA</environment>
                     <dbClusterFile>databricks-cluster-settings.json</dbClusterFile>
-                    <clusterTemplateModelFile>mySerializedProperties.json</clusterTemplateModelFile>
+                    <clusterEnvironmentDTOFile>mySerializedProperties.json</clusterEnvironmentDTOFile>
                 </configuration>
                 <executions>
                     <execution>

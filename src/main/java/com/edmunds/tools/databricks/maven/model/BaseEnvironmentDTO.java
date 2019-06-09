@@ -23,9 +23,12 @@ import java.util.Properties;
 
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
-public abstract class BaseModel {
+/**
+ * Base POJO for keeping Project and Environment properties.
+ */
+public abstract class BaseEnvironmentDTO {
 
-    public static final String DEPLOY_VERSION = "deploy-version";
+    private static final String DEPLOY_VERSION = "deploy-version";
 
     private Properties projectProperties;
     private Properties systemProperties;
@@ -43,11 +46,10 @@ public abstract class BaseModel {
     /**
      * Don't use this - it's for jackson deserialization only!
      */
-    public BaseModel() {
+    public BaseEnvironmentDTO() {
     }
 
-    public BaseModel(MavenProject project,
-                     String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
+    public BaseEnvironmentDTO(MavenProject project, String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
         this.groupId = project.getGroupId();
         this.artifactId = project.getArtifactId();
         this.projectProperties = project.getProperties();

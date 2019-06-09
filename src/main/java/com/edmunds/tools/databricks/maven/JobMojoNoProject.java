@@ -16,8 +16,8 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
-import com.edmunds.tools.databricks.maven.util.TemplateModelSupplier;
+import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -39,28 +39,28 @@ import java.io.File;
 public class JobMojoNoProject extends JobMojo {
 
     /**
-     * The serialized job model is requierd to be passed in a NoProject scenario.
+     * The serialized job environment dto is required to be passed in a NoProject scenario.
      */
-    @Parameter(name = "jobTemplateModelFile", property = "jobTemplateModelFile", required = true)
-    File jobTemplateModelFile;
+    @Parameter(name = "jobEnvironmentDTOFile", property = "jobEnvironmentDTOFile", required = true)
+    File jobEnvironmentDTOFile;
 
     @Override
-    protected TemplateModelSupplier<JobTemplateModel> createTemplateModelSupplier() {
-        return new TemplateModelSupplier<JobTemplateModel>() {
+    protected EnvironmentDTOSupplier<JobEnvironmentDTO> createEnvironmentDTOSupplier() {
+        return new EnvironmentDTOSupplier<JobEnvironmentDTO>() {
             @Override
-            public JobTemplateModel get() throws MojoExecutionException {
-                JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
+            public JobEnvironmentDTO get() throws MojoExecutionException {
+                JobEnvironmentDTO serializedJobEnvironment = JobEnvironmentDTO.loadJobEnvironmentDTOFromFile(jobEnvironmentDTOFile);
                 //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
                 //I consider this code ugly
                 if (environment != null) {
-                    serializedJobTemplate.setEnvironment(environment);
+                    serializedJobEnvironment.setEnvironment(environment);
                 }
-                return serializedJobTemplate;
+                return serializedJobEnvironment;
             }
 
             @Override
-            public File getSettingsFile() {
-                return jobTemplateModelFile;
+            public File getEnvironmentDTOFile() {
+                return jobEnvironmentDTOFile;
             }
         };
     }

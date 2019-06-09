@@ -16,20 +16,20 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
+import static com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO.stripCompanyPackage;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 
@@ -68,13 +68,13 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
 
 
     protected String getSourceFullWorkspacePath() {
-        String strippedPrefix = JobTemplateModel.stripCompanyPackage(prefixToStrip, workspacePrefix);
+        String strippedPrefix = stripCompanyPackage(prefixToStrip, workspacePrefix);
         return Paths.get(sourceWorkspacePath.getPath(), strippedPrefix).toString();
     }
 
     protected String getRemoteFullWorkspacePath() {
         //Seperator should always be "/"
-        String strippedPrefix = JobTemplateModel.stripCompanyPackage(prefixToStrip, workspacePrefix);
+        String strippedPrefix = stripCompanyPackage(prefixToStrip, workspacePrefix);
         return (packagedWorkspacePath.getPath() + strippedPrefix).replace("\\", "/");
     }
 
@@ -116,7 +116,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
     }
 
     public String getDbWorkspacePath() {
-        return JobTemplateModel.stripCompanyPackage(prefixToStrip, dbWorkspacePath).replaceAll("\\.", "/");
+        return stripCompanyPackage(prefixToStrip, dbWorkspacePath).replaceAll("\\.", "/");
     }
 
     public void setDbWorkspacePath(String dbWorkspacePath) {

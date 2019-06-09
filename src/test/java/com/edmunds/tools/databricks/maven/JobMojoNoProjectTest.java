@@ -17,7 +17,7 @@
 package com.edmunds.tools.databricks.maven;
 
 
-import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
+import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -39,12 +39,12 @@ public class JobMojoNoProjectTest extends BaseDatabricksMojoTest {
         underTest.setDatabricksServiceFactory(databricksServiceFactory);
         underTest.setStreamingOnly(false);
         underTest.setEnvironment("PROD");
-        underTest.jobTemplateModelFile = new File("src/test/resources/databricks-plugin/job-template-model.json");
+        underTest.jobEnvironmentDTOFile = new File("src/test/resources/databricks-plugin/job-environment.json");
     }
 
     @Test
     public void testStopRun_no_job() throws Exception {
-        JobTemplateModel model = underTest.getSettingsUtils().getTemplateModel();
+        JobEnvironmentDTO model = underTest.getSettingsUtils().getEnvironmentDTO();
 
         assertEquals(model.getEnvironment(), "PROD");
     }

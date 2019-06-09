@@ -45,7 +45,7 @@ public class UpsertJobMojo extends BaseDatabricksJobMojo {
     }
 
     private void upsertJobSettings() throws MojoExecutionException {
-        List<JobSettingsDTO> jobSettingsDTOS = getSettingsUtils().buildTemplateDTOsWithDefaults();
+        List<JobSettingsDTO> jobSettingsDTOS = getSettingsUtils().buildSettingsDTOsWithDefaults();
         for (JobSettingsDTO settingsDTO : jobSettingsDTOS) {
             try {
                 getJobService().upsertJob(settingsDTO, failOnDuplicateJobName);

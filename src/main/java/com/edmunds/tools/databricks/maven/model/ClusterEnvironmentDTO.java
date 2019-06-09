@@ -1,5 +1,5 @@
 /*
- *  Copyright 2018 Edmunds.com, Inc.
+ *  Copyright 2019 Edmunds.com, Inc.
  *
  *      Licensed under the Apache License, Version 2.0 (the "License");
  *      you may not use this file except in compliance with the License.
@@ -26,29 +26,27 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
- * Simple POJO to pass properties to the job template.
+ * Simple POJO to pass Project and Environment properties to the {@link ClusterSettingsDTO}.
  */
-public class JobTemplateModel extends BaseModel {
+public class ClusterEnvironmentDTO extends BaseEnvironmentDTO {
 
     /**
      * Don't use this - it's for jackson deserialization only!
      */
-    public JobTemplateModel() {
+    public ClusterEnvironmentDTO() {
     }
 
-    public JobTemplateModel(MavenProject project,
-                            String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
+    public ClusterEnvironmentDTO(MavenProject project, String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
         super(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
     }
 
-    public static JobTemplateModel loadJobTemplateModelFromFile(File jobTemplateModelFile) throws
-            MojoExecutionException {
-        if (jobTemplateModelFile == null) {
-            throw new MojoExecutionException("jobTemplateModelFile must be set!");
+    public static ClusterEnvironmentDTO loadClusterEnvironmentDTOFromFile(File clusterEnvironmentDTOFile) throws MojoExecutionException {
+        if (clusterEnvironmentDTOFile == null) {
+            throw new MojoExecutionException("clusterEnvironmentDTOFile must be set!");
         }
         try {
-            String jobTemplateModelJson = FileUtils.readFileToString(jobTemplateModelFile, Charset.defaultCharset());
-            return ObjectMapperUtils.deserialize(jobTemplateModelJson, JobTemplateModel.class);
+            String clusterEnvironmentDTOJson = FileUtils.readFileToString(clusterEnvironmentDTOFile, Charset.defaultCharset());
+            return ObjectMapperUtils.deserialize(clusterEnvironmentDTOJson, ClusterEnvironmentDTO.class);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }

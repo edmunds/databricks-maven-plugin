@@ -21,12 +21,14 @@ import org.apache.maven.plugin.MojoExecutionException;
 import java.io.File;
 
 /**
- * @param <T> Template Model
+ * A class implementing this interface should return EnvironmentDTO & EnvironmentDTO File for a concrete Mojo.
+ *
+ * @param <E> Environment DTO
  */
-public interface TemplateModelSupplier<T> {
+public interface EnvironmentDTOSupplier<E> {
 
-    T get() throws MojoExecutionException;
+    E get() throws MojoExecutionException;
 
-    File getSettingsFile();
+    File getEnvironmentDTOFile();
 
 }
