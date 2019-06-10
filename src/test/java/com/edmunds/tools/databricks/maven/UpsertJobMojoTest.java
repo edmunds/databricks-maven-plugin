@@ -182,14 +182,14 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertThat(jobId, nullValue());
     }
 
-    // TODO now it tests SettingsUtils class logic
+    // TODO now it tests SettingsInitializer logic
     @Test
     public void testDefaultIfNull_JobSettingsDTO() throws Exception {
         SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils = underTest.getSettingsUtils();
         JobSettingsDTO exampleSettingsDTOs = settingsUtils.defaultSettingsDTO();
         JobSettingsDTO targetDTO = new JobSettingsDTO();
 
-        settingsUtils.getSettingsInitializer().fillInDefaults(targetDTO, exampleSettingsDTOs, settingsUtils.getEnvironmentDTO());
+        underTest.getSettingsInitializer().fillInDefaults(targetDTO, exampleSettingsDTOs, settingsUtils.getEnvironmentDTO());
 
         assertEquals(targetDTO.getName(), "unit-test-group/unit-test-artifact");
 
@@ -206,18 +206,18 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertEquals(targetDTO.getTimeoutSeconds(), exampleSettingsDTOs.getTimeoutSeconds());
     }
 
-    // TODO now it tests SettingsUtils class logic
+    // TODO now it tests SettingsInitializer logic
     @Test
     public void validateInstanceTags_whenNull_fillsInDefault() throws Exception {
         SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils = underTest.getSettingsUtils();
         JobSettingsDTO targetDTO = createTestJobSettings(null);
 
-        settingsUtils.getSettingsInitializer().fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
+        underTest.getSettingsInitializer().fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "unit-test-group");
     }
 
-    // TODO now it tests SettingsUtils class logic
+    // TODO now it tests SettingsInitializer logic
     @Test
     public void validateInstanceTags_whenWrongTeamTag_fillsInDefault() throws Exception {
         SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils = underTest.getSettingsUtils();
@@ -226,12 +226,12 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
         JobSettingsDTO targetDTO = createTestJobSettings(tags);
 
-        settingsUtils.getSettingsInitializer().fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
+        underTest.getSettingsInitializer().fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "overrideTeam");
     }
 
-    // TODO now it tests SettingsUtils class logic
+    // TODO now it tests SettingsInitializer logic
     @Test
     public void validateInstanceTags_whenMissingDeltaTag_fillsInDefault() throws Exception {
         SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils = underTest.getSettingsUtils();
@@ -240,12 +240,12 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
-        settingsUtils.getSettingsInitializer().fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
+        underTest.getSettingsInitializer().fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }
 
-    // TODO now it tests SettingsUtils class logic
+    // TODO now it tests SettingsInitializer logic
     @Test
     public void validateInstanceTags_whenDeltaTag_noException() throws Exception {
         SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils = underTest.getSettingsUtils();
@@ -255,7 +255,7 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
-        settingsUtils.getSettingsInitializer().fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
+        underTest.getSettingsInitializer().fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }

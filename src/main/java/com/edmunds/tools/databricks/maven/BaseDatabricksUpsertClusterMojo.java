@@ -19,6 +19,7 @@ package com.edmunds.tools.databricks.maven;
 import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
+import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -31,19 +32,21 @@ import java.io.File;
  */
 public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo {
 
-    private SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
-
     /**
      * The databricks cluster json file that contains all of the information for how to create databricks cluster.
      */
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json", property = "dbClusterFile")
     protected File dbClusterFile;
 
+    private SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
+    private SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsInitializer =
+            new BaseDatabricksUpsertClusterMojoSettingsInitializer(validate);
+
     public SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> getSettingsUtils() {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
                     BaseDatabricksUpsertClusterMojo.class, ClusterSettingsDTO[].class, dbClusterFile, "/default-cluster.json",
-                    createEnvironmentDTOSupplier(), new BaseDatabricksUpsertClusterMojoSettingsInitializer(validate));
+                    createEnvironmentDTOSupplier(), settingsInitializer);
         }
         return settingsUtils;
     }

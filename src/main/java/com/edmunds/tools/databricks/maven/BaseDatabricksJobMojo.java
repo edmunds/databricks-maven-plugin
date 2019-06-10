@@ -22,6 +22,7 @@ import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.JobService;
 import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
+import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -34,8 +35,6 @@ import java.io.IOException;
  * Base class for Databricks Job Mojos.
  */
 public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
-
-    private SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
 
     /**
      * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
@@ -50,13 +49,21 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     @Parameter(property = "failOnDuplicateJobName")
     boolean failOnDuplicateJobName = true;
 
+    private SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
+    private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer =
+            new BaseDatabricksJobMojoSettingsInitializer(validate, prefixToStrip);
+
     public SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> getSettingsUtils() {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
                     BaseDatabricksJobMojo.class, JobSettingsDTO[].class, dbJobFile, "/default-job.json",
-                    createEnvironmentDTOSupplier(), new BaseDatabricksJobMojoSettingsInitializer(validate, prefixToStrip));
+                    createEnvironmentDTOSupplier(), settingsInitializer);
         }
         return settingsUtils;
+    }
+
+    public SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> getSettingsInitializer() {
+        return settingsInitializer;
     }
 
     protected EnvironmentDTOSupplier<JobEnvironmentDTO> createEnvironmentDTOSupplier() {

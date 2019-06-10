@@ -61,6 +61,16 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
     private final EnvironmentDTOSupplier<E> environmentDTOSupplier;
     private final SettingsInitializer<E, S> settingsInitializer;
 
+    /**
+     * SettingsUtils constructor. Mojos instantiate this class and use it for building up Settings DTOs.
+     *
+     * @param mojoClass
+     * @param settingsDtoArrayClass
+     * @param environmentDTOFile
+     * @param defaultSettingsFileName
+     * @param environmentDTOSupplier
+     * @param settingsInitializer
+     */
     public SettingsUtils(Class<M> mojoClass, Class<S[]> settingsDtoArrayClass, File environmentDTOFile, String defaultSettingsFileName,
                          EnvironmentDTOSupplier<E> environmentDTOSupplier, SettingsInitializer<E, S> settingsInitializer) {
         this.mojoClass = mojoClass;
@@ -69,11 +79,6 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
         this.defaultSettingsFileName = defaultSettingsFileName;
         this.environmentDTOSupplier = environmentDTOSupplier;
         this.settingsInitializer = settingsInitializer;
-    }
-
-    // TODO this method exists only because of unit tests
-    public SettingsInitializer<E, S> getSettingsInitializer() {
-        return settingsInitializer;
     }
 
     /**
@@ -94,6 +99,12 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
         return environmentDTOSupplier.get();
     }
 
+    /**
+     * Constructs Settings DTO from user specified settings, default settings, project and environment properties.
+     *
+     * @return Mojo Settings DTO.
+     * @throws MojoExecutionException
+     */
     public List<S> buildSettingsDTOsWithDefaults() throws MojoExecutionException {
         E environmentDTO = getEnvironmentDTO();
         String settingsJson = getSettingsJsonFromEnvironment(environmentDTO);
@@ -116,6 +127,13 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
         return settingsDTOs;
     }
 
+    /**
+     * Produces Mojo Settings DTO json from Environment.
+     *
+     * @param environmentDTO project and environment properties.
+     * @return Mojo Settings DTO json.
+     * @throws MojoExecutionException
+     */
     String getSettingsJsonFromEnvironment(E environmentDTO) throws MojoExecutionException {
         if (!environmentDTOFile.exists()) {
             log.info("No Environment DTO File exists");
@@ -133,6 +151,14 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
         return stringWriter.toString();
     }
 
+    /**
+     * Produces Mojo Settings DTO json from Environment.
+     *
+     * @param defaultSettingsJson default settings json.
+     * @param environmentDTO      project and environment properties.
+     * @return Mojo Settings DTO json.
+     * @throws MojoExecutionException
+     */
     private String getSettingsJsonFromEnvironment(String defaultSettingsJson, E environmentDTO) throws MojoExecutionException {
         StringWriter stringWriter = new StringWriter();
         try {
