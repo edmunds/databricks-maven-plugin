@@ -34,8 +34,8 @@ import org.testng.collections.Maps;
 import java.util.List;
 import java.util.Map;
 
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.DELTA_TAG;
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojo.TEAM_TAG;
+import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsInitializer.DELTA_TAG;
+import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsInitializer.TEAM_TAG;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -222,7 +222,7 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     public void validateInstanceTags_whenWrongTeamTag_fillsInDefault() throws Exception {
         SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils = underTest.getSettingsUtils();
         Map<String, String> tags = Maps.newHashMap();
-        tags.put("team", "overrideTeam");
+        tags.put(TEAM_TAG, "overrideTeam");
 
         JobSettingsDTO targetDTO = createTestJobSettings(tags);
 
@@ -236,7 +236,7 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     public void validateInstanceTags_whenMissingDeltaTag_fillsInDefault() throws Exception {
         SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils = underTest.getSettingsUtils();
         Map<String, String> tags = Maps.newHashMap();
-        tags.put("team", "myteam");
+        tags.put(TEAM_TAG, "myteam");
 
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
@@ -250,8 +250,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     public void validateInstanceTags_whenDeltaTag_noException() throws Exception {
         SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils = underTest.getSettingsUtils();
         Map<String, String> tags = Maps.newHashMap();
-        tags.put("team", "myteam");
-        tags.put("delta", "true");
+        tags.put(TEAM_TAG, "myteam");
+        tags.put(DELTA_TAG, "true");
 
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 

@@ -42,29 +42,30 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Utility class for databricks mojo settings initialization process.
+ * Utility class for Databricks Mojo settings initialization process.
+ * Conjuncts Mojo-specific and common part of logic.
  *
- * @param <M> Databricks Mojo
- * @param <E> Environment DTO
- * @param <S> Settings DTO
+ * @param <M> Databricks Mojo Databricks Mojo class.
+ * @param <E> Environment DTO POJO with Project and Environment properties.
+ * @param <S> Settings DTO POJO that contains Mojo settings.
  */
 public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironmentDTO, S> {
 
     public static final ObjectMapper OBJECT_MAPPER = ObjectMapperUtils.getObjectMapper();
     private static final Log log = new SystemStreamLog();
 
-    private final File environmentDTOFile;
     private final Class<M> mojoClass;
-    private final Class<S[]> dtoArrayClass;
+    private final Class<S[]> settingsDtoArrayClass;
+    private final File environmentDTOFile;
     private final String defaultSettingsFileName;
     private final EnvironmentDTOSupplier<E> environmentDTOSupplier;
     private final SettingsInitializer<E, S> settingsInitializer;
 
-    public SettingsUtils(Class<M> mojoClass, Class<S[]> dtoArrayClass, String defaultSettingsFileName,
+    public SettingsUtils(Class<M> mojoClass, Class<S[]> settingsDtoArrayClass, File environmentDTOFile, String defaultSettingsFileName,
                          EnvironmentDTOSupplier<E> environmentDTOSupplier, SettingsInitializer<E, S> settingsInitializer) {
-        this.environmentDTOFile = environmentDTOSupplier.getEnvironmentDTOFile();
         this.mojoClass = mojoClass;
-        this.dtoArrayClass = dtoArrayClass;
+        this.settingsDtoArrayClass = settingsDtoArrayClass;
+        this.environmentDTOFile = environmentDTOFile;
         this.defaultSettingsFileName = defaultSettingsFileName;
         this.environmentDTOSupplier = environmentDTOSupplier;
         this.settingsInitializer = settingsInitializer;
@@ -157,7 +158,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
 
     private S[] deserializeSettings(String settingsDTOJson, String defaultSettingsDTOJson) throws MojoExecutionException {
         try {
-            return ObjectMapperUtils.deserialize(settingsDTOJson, dtoArrayClass);
+            return ObjectMapperUtils.deserialize(settingsDTOJson, settingsDtoArrayClass);
         } catch (IOException e) {
             throw new MojoExecutionException(String.format("Failed to unmarshal Settings DTO:\n[%s]\nHere is an example, of what it should look like:\n[%s]\n",
                     settingsDTOJson,

@@ -61,6 +61,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
     private void upsertJobSettings() throws MojoExecutionException {
         List<ClusterSettingsDTO> cts = getSettingsUtils().buildSettingsDTOsWithDefaults();
         if (cts.size() == 0) {
+            getLog().info("Clusters settings list is empty: nothing to do");
             return;
         }
 

@@ -2,7 +2,6 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -25,22 +24,14 @@ public class UpsertClusterMojoNoProject extends UpsertClusterMojo {
 
     @Override
     protected EnvironmentDTOSupplier<ClusterEnvironmentDTO> createEnvironmentDTOSupplier() {
-        return new EnvironmentDTOSupplier<ClusterEnvironmentDTO>() {
-            @Override
-            public ClusterEnvironmentDTO get() throws MojoExecutionException {
-                ClusterEnvironmentDTO serializedClusterEnvironment = ClusterEnvironmentDTO.loadClusterEnvironmentDTOFromFile(clusterEnvironmentDTOFile);
-                //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
-                //I consider this code ugly
-                if (environment != null) {
-                    serializedClusterEnvironment.setEnvironment(environment);
-                }
-                return serializedClusterEnvironment;
+        return () -> {
+            ClusterEnvironmentDTO serializedClusterEnvironment = ClusterEnvironmentDTO.loadClusterEnvironmentDTOFromFile(clusterEnvironmentDTOFile);
+            //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+            //I consider this code ugly
+            if (environment != null) {
+                serializedClusterEnvironment.setEnvironment(environment);
             }
-
-            @Override
-            public File getEnvironmentDTOFile() {
-                return UpsertClusterMojoNoProject.super.dbClusterFile;
-            }
+            return serializedClusterEnvironment;
         };
     }
 

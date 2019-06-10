@@ -16,20 +16,9 @@ public class SettingsUtilsTest extends DatabricksMavenPluginTestHarness {
             expectedExceptionsMessageRegExp = "Failed to process Environment DTO File.*" +
                     "The following has evaluated to null or missing.*groupId.*in template \"bad-example-job.json\".*")
     public void testGetJobSettingsFromTemplate_missing_freemarker_variable() throws MojoExecutionException {
-        new SettingsUtils<>(
-                BaseDatabricksJobMojo.class, JobSettingsDTO[].class, "/default-job.json",
-                new EnvironmentDTOSupplier<JobEnvironmentDTO>() {
-                    @Override
-                    public JobEnvironmentDTO get() {
-                        return new JobEnvironmentDTO();
-                    }
-
-                    @Override
-                    public File getEnvironmentDTOFile() {
-                        return new File(UpsertJobMojoTest.class.getClassLoader()
-                                .getResource("bad-example-job.json").getFile());
-                    }
-                },
+        new SettingsUtils<>(BaseDatabricksJobMojo.class, JobSettingsDTO[].class,
+                new File(UpsertJobMojoTest.class.getClassLoader().getResource("bad-example-job.json").getFile()),
+                "/default-job.json", JobEnvironmentDTO::new,
                 new SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO>() {
                     @Override
                     public void fillInDefaults(JobSettingsDTO settingsDTO, JobSettingsDTO defaultSettingsDTO, JobEnvironmentDTO environmentDTO) {
