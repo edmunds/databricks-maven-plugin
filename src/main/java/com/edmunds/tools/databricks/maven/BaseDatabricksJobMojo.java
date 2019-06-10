@@ -50,20 +50,15 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     boolean failOnDuplicateJobName = true;
 
     private SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
-    private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer =
-            new BaseDatabricksJobMojoSettingsInitializer(validate, prefixToStrip);
+    private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer;
 
     public SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> getSettingsUtils() {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
                     BaseDatabricksJobMojo.class, JobSettingsDTO[].class, dbJobFile, "/default-job.json",
-                    createEnvironmentDTOSupplier(), settingsInitializer);
+                    createEnvironmentDTOSupplier(), getSettingsInitializer());
         }
         return settingsUtils;
-    }
-
-    public SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> getSettingsInitializer() {
-        return settingsInitializer;
     }
 
     protected EnvironmentDTOSupplier<JobEnvironmentDTO> createEnvironmentDTOSupplier() {
@@ -73,6 +68,13 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
             }
             return new JobEnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
         };
+    }
+
+    SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> getSettingsInitializer() {
+        if (settingsInitializer == null) {
+            settingsInitializer = new BaseDatabricksJobMojoSettingsInitializer(validate, prefixToStrip);
+        }
+        return settingsInitializer;
     }
 
     JobService getJobService() {

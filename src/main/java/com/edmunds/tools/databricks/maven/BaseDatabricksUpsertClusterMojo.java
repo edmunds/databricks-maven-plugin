@@ -39,14 +39,13 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     protected File dbClusterFile;
 
     private SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
-    private SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsInitializer =
-            new BaseDatabricksUpsertClusterMojoSettingsInitializer(validate);
+    private SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsInitializer;
 
     public SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> getSettingsUtils() {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
                     BaseDatabricksUpsertClusterMojo.class, ClusterSettingsDTO[].class, dbClusterFile, "/default-cluster.json",
-                    createEnvironmentDTOSupplier(), settingsInitializer);
+                    createEnvironmentDTOSupplier(), getSettingsInitializer());
         }
         return settingsUtils;
     }
@@ -60,4 +59,10 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
         };
     }
 
+    SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> getSettingsInitializer() {
+        if (settingsInitializer == null) {
+            settingsInitializer = new BaseDatabricksUpsertClusterMojoSettingsInitializer(validate);
+        }
+        return settingsInitializer;
+    }
 }
