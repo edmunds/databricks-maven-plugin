@@ -16,8 +16,8 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -30,7 +30,7 @@ import java.io.File;
  * </p>
  * <p>
  * NOTE 2: If a job has more than 1 active run, ALL of them will be cancelled on STOP\RESTART.
- *
+ * <p>
  * NoProject is split out so that we have a mojo that will work with multi module projects.
  * </p>
  */
@@ -38,19 +38,21 @@ import java.io.File;
 public class JobMojoNoProject extends JobMojo {
 
     /**
-     * The serialized job model is requierd to be passed in a NoProject scenario.
+     * The serialized job environment dto is required to be passed in a NoProject scenario.
      */
-    @Parameter(name = "jobTemplateModelFile", property = "jobTemplateModelFile", required = true)
-    protected File jobTemplateModelFile;
+    @Parameter(name = "jobEnvironmentDTOFile", property = "jobEnvironmentDTOFile", required = true)
+    File jobEnvironmentDTOFile;
 
     @Override
-    protected JobTemplateModel getJobTemplateModel() throws MojoExecutionException {
-        JobTemplateModel serializedJobTemplate = JobTemplateModel.loadJobTemplateModelFromFile(jobTemplateModelFile);
-        //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
-        //I consider this code ugly
-        if (environment != null) {
-            serializedJobTemplate.setEnvironment(environment);
-        }
-        return serializedJobTemplate;
+    protected EnvironmentDTOSupplier<JobEnvironmentDTO> getEnvironmentDTOSupplier() {
+        return () -> {
+            JobEnvironmentDTO serializedJobEnvironment = JobEnvironmentDTO.loadJobEnvironmentDTOFromFile(jobEnvironmentDTOFile);
+            //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+            //I consider this code ugly
+            if (environment != null) {
+                serializedJobEnvironment.setEnvironment(environment);
+            }
+            return serializedJobEnvironment;
+        };
     }
 }

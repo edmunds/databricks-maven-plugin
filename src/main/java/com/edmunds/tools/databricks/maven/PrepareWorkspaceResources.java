@@ -16,13 +16,12 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.JobTemplateModel;
-import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
-import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+
+import java.io.IOException;
 
 /**
  * Prepares some of the Databricks Resources into the package.

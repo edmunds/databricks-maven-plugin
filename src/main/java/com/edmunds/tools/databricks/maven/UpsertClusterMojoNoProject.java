@@ -1,7 +1,7 @@
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
-import org.apache.maven.plugin.MojoExecutionException;
+import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -17,15 +17,22 @@ import java.io.File;
 public class UpsertClusterMojoNoProject extends UpsertClusterMojo {
 
     /**
-     * The databricks cluster json file that contains all of the information for how to create databricks cluster.
-     * Must be specified in case of non-project run.
+     * The serialized cluster environment dto is required to be passed in a NoProject scenario.
      */
-    @Parameter(name = "dbClusterFile", property = "dbClusterFile", required = true)
-    protected File dbClusterFile;
+    @Parameter(name = "clusterEnvironmentDTOFile", property = "clusterEnvironmentDTOFile", required = true)
+    private File clusterEnvironmentDTOFile;
 
     @Override
-    protected ClusterTemplateModel[] getClusterTemplateModels() throws MojoExecutionException {
-        return loadClusterTemplateModelsFromFile(dbClusterFile);
+    protected EnvironmentDTOSupplier<ClusterEnvironmentDTO> getEnvironmentDTOSupplier() {
+        return () -> {
+            ClusterEnvironmentDTO serializedClusterEnvironment = ClusterEnvironmentDTO.loadClusterEnvironmentDTOFromFile(clusterEnvironmentDTOFile);
+            //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
+            //I consider this code ugly
+            if (environment != null) {
+                serializedClusterEnvironment.setEnvironment(environment);
+            }
+            return serializedClusterEnvironment;
+        };
     }
 
 }

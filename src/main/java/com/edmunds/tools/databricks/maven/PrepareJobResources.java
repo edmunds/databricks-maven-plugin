@@ -19,32 +19,36 @@ package com.edmunds.tools.databricks.maven;
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 @Mojo(name = "prepare-job-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareJobResources extends BaseDatabricksJobMojo {
 
+    private final static String ENVIRONMENT_FILE_NAME = "job-environment.json";
+
     /**
-     * The destination of where to serialize the job template model.
+     * The destination of where to serialize the job environment DTO.
      */
-    @Parameter(property = "jobTemplateModelFileOutput", defaultValue = "${project.build" +
-        ".directory}/databricks-plugin/" + MODEL_FILE_NAME)
-    protected File jobTemplateModelFileOutput;
+    @Parameter(property = "jobEnvironmentDTOFileOutput", defaultValue = "${project.build" +
+            ".directory}/databricks-plugin/" + ENVIRONMENT_FILE_NAME)
+    protected File jobEnvironmentDTOFileOutput;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        prepareJobTemplateModel();
+    public void execute() throws MojoExecutionException {
+        prepareJobEnvironmentDTO();
     }
 
-    void prepareJobTemplateModel() throws MojoExecutionException {
+    void prepareJobEnvironmentDTO() throws MojoExecutionException {
         try {
-            FileUtils.writeStringToFile(jobTemplateModelFileOutput, ObjectMapperUtils.serialize(getJobTemplateModel()));
+            FileUtils.writeStringToFile(jobEnvironmentDTOFileOutput,
+                    ObjectMapperUtils.serialize(getEnvironmentDTOSupplier().get()),
+                    Charset.defaultCharset());
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }

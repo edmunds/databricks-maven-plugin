@@ -16,24 +16,19 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
-import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
+import java.util.Properties;
 
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
 /**
- * Simple POJO to pass properties to the job template.
+ * Base POJO for keeping Project and Environment properties.
  */
-public class JobTemplateModel {
+public abstract class BaseEnvironmentDTO {
 
-    public static final String DEPLOY_VERSION = "deploy-version";
+    private static final String DEPLOY_VERSION = "deploy-version";
 
     private Properties projectProperties;
     private Properties systemProperties;
@@ -51,11 +46,10 @@ public class JobTemplateModel {
     /**
      * Don't use this - it's for jackson deserialization only!
      */
-    public JobTemplateModel() {
+    public BaseEnvironmentDTO() {
     }
 
-    public JobTemplateModel(MavenProject project,
-                            String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
+    public BaseEnvironmentDTO(MavenProject project, String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
         this.groupId = project.getGroupId();
         this.artifactId = project.getArtifactId();
         this.projectProperties = project.getProperties();
@@ -126,16 +120,4 @@ public class JobTemplateModel {
         this.databricksRepoKey = databricksRepoKey;
     }
 
-    public static JobTemplateModel loadJobTemplateModelFromFile(File jobTemplateModelFile) throws
-            MojoExecutionException {
-        if (jobTemplateModelFile == null) {
-            throw new MojoExecutionException("jobTemplateModelFile must be set!");
-        }
-        try {
-            String jobTemplateModelJson = FileUtils.readFileToString(jobTemplateModelFile);
-            return ObjectMapperUtils.deserialize(jobTemplateModelJson, JobTemplateModel.class);
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getMessage(), e);
-        }
-    }
 }

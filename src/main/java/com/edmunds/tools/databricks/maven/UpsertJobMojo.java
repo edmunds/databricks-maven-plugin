@@ -24,6 +24,9 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.IOException;
+import java.util.List;
+
+import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_MAPPER;
 
 /**
  * Upserts databricks jobs with the given name based on the artifacts job settings json file.
@@ -41,8 +44,8 @@ public class UpsertJobMojo extends BaseDatabricksJobMojo {
         upsertJobSettings();
     }
 
-    void upsertJobSettings() throws MojoExecutionException {
-        JobSettingsDTO[] jobSettingsDTOS = buildJobSettingsDTOsWithDefault();
+    private void upsertJobSettings() throws MojoExecutionException {
+        List<JobSettingsDTO> jobSettingsDTOS = getSettingsUtils().buildSettingsDTOsWithDefaults();
         for (JobSettingsDTO settingsDTO : jobSettingsDTOS) {
             try {
                 getJobService().upsertJob(settingsDTO, failOnDuplicateJobName);

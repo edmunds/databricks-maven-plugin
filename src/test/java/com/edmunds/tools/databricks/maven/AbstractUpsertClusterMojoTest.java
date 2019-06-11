@@ -10,7 +10,7 @@ import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.request.CreateClusterRequest;
 import com.edmunds.rest.databricks.request.EditClusterRequest;
-import com.edmunds.tools.databricks.maven.model.ClusterTemplateModel;
+import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
 import com.google.common.collect.Sets;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -109,7 +110,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
     }
 
     @Test(expectedExceptions = MojoExecutionException.class,
-            expectedExceptionsMessageRegExp = "Failed to parse config.*\"cluster_name\": \"my-cluster-malformed\".*")
+            expectedExceptionsMessageRegExp = "Failed to unmarshal Settings DTO.*")
     public void test_executeWithOverride_malformedConfigException() throws Exception {
         underTest = getOverridesMojo(GOAL, "-malformed");
         assertTrue(getPath().endsWith("databricks-cluster-settings-malformed.json"));
@@ -123,9 +124,9 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         assertTrue(getPath().endsWith("databricks-cluster-settings-missing.json"));
 
         underTest.execute();
-        ClusterTemplateModel[] clusterTemplateModels = underTest.getClusterTemplateModels();
+        List<ClusterSettingsDTO> clusterSettingsDTOs = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
 
-        assertEquals(0, clusterTemplateModels.length);
+        assertEquals(0, clusterSettingsDTOs.size());
     }
 
     protected abstract String getPath();

@@ -45,9 +45,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Mojo(name = "job", requiresProject = true)
 public class JobMojo extends BaseDatabricksJobMojo {
 
-    public static final int RUNS_OFFSET = 0;
-    public static final int RUNS_LIMIT = 1000;
-    public static final String STREAM = "stream";
+    private static final int RUNS_OFFSET = 0;
+    private static final int RUNS_LIMIT = 1000;
+    private static final String STREAM = "stream";
 
     /**
      * Job command to execute.
@@ -83,7 +83,7 @@ public class JobMojo extends BaseDatabricksJobMojo {
     public void execute() throws MojoExecutionException {
 
         if (isBlank(jobName)) {
-            for (JobSettingsDTO settingsDTO : buildJobSettingsDTOsWithDefault()) {
+            for (JobSettingsDTO settingsDTO : getSettingsUtils().buildSettingsDTOsWithDefaults()) {
                 jobName = settingsDTO.getName();
                 controlJob();
             }
