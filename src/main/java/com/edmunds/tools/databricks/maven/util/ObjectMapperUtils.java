@@ -29,7 +29,7 @@ import java.io.IOException;
  */
 public class ObjectMapperUtils {
 
-    protected static final ObjectMapper OBJECT_MAPPER = getObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = getObjectMapper();
 
     /**
      * @param json

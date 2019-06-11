@@ -16,7 +16,7 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.edmunds.tools.databricks.maven.util.SettingsUtils.OBJECT_MAPPER;
+import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_MAPPER;
 
 /**
  * Class contains logic of {@link BaseDatabricksJobMojo} Settings DTO fields initialization.

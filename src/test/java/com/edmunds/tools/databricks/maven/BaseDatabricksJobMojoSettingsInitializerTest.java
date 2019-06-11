@@ -4,6 +4,7 @@ import com.edmunds.rest.databricks.DTO.JobEmailNotificationsDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.NewClusterDTO;
 import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
@@ -24,6 +25,7 @@ import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsIn
 public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMavenPluginTestHarness {
 
     private SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
+    private EnvironmentDTOSupplier<JobEnvironmentDTO> environmentDTOSupplier;
     private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer;
 
     @BeforeClass
@@ -31,6 +33,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
         super.setUp();
         UpsertJobMojo underTest = getNoOverridesMojo("upsert-job");
         settingsUtils = underTest.getSettingsUtils();
+        environmentDTOSupplier = underTest.getEnvironmentDTOSupplier();
         settingsInitializer = underTest.getSettingsInitializer();
     }
 
@@ -39,7 +42,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
         JobSettingsDTO defaultSettingsDTO = settingsUtils.defaultSettingsDTO();
         JobSettingsDTO targetDTO = new JobSettingsDTO();
 
-        settingsInitializer.fillInDefaults(targetDTO, defaultSettingsDTO, settingsUtils.getEnvironmentDTO());
+        settingsInitializer.fillInDefaults(targetDTO, defaultSettingsDTO, environmentDTOSupplier.get());
 
         assertEquals(targetDTO.getName(), "unit-test-group/unit-test-artifact");
 
@@ -62,7 +65,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
     public void validateInstanceTags_whenNull_fillsInDefault() throws Exception {
         JobSettingsDTO targetDTO = createTestJobSettings(null);
 
-        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
+        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), environmentDTOSupplier.get());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "unit-test-group");
     }
@@ -74,7 +77,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
 
         JobSettingsDTO targetDTO = createTestJobSettings(tags);
 
-        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
+        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), environmentDTOSupplier.get());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "overrideTeam");
     }
@@ -86,7 +89,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
 
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
-        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
+        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), environmentDTOSupplier.get());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }
@@ -99,7 +102,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
 
         JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
 
-        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), settingsUtils.getEnvironmentDTO());
+        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), environmentDTOSupplier.get());
 
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
     }
@@ -109,7 +112,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
     public void testValidate_whenNoEmailOnFailure_exception() throws Exception {
         JobSettingsDTO targetDTO = createTestJobSettings(Maps.newHashMap());
 
-        settingsInitializer.validate(targetDTO, settingsUtils.getEnvironmentDTO());
+        settingsInitializer.validate(targetDTO, environmentDTOSupplier.get());
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp =
@@ -122,7 +125,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
         targetDTO.setEmailNotifications(jobEmailNotificationsDTO);
         targetDTO.setName("job-name");
 
-        settingsInitializer.validate(targetDTO, settingsUtils.getEnvironmentDTO());
+        settingsInitializer.validate(targetDTO, environmentDTOSupplier.get());
     }
 
     @Test
@@ -133,7 +136,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
         targetDTO.setEmailNotifications(jobEmailNotificationsDTO);
         targetDTO.setName("unit-test-group/unit-test-artifact/job-name");
 
-        settingsInitializer.validate(targetDTO, settingsUtils.getEnvironmentDTO());
+        settingsInitializer.validate(targetDTO, environmentDTOSupplier.get());
     }
 
     private JobSettingsDTO createTestJobSettings(Map<String, String> tags) {

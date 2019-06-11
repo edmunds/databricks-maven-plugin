@@ -12,7 +12,7 @@ import java.io.File;
 public class SettingsUtilsTest extends DatabricksMavenPluginTestHarness {
 
     @Test(expectedExceptions = MojoExecutionException.class,
-            expectedExceptionsMessageRegExp = "Failed to process Environment DTO File.*" +
+            expectedExceptionsMessageRegExp = "Failed to process User Settings file.*" +
                     "The following has evaluated to null or missing.*groupId.*in template \"bad-example-job.json\".*")
     public void testGetJobSettingsFromTemplate_missing_freemarker_variable() throws MojoExecutionException {
         new SettingsUtils<>(JobSettingsDTO[].class, "/default-job.json",
@@ -28,7 +28,7 @@ public class SettingsUtilsTest extends DatabricksMavenPluginTestHarness {
 
                     }
                 }
-        ).getSettingsJsonFromEnvironment(new JobEnvironmentDTO());
+        ).getUserSettingsJson();
     }
 
 }

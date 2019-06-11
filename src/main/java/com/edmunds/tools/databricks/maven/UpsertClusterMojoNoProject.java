@@ -23,7 +23,7 @@ public class UpsertClusterMojoNoProject extends UpsertClusterMojo {
     private File clusterEnvironmentDTOFile;
 
     @Override
-    protected EnvironmentDTOSupplier<ClusterEnvironmentDTO> createEnvironmentDTOSupplier() {
+    protected EnvironmentDTOSupplier<ClusterEnvironmentDTO> getEnvironmentDTOSupplier() {
         return () -> {
             ClusterEnvironmentDTO serializedClusterEnvironment = ClusterEnvironmentDTO.loadClusterEnvironmentDTOFromFile(clusterEnvironmentDTOFile);
             //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.

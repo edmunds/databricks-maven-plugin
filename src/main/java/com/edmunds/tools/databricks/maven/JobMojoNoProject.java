@@ -44,7 +44,7 @@ public class JobMojoNoProject extends JobMojo {
     File jobEnvironmentDTOFile;
 
     @Override
-    protected EnvironmentDTOSupplier<JobEnvironmentDTO> createEnvironmentDTOSupplier() {
+    protected EnvironmentDTOSupplier<JobEnvironmentDTO> getEnvironmentDTOSupplier() {
         return () -> {
             JobEnvironmentDTO serializedJobEnvironment = JobEnvironmentDTO.loadJobEnvironmentDTOFromFile(jobEnvironmentDTOFile);
             //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.

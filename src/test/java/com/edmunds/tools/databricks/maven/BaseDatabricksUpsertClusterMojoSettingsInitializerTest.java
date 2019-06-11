@@ -2,6 +2,7 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
+import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -16,6 +17,7 @@ import java.util.Collections;
 public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends DatabricksMavenPluginTestHarness {
 
     private SettingsUtils<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
+    private EnvironmentDTOSupplier<ClusterEnvironmentDTO> environmentDTOSupplier;
     private SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsInitializer;
 
     @BeforeClass
@@ -23,6 +25,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends Data
         super.setUp();
         UpsertClusterMojo underTest = getNoOverridesMojo("upsert-cluster");
         settingsUtils = underTest.getSettingsUtils();
+        environmentDTOSupplier = underTest.getEnvironmentDTOSupplier();
         settingsInitializer = underTest.getSettingsInitializer();
     }
 
@@ -31,7 +34,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends Data
         ClusterSettingsDTO defaultSettingsDTO = settingsUtils.defaultSettingsDTO();
         ClusterSettingsDTO targetDTO = new ClusterSettingsDTO();
 
-        settingsInitializer.fillInDefaults(targetDTO, defaultSettingsDTO, settingsUtils.getEnvironmentDTO());
+        settingsInitializer.fillInDefaults(targetDTO, defaultSettingsDTO, environmentDTOSupplier.get());
 
         assertEquals(targetDTO.getClusterName(), "unit-test-group/unit-test-artifact");
 
@@ -54,7 +57,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends Data
     public void testValidate_whenNoClusterName_exception() throws Exception {
         ClusterSettingsDTO targetDTO = new ClusterSettingsDTO();
 
-        settingsInitializer.validate(targetDTO, settingsUtils.getEnvironmentDTO());
+        settingsInitializer.validate(targetDTO, environmentDTOSupplier.get());
     }
 
     @Test
@@ -62,7 +65,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends Data
         ClusterSettingsDTO targetDTO = new ClusterSettingsDTO();
         targetDTO.setClusterName("my-cluster-name");
 
-        settingsInitializer.validate(targetDTO, settingsUtils.getEnvironmentDTO());
+        settingsInitializer.validate(targetDTO, environmentDTOSupplier.get());
     }
 
 }

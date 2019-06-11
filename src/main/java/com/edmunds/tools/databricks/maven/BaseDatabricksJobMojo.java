@@ -51,24 +51,28 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
     // These fields are being instantiated within getters to await @Parameter fields initialization
     private SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
+    private EnvironmentDTOSupplier<JobEnvironmentDTO> environmentDTOSupplier;
     private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer;
 
-    public SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> getSettingsUtils() {
+    public SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> getSettingsUtils() throws MojoExecutionException {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
                     JobSettingsDTO[].class, "/default-job.json", dbJobFile,
-                    createEnvironmentDTOSupplier(), getSettingsInitializer());
+                    getEnvironmentDTOSupplier(), getSettingsInitializer());
         }
         return settingsUtils;
     }
 
-    protected EnvironmentDTOSupplier<JobEnvironmentDTO> createEnvironmentDTOSupplier() {
-        return () -> {
-            if (StringUtils.isBlank(databricksRepo)) {
-                throw new MojoExecutionException("databricksRepo property is missing");
-            }
-            return new JobEnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
-        };
+    EnvironmentDTOSupplier<JobEnvironmentDTO> getEnvironmentDTOSupplier() {
+        if (environmentDTOSupplier == null) {
+            environmentDTOSupplier = () -> {
+                if (StringUtils.isBlank(databricksRepo)) {
+                    throw new MojoExecutionException("databricksRepo property is missing");
+                }
+                return new JobEnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
+            };
+        }
+        return environmentDTOSupplier;
     }
 
     SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> getSettingsInitializer() {

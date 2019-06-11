@@ -26,7 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import java.io.IOException;
 import java.util.List;
 
-import static com.edmunds.tools.databricks.maven.util.SettingsUtils.OBJECT_MAPPER;
+import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_MAPPER;
 
 /**
  * Upserts databricks jobs with the given name based on the artifacts job settings json file.

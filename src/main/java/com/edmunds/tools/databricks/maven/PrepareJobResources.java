@@ -47,7 +47,7 @@ public class PrepareJobResources extends BaseDatabricksJobMojo {
     void prepareJobEnvironmentDTO() throws MojoExecutionException {
         try {
             FileUtils.writeStringToFile(jobEnvironmentDTOFileOutput,
-                    ObjectMapperUtils.serialize(getSettingsUtils().getEnvironmentDTO()),
+                    ObjectMapperUtils.serialize(getEnvironmentDTOSupplier().get()),
                     Charset.defaultCharset());
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
