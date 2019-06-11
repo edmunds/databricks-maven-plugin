@@ -181,9 +181,8 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
     public void validate(ClusterSettingsDTO settingsDTO, ClusterEnvironmentDTO environmentDTO) throws MojoExecutionException {
         // Validate all cluster settings. If any fail terminate.
         if (validate) {
-            int numWorkers = settingsDTO.getNumWorkers();
-            if (numWorkers == 0) {
-                throw new MojoExecutionException("REQUIRED FIELD [num_workers] was empty. VALIDATION FAILED.");
+            if (StringUtils.isEmpty(settingsDTO.getClusterName())) {
+                throw new MojoExecutionException("REQUIRED FIELD [cluster_name] was empty. VALIDATION FAILED.");
             }
         }
     }

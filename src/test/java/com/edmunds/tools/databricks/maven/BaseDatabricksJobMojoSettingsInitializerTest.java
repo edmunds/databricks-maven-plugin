@@ -23,7 +23,7 @@ import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsIn
  */
 public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMavenPluginTestHarness {
 
-    private SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
+    private SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
     private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer;
 
     @BeforeClass
@@ -36,24 +36,26 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
 
     @Test
     public void testDefaultIfNull_JobSettingsDTO() throws Exception {
-        JobSettingsDTO exampleSettingsDTOs = settingsUtils.defaultSettingsDTO();
+        JobSettingsDTO defaultSettingsDTO = settingsUtils.defaultSettingsDTO();
         JobSettingsDTO targetDTO = new JobSettingsDTO();
 
-        settingsInitializer.fillInDefaults(targetDTO, exampleSettingsDTOs, settingsUtils.getEnvironmentDTO());
+        settingsInitializer.fillInDefaults(targetDTO, defaultSettingsDTO, settingsUtils.getEnvironmentDTO());
 
         assertEquals(targetDTO.getName(), "unit-test-group/unit-test-artifact");
 
-        assertEquals(targetDTO.getNewCluster().getSparkVersion(), exampleSettingsDTOs.getNewCluster().getSparkVersion());
-        assertEquals(targetDTO.getNewCluster().getNodeTypeId(), exampleSettingsDTOs.getNewCluster().getNodeTypeId());
-        assertEquals(targetDTO.getNewCluster().getNumWorkers(), exampleSettingsDTOs.getNewCluster().getNumWorkers());
-        assertEquals(targetDTO.getNewCluster().getAwsAttributes().getEbsVolumeSize(),
-                exampleSettingsDTOs.getNewCluster().getAwsAttributes().getEbsVolumeSize());
+        NewClusterDTO defaultCluster = defaultSettingsDTO.getNewCluster();
+        NewClusterDTO userCluster = targetDTO.getNewCluster();
+        assertEquals(userCluster.getSparkVersion(), defaultCluster.getSparkVersion());
+        assertEquals(userCluster.getNodeTypeId(), defaultCluster.getNodeTypeId());
+        assertEquals(userCluster.getNumWorkers(), defaultCluster.getNumWorkers());
+        assertEquals(userCluster.getAwsAttributes().getEbsVolumeSize(),
+                defaultCluster.getAwsAttributes().getEbsVolumeSize());
 
-        assertEquals(targetDTO.getLibraries()[0].getJar(), exampleSettingsDTOs.getLibraries()[0].getJar());
+        assertEquals(targetDTO.getLibraries()[0].getJar(), defaultSettingsDTO.getLibraries()[0].getJar());
 
-        assertEquals(targetDTO.getMaxConcurrentRuns(), exampleSettingsDTOs.getMaxConcurrentRuns());
-        assertEquals(targetDTO.getMaxRetries(), exampleSettingsDTOs.getMaxRetries());
-        assertEquals(targetDTO.getTimeoutSeconds(), exampleSettingsDTOs.getTimeoutSeconds());
+        assertEquals(targetDTO.getMaxConcurrentRuns(), defaultSettingsDTO.getMaxConcurrentRuns());
+        assertEquals(targetDTO.getMaxRetries(), defaultSettingsDTO.getMaxRetries());
+        assertEquals(targetDTO.getTimeoutSeconds(), defaultSettingsDTO.getTimeoutSeconds());
     }
 
     @Test

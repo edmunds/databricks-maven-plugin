@@ -16,7 +16,6 @@
 
 package com.edmunds.tools.databricks.maven.util;
 
-import com.edmunds.tools.databricks.maven.BaseDatabricksMojo;
 import com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,38 +44,35 @@ import java.util.List;
  * Utility class for Databricks Mojo settings initialization process.
  * Conjuncts Mojo-specific and common part of logic.
  *
- * @param <M> Databricks Mojo Databricks Mojo class.
  * @param <E> Environment DTO POJO with Project and Environment properties.
  * @param <S> Settings DTO POJO that contains Mojo settings.
  */
-public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironmentDTO, S> {
+public class SettingsUtils<E extends BaseEnvironmentDTO, S> {
 
     public static final ObjectMapper OBJECT_MAPPER = ObjectMapperUtils.getObjectMapper();
     private static final Log log = new SystemStreamLog();
 
-    private final Class<M> mojoClass;
     private final Class<S[]> settingsDtoArrayClass;
-    private final File environmentDTOFile;
     private final String defaultSettingsFileName;
+    // TODO get rid of environmentDTOFile parameter, it overlaps with environmentDTOSupplier
+    private final File environmentDTOFile;
     private final EnvironmentDTOSupplier<E> environmentDTOSupplier;
     private final SettingsInitializer<E, S> settingsInitializer;
 
     /**
      * SettingsUtils constructor. Mojos instantiate this class and use it for building up Settings DTOs.
      *
-     * @param mojoClass
-     * @param settingsDtoArrayClass
-     * @param environmentDTOFile
-     * @param defaultSettingsFileName
-     * @param environmentDTOSupplier
-     * @param settingsInitializer
+     * @param settingsDtoArrayClass   Settings DTO array class, required because of generics type erasure.
+     * @param defaultSettingsFileName Default Settings DTO file name.
+     * @param environmentDTOFile      Project and Environment properties file.
+     * @param environmentDTOSupplier  Project and Environment properties DTO supplier.
+     * @param settingsInitializer     Settings DTO initializer for a concrete Mojo.
      */
-    public SettingsUtils(Class<M> mojoClass, Class<S[]> settingsDtoArrayClass, File environmentDTOFile, String defaultSettingsFileName,
+    public SettingsUtils(Class<S[]> settingsDtoArrayClass, String defaultSettingsFileName, File environmentDTOFile,
                          EnvironmentDTOSupplier<E> environmentDTOSupplier, SettingsInitializer<E, S> settingsInitializer) {
-        this.mojoClass = mojoClass;
         this.settingsDtoArrayClass = settingsDtoArrayClass;
-        this.environmentDTOFile = environmentDTOFile;
         this.defaultSettingsFileName = defaultSettingsFileName;
+        this.environmentDTOFile = environmentDTOFile;
         this.environmentDTOSupplier = environmentDTOSupplier;
         this.settingsInitializer = settingsInitializer;
     }
@@ -145,7 +141,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
             Template temp = getFreemarkerConfiguration(templateLoader).getTemplate(environmentDTOFile.getName());
             temp.process(environmentDTO, stringWriter);
         } catch (IOException | TemplateException e) {
-            throw new MojoExecutionException(String.format("Failed to process Environment DTO File: [%s]\nFreemarker message:\n%s", environmentDTOFile.getAbsolutePath(), e.getMessage()), e);
+            throw new MojoExecutionException(String.format("Failed to process Environment DTO File: [%s]%nFreemarker message:%n%s", environmentDTOFile.getAbsolutePath(), e.getMessage()), e);
         }
 
         return stringWriter.toString();
@@ -167,7 +163,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
             Template temp = getFreemarkerConfiguration(templateLoader).getTemplate("defaultSettings");
             temp.process(environmentDTO, stringWriter);
         } catch (IOException | TemplateException e) {
-            throw new MojoExecutionException(String.format("Failed to process Environment DTO: [%s]\nFreemarker message:\n%s", defaultSettingsJson, e.getMessage()), e);
+            throw new MojoExecutionException(String.format("Failed to process Environment DTO: [%s]%nFreemarker message:%n%s", defaultSettingsJson, e.getMessage()), e);
         }
 
         return stringWriter.toString();
@@ -186,7 +182,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
         try {
             return ObjectMapperUtils.deserialize(settingsDTOJson, settingsDtoArrayClass);
         } catch (IOException e) {
-            throw new MojoExecutionException(String.format("Failed to unmarshal Settings DTO:\n[%s]\nHere is an example, of what it should look like:\n[%s]\n",
+            throw new MojoExecutionException(String.format("Failed to unmarshal Settings DTO:%n[%s]%nHere is an example, of what it should look like:%n[%s]%n",
                     settingsDTOJson,
                     defaultSettingsDTOJson), e);
         }
@@ -194,7 +190,7 @@ public class SettingsUtils<M extends BaseDatabricksMojo, E extends BaseEnvironme
 
     private String readDefaultSettingsJson() {
         try {
-            return IOUtils.toString(mojoClass.getResourceAsStream(defaultSettingsFileName), Charset.defaultCharset());
+            return IOUtils.toString(this.getClass().getResourceAsStream(defaultSettingsFileName), Charset.defaultCharset());
         } catch (Exception e) {
             return ExceptionUtils.getStackTrace(e);
         }

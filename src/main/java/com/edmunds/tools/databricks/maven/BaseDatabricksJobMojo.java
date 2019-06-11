@@ -40,7 +40,7 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
      * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
      */
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-job-settings.json", property = "dbJobFile")
-    File dbJobFile;
+    private File dbJobFile;
 
     /**
      * If true, any command that involves working by databricks job name, will fail if more then one job exists
@@ -49,13 +49,14 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     @Parameter(property = "failOnDuplicateJobName")
     boolean failOnDuplicateJobName = true;
 
-    private SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
+    // These fields are being instantiated within getters to await @Parameter fields initialization
+    private SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
     private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer;
 
-    public SettingsUtils<BaseDatabricksJobMojo, JobEnvironmentDTO, JobSettingsDTO> getSettingsUtils() {
+    public SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> getSettingsUtils() {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
-                    BaseDatabricksJobMojo.class, JobSettingsDTO[].class, dbJobFile, "/default-job.json",
+                    JobSettingsDTO[].class, "/default-job.json", dbJobFile,
                     createEnvironmentDTOSupplier(), getSettingsInitializer());
         }
         return settingsUtils;

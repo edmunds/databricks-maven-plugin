@@ -38,13 +38,14 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json", property = "dbClusterFile")
     protected File dbClusterFile;
 
-    private SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
+    // These fields are being instantiated within getters to await @Parameter fields initialization
+    private SettingsUtils<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
     private SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsInitializer;
 
-    public SettingsUtils<BaseDatabricksUpsertClusterMojo, ClusterEnvironmentDTO, ClusterSettingsDTO> getSettingsUtils() {
+    public SettingsUtils<ClusterEnvironmentDTO, ClusterSettingsDTO> getSettingsUtils() {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
-                    BaseDatabricksUpsertClusterMojo.class, ClusterSettingsDTO[].class, dbClusterFile, "/default-cluster.json",
+                    ClusterSettingsDTO[].class, "/default-cluster.json", dbClusterFile,
                     createEnvironmentDTOSupplier(), getSettingsInitializer());
         }
         return settingsUtils;

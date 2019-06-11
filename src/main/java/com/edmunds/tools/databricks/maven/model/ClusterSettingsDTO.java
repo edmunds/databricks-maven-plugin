@@ -25,7 +25,11 @@ import java.util.Collection;
  * POJO with parameters for databricks cluster upsertion.
  */
 public class ClusterSettingsDTO extends ClusterAttributesDTO {
-
+    /**
+     * TODO
+     * better to extend NewClusterDTO class instead - it contains num_workers property (and autoscale
+     * as an alternative option for CreateClusterRequestBuilder and EditClusterRequestBuilder constructors)
+     */
     @JsonProperty("num_workers")
     private int numWorkers;
     @JsonProperty("artifact_paths")
