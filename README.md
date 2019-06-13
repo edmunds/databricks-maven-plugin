@@ -222,8 +222,8 @@ mvn databricks:job -Djob.command=RESTART
 ### Use Case 6 - Control a Cluster (start, stop)
 You can control a cluster (stop it, start it) via this mojo. 
 ```bash
-mvn databricks:cluster -Djob.command=STOP
-mvn databricks:cluster -Djob.command=START
+mvn databricks:cluster -Dcluster.command=STOP -Dclusters=cluster_name1,cluster_name2
+mvn databricks:cluster -Dcluster.command=START -Dclusters=cluster_name1,cluster_name2
 ```
 
 ### Use Case 7 - Upsert clusters
