@@ -1,5 +1,6 @@
 package com.edmunds.tools.databricks.maven;
 
+import com.edmunds.rest.databricks.DTO.AutoScaleDTO;
 import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
 import com.edmunds.rest.databricks.DTO.AwsAvailabilityDTO;
 import com.edmunds.rest.databricks.DTO.ClusterLogConfDTO;
@@ -39,11 +40,22 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
             log.info(String.format("set CusterName with %s", clusterName));
         }
 
-        int numWorkers = settingsDTO.getNumWorkers();
-        if (numWorkers == 0) {
-            numWorkers = defaultSettingsDTO.getNumWorkers();
-            settingsDTO.setNumWorkers(numWorkers);
-            log.info(String.format("%s|set NumWorkers with %s", clusterName, numWorkers));
+        AutoScaleDTO autoScale = settingsDTO.getAutoScale();
+        boolean autoScaleValid = autoScale != null && autoScale.getMinWorkers() != 0 && autoScale.getMaxWorkers() != 0
+                && autoScale.getMaxWorkers() >= autoScale.getMinWorkers();
+        if (!autoScaleValid) {
+            autoScale = null;
+            settingsDTO.setAutoScale(autoScale);
+            log.info(String.format("%s|set AutoScale with %s", clusterName, autoScale));
+        }
+
+        if (!autoScaleValid) {
+            int numWorkers = settingsDTO.getNumWorkers();
+            if (numWorkers == 0) {
+                numWorkers = defaultSettingsDTO.getNumWorkers();
+                settingsDTO.setNumWorkers(numWorkers);
+                log.info(String.format("%s|set NumWorkers with %s", clusterName, numWorkers));
+            }
         }
 
         String sparkVersion = settingsDTO.getSparkVersion();
