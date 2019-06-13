@@ -10,6 +10,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Prepares the library-mapping.json file such that we can run library attachment, sans project later (e.g. during a build).
@@ -17,7 +18,7 @@ import java.io.IOException;
 @Mojo(name = "prepare-library-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareLibraryResources extends BaseLibraryMojo {
 
-    public static final String LIBRARY_MAPPING_FILE_NAME = "library-mapping.json";
+    private static final String LIBRARY_MAPPING_FILE_NAME = "library-mapping.json";
 
     @Parameter(property = "libaryMappingFile", defaultValue = "${project.build.directory}/databricks-plugin/" + LIBRARY_MAPPING_FILE_NAME)
     protected File libaryMappingFileOutput;
@@ -31,7 +32,8 @@ public class PrepareLibraryResources extends BaseLibraryMojo {
         if (project.getArtifact().getType().equals(JAR)) {
             if (ArrayUtils.isNotEmpty(clusters)) {
                 try {
-                    FileUtils.writeStringToFile(libaryMappingFileOutput, ObjectMapperUtils.serialize(getLibraryClustersModel()));
+                    FileUtils.writeStringToFile(libaryMappingFileOutput,
+                            ObjectMapperUtils.serialize(getLibraryClustersModel()), StandardCharsets.UTF_8);
                 } catch (IOException e) {
                     throw new MojoExecutionException(e.getMessage(), e);
                 }

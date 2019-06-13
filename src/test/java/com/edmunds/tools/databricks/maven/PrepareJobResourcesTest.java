@@ -22,14 +22,14 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "prepare-job-resources";
+    private static final String GOAL = "prepare-job-resources";
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -51,7 +51,7 @@ public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
         String key = "unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT" +
                 ".jar";
 
-        String lines = FileUtils.readFileToString(underTest.jobEnvironmentDTOFileOutput, Charset.defaultCharset());
+        String lines = FileUtils.readFileToString(underTest.jobEnvironmentDTOFileOutput, StandardCharsets.UTF_8);
         assertThat(lines, containsString("  \"groupId\" : \"unit-test-group\","));
         assertThat(lines, containsString("  \"artifactId\" : \"unit-test-artifact\","));
         assertThat(lines, containsString("  \"version\" : \"1.0.0-SNAPSHOT\","));

@@ -23,7 +23,7 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Simple POJO to pass Project and Environment properties to the {@link ClusterSettingsDTO}.
@@ -45,7 +45,7 @@ public class ClusterEnvironmentDTO extends BaseEnvironmentDTO {
             throw new MojoExecutionException("clusterEnvironmentDTOFile must be set!");
         }
         try {
-            String clusterEnvironmentDTOJson = FileUtils.readFileToString(clusterEnvironmentDTOFile, Charset.defaultCharset());
+            String clusterEnvironmentDTOJson = FileUtils.readFileToString(clusterEnvironmentDTOFile, StandardCharsets.UTF_8);
             return ObjectMapperUtils.deserialize(clusterEnvironmentDTOJson, ClusterEnvironmentDTO.class);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);

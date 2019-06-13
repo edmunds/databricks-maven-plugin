@@ -22,17 +22,17 @@ import com.edmunds.rest.databricks.service.DbfsService;
 import com.edmunds.rest.databricks.service.JobService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.rest.databricks.service.WorkspaceService;
-import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 
+import java.util.Properties;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;

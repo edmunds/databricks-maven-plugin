@@ -26,7 +26,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
 
     private final boolean validate;
 
-    public BaseDatabricksUpsertClusterMojoSettingsInitializer(boolean validate) {
+    BaseDatabricksUpsertClusterMojoSettingsInitializer(boolean validate) {
         this.validate = validate;
     }
 

@@ -20,22 +20,22 @@ import com.edmunds.rest.databricks.DTO.ExportFormatDTO;
 import com.edmunds.rest.databricks.DTO.LanguageDTO;
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
 import com.google.common.collect.Maps;
-import java.io.File;
-import java.util.Map;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentMatcher;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.verify;
 
 public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
 
-
-    private final String GOAL = "import-workspace";
+    private static final String GOAL = "import-workspace";
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -51,8 +51,7 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
     public void execute_whenDefaultPrefixIsSet_importsWorkspace() throws Exception {
         ImportWorkspaceMojo underTest = getNoOverridesMojo(GOAL);
 
-        File workspacePath = new File(this.getClass().getResource("/notebooks")
-                .getPath());
+        File workspacePath = new File(this.getClass().getResource("/notebooks").getPath());
 
         underTest.validate = true;
         underTest.setSourceWorkspacePath(workspacePath);
@@ -64,14 +63,13 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
         verify(workspaceService).importWorkspace(argThat(getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
     }
 
-    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "JOB NAME VALIDATION FAILED \\[ILLEGAL VALUE\\]:\n" +
+    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "JOB NAME VALIDATION FAILED \\[ILLEGAL VALUE\\]:.*" +
             "Expected: \\[failed-test\\] but found: \\[test\\]")
     public void execute_whenDefaultPrefixIsSetAndDoesNotMatchGroupId_failsValidation() throws Exception {
 
         ImportWorkspaceMojo underTest = getNoOverridesMojo(GOAL, "_fails_validation");
 
-        File workspacePath = new File(this.getClass().getResource("/notebooks")
-                .getPath());
+        File workspacePath = new File(this.getClass().getResource("/notebooks").getPath());
         underTest.validate = true;
         underTest.setSourceWorkspacePath(workspacePath);
 
@@ -100,7 +98,7 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
                 .withFormat(ExportFormatDTO.SOURCE)
                 .withLanguage(languageDTO)
                 .withOverwrite(true)
-                .withContent(content.getBytes())
+                .withContent(content.getBytes(StandardCharsets.UTF_8))
                 .build();
         return new ImportWorkspaceRequestMatcher(importWorkspaceRequest);
     }
@@ -108,7 +106,7 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
     /**
      * This is needed, because ImportWorkspaceRequest does not implement the equals method.
      */
-    private class ImportWorkspaceRequestMatcher extends ArgumentMatcher<ImportWorkspaceRequest> {
+    private static class ImportWorkspaceRequestMatcher extends ArgumentMatcher<ImportWorkspaceRequest> {
         private static final String CONTENT = "content";
         private final ImportWorkspaceRequest expected;
 
@@ -133,7 +131,7 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
         private void transformByteArrayToString(Map<String, Object> data) {
             Object content = data.get(CONTENT);
             if (content instanceof byte[]) {
-                data.put(CONTENT, new String((byte[]) content));
+                data.put(CONTENT, new String((byte[]) content, StandardCharsets.UTF_8));
             }
         }
     }

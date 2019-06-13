@@ -16,19 +16,12 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class PrepareWorkspaceResourcesTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "prepare-workspace-resources";
-
+    private static final String GOAL = "prepare-workspace-resources";
 
     @BeforeClass
     public void initClass() throws Exception {

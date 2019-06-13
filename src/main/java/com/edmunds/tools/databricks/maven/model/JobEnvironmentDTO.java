@@ -24,7 +24,7 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Simple POJO to pass Project and Environment properties to the {@link JobSettingsDTO}.
@@ -46,7 +46,7 @@ public class JobEnvironmentDTO extends BaseEnvironmentDTO {
             throw new MojoExecutionException("jobEnvironmentDTOFile must be set!");
         }
         try {
-            String jobEnvironmentDTOJson = FileUtils.readFileToString(jobEnvironmentDTOFile, Charset.defaultCharset());
+            String jobEnvironmentDTOJson = FileUtils.readFileToString(jobEnvironmentDTOFile, StandardCharsets.UTF_8);
             return ObjectMapperUtils.deserialize(jobEnvironmentDTOJson, JobEnvironmentDTO.class);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);

@@ -89,7 +89,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp =
-            "JOB NAME VALIDATION FAILED \\[ILLEGAL FORMAT\\]:\n" +
+            "JOB NAME VALIDATION FAILED \\[ILLEGAL FORMAT\\]:.*" +
                     "Expected: \\[groupId/artifactId/...\\] but found: \\[1\\] parts.")
     public void testValidate_whenIncorrectJobName_exception() throws Exception {
         JobSettingsDTO targetDTO = createTestJobSettings(Maps.newHashMap());

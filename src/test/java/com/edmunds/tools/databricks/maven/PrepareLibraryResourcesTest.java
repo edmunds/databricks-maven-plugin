@@ -21,12 +21,14 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "prepare-library-resources";
+    private static final String GOAL = "prepare-library-resources";
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -62,7 +64,7 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
                 "  \"clusterNames\" : [ \"my-test-cluster\", \"my-other-cluster\" ]%n" +
                 "}");
 
-        String actual = FileUtils.readFileToString(underTest.libaryMappingFileOutput);
+        String actual = FileUtils.readFileToString(underTest.libaryMappingFileOutput, StandardCharsets.UTF_8);
 
         assertEquals(expected, actual);
     }

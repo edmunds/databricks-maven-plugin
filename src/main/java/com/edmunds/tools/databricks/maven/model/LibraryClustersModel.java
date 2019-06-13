@@ -6,11 +6,12 @@ import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 /**
  * Used to serialize artifact and cluster data, for library attachment.
- *
+ * <p>
  * //TODO there is no reason to have a separate LibraryClustersModel and JobTemplatesModel.
  * // We should have file where we serialize all information pertaining to a project for None-Project invocation.
  */
@@ -42,7 +43,7 @@ public class LibraryClustersModel {
             return null;
         }
         try {
-            String libraryMappingModelJson = FileUtils.readFileToString(libraryClusterModelFile);
+            String libraryMappingModelJson = FileUtils.readFileToString(libraryClusterModelFile, StandardCharsets.UTF_8);
             return ObjectMapperUtils.deserialize(libraryMappingModelJson, LibraryClustersModel.class);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);

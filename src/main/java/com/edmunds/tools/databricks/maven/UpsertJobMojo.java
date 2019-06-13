@@ -60,9 +60,9 @@ public class UpsertJobMojo extends BaseDatabricksJobMojo {
                 try {
                     jobJson = OBJECT_MAPPER.writeValueAsString(jobSettingsDTOS);
                 } catch (JsonProcessingException jpe) {
-                    getLog().error("Fail to stringfy json", jpe);
+                    getLog().error("Fail to stringify json", jpe);
                 }
-                throw new MojoExecutionException(String.format("Could not upsert job: [%s] with:\n%s", settingsDTO
+                throw new MojoExecutionException(String.format("Could not upsert job: [%s] with:%n%s", settingsDTO
                         .getName(), jobJson),
                         e);
             }

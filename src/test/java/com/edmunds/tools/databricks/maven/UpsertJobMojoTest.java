@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  */
 public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "upsert-job";
+    private static final String GOAL = "upsert-job";
 
     private UpsertJobMojo underTest;
 
@@ -80,8 +80,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         underTest.execute();
         assertThat(jobSettingsDTOs.size(), is(1));
         assertThat(jobSettingsDTOs.get(0).getLibraries()[0].getJar(), is
-                ("s3://projectProperty/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-                        "-1.0.0-SNAPSHOT.jar"));
+                ("s3://projectProperty/unit-test-group/unit-test-artifact/" +
+                        "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
         ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
         verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
         assertEquals(jobSettingsDTOs.get(0), jobCaptor.getValue());
@@ -96,8 +96,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         underTest.execute();
         assertThat(jobSettingsDTOs.size(), is(1));
         assertThat(jobSettingsDTOs.get(0).getLibraries()[0].getJar(), is
-                ("s3://configProperty/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-                        "-1.0.0-SNAPSHOT.jar"));
+                ("s3://configProperty/unit-test-group/unit-test-artifact/" +
+                        "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
         ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
         verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
         assertEquals(jobSettingsDTOs.get(0), jobCaptor.getValue());
@@ -122,8 +122,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertThat(jobSettingsDTOs.size(), is(1));
         assertThat(jobSettingsDTOs.get(0).getName(), is("unit-test-group/unit-test-artifact"));
         assertThat(jobSettingsDTOs.get(0).getLibraries()[0].getJar(), is
-                ("s3://my-bucket/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-                        "-1.0.0-SNAPSHOT.jar"));
+                ("s3://my-bucket/unit-test-group/unit-test-artifact/" +
+                        "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
     }
 
     @Test

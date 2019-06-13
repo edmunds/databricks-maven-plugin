@@ -29,8 +29,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  */
 public class ValidationUtil {
 
-    public static final String GROUP_ID = "groupId";
-    public static final String ARTIFACT_ID = "artifactId";
+    static final String GROUP_ID = "groupId";
+    static final String ARTIFACT_ID = "artifactId";
 
     /**
      * Validate the path that is passed in. Note, path can also be a job name.
@@ -56,7 +56,7 @@ public class ValidationUtil {
 
         String[] jobNameParts = path.split("/");
         if (jobNameParts.length < 2) {
-            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL FORMAT]:\n" +
+            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL FORMAT]:%n" +
                     "Expected: [groupId/artifactId/...] but found: [%s] parts.", jobNameParts.length));
         }
 
@@ -64,11 +64,11 @@ public class ValidationUtil {
         validatePart(jobNameParts[1], getArtifactId(artifactId), ARTIFACT_ID);
     }
 
-    public static String getStrippedGroupId(String groupId, String artifactId, String prefixToStrip) {
+    private static String getStrippedGroupId(String groupId, String artifactId, String prefixToStrip) {
         return stripCompanyPackage(prefixToStrip, isMaven(artifactId) ? groupId : getValue(GROUP_ID));
     }
 
-    public static String getArtifactId(String artifactId) {
+    private static String getArtifactId(String artifactId) {
         return isMaven(artifactId) ? artifactId : getValue(ARTIFACT_ID);
     }
 
@@ -84,15 +84,15 @@ public class ValidationUtil {
         if (isBlank(expectedValue)) {
             throw new MojoExecutionException(
                     String.format(
-                            "JOB NAME VALIDATION FAILED [REQUIRED PROPERTY]: '%s' is not set.\n" +
-                                    "Please set it in your POM file.\n" +
-                                    "ex: <%s>foo</%s>\n" +
-                                    "Or, pass it as a program argument.\n" +
+                            "JOB NAME VALIDATION FAILED [REQUIRED PROPERTY]: '%s' is not set.%n" +
+                                    "Please set it in your POM file.%n" +
+                                    "ex: <%s>foo</%s>%n" +
+                                    "Or, pass it as a program argument.%n" +
                                     "ex: -D%s=foo", keyName, keyName, keyName, keyName));
         }
 
         if (!StringUtils.equals(expectedValue, jobNamePart)) {
-            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL VALUE]:\n" +
+            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL VALUE]:%n" +
                     "Expected: [%s] but found: [%s]", expectedValue, jobNamePart));
         }
     }
