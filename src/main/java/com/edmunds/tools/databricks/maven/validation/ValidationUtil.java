@@ -16,11 +16,9 @@
 
 package com.edmunds.tools.databricks.maven.validation;
 
-import com.edmunds.rest.databricks.DTO.NewClusterDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
-import java.util.Map;
 import java.util.Objects;
 
 import static com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO.stripCompanyPackage;
@@ -33,8 +31,6 @@ public class ValidationUtil {
 
     public static final String GROUP_ID = "groupId";
     public static final String ARTIFACT_ID = "artifactId";
-
-    public static final String DELTA_ENABLED = "spark.databricks.delta.preview.enabled";
 
     /**
      * Validate the path that is passed in. Note, path can also be a job name.
@@ -99,19 +95,6 @@ public class ValidationUtil {
             throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL VALUE]:\n" +
                     "Expected: [%s] but found: [%s]", expectedValue, jobNamePart));
         }
-    }
-
-
-    public static boolean isDeltaEnabled(NewClusterDTO newClusterDTO) {
-        Map<String, String> confMap = newClusterDTO.getSparkConf();
-        if (confMap == null) {
-            return false;
-        }
-        String deltaValue = confMap.get(DELTA_ENABLED);
-        if (deltaValue == null || !deltaValue.equals("true")) {
-            return false;
-        }
-        return true;
     }
 
 }

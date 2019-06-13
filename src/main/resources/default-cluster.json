@@ -21,7 +21,6 @@
     "artifact_paths": [],
     "driver_node_type_id": "m4.large",
     "spark_conf": {
-      "spark.databricks.delta.preview.enabled": "true",
       "spark.driver.maxResultSize": "2g"
     },
     "cluster_log_conf": {},

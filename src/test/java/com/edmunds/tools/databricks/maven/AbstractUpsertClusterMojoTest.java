@@ -153,7 +153,6 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         // optional params
         assertEquals("m4.large", reqData.get("driver_node_type_id"));
         Map<String, String> sparkConf = (Map<String, String>) reqData.get("spark_conf");
-        assertEquals("true", sparkConf.get("spark.databricks.delta.preview.enabled"));
         assertEquals("2g", sparkConf.get("spark.driver.maxResultSize"));
         ClusterLogConfDTO clusterLogConf = (ClusterLogConfDTO) reqData.get("cluster_log_conf");
         assertNull(clusterLogConf.getDbfs());
