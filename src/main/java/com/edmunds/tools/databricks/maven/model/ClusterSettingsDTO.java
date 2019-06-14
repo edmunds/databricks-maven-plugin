@@ -16,7 +16,7 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
-import com.edmunds.rest.databricks.DTO.ClusterAttributesDTO;
+import com.edmunds.rest.databricks.DTO.NewClusterDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collection;
@@ -24,14 +24,8 @@ import java.util.Collection;
 /**
  * POJO with parameters for databricks cluster upsertion.
  */
-public class ClusterSettingsDTO extends ClusterAttributesDTO {
-    /**
-     * TODO
-     * better to extend NewClusterDTO class instead - it contains num_workers property (and autoscale
-     * as an alternative option for CreateClusterRequestBuilder and EditClusterRequestBuilder constructors)
-     */
-    @JsonProperty("num_workers")
-    private int numWorkers;
+public class ClusterSettingsDTO extends NewClusterDTO {
+
     @JsonProperty("artifact_paths")
     private Collection<String> artifactPaths;
 
@@ -39,14 +33,6 @@ public class ClusterSettingsDTO extends ClusterAttributesDTO {
      * Don't use this - it's for jackson deserialization only!
      */
     public ClusterSettingsDTO() {
-    }
-
-    public int getNumWorkers() {
-        return numWorkers;
-    }
-
-    public void setNumWorkers(int numWorkers) {
-        this.numWorkers = numWorkers;
     }
 
     public Collection<String> getArtifactPaths() {
@@ -61,10 +47,6 @@ public class ClusterSettingsDTO extends ClusterAttributesDTO {
     public boolean equals(Object o) {
         if (super.equals(o)) {
             ClusterSettingsDTO other = (ClusterSettingsDTO) o;
-
-            if (this.getNumWorkers() != other.getNumWorkers()) {
-                return false;
-            }
 
             Object this$artifactPaths = this.getArtifactPaths();
             Object other$artifactPaths = other.getArtifactPaths();
@@ -85,7 +67,6 @@ public class ClusterSettingsDTO extends ClusterAttributesDTO {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = result * 59 + this.getNumWorkers();
         Object $artifactPaths = this.getArtifactPaths();
         result = result * 59 + ($artifactPaths == null ? 43 : $artifactPaths.hashCode());
         return result;
@@ -94,7 +75,6 @@ public class ClusterSettingsDTO extends ClusterAttributesDTO {
     @Override
     public String toString() {
         String result = super.toString();
-        return result.substring(0, result.length() - 1) +
-                ", numWorkers=" + this.getNumWorkers() + ", artifactPaths=" + this.getArtifactPaths() + ")";
+        return result.substring(0, result.length() - 1) + ", artifactPaths=" + this.getArtifactPaths() + ")";
     }
 }

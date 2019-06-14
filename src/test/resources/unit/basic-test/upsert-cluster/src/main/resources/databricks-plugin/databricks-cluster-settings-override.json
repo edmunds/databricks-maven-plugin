@@ -15,6 +15,7 @@
     },
     "node_type_id": "m4.large",
     "autotermination_minutes": 10,
+    "enable_elastic_disk": false,
     "artifact_paths": [
       "s3://bucket-name/artifacts/com.company.project/my-artifact-name/1.0.132/my-artifact-name-1.0.132.jar"
     ],
@@ -23,7 +24,6 @@
     },
     "driver_node_type_id": "m4.large",
     "spark_conf": {
-      "spark.databricks.delta.preview.enabled": "true",
       "spark.driver.maxResultSize": "2g"
     },
     "cluster_log_conf": {},

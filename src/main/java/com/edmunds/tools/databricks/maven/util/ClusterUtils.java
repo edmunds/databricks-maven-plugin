@@ -19,11 +19,12 @@ package com.edmunds.tools.databricks.maven.util;
 import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.ClusterService;
+import org.apache.maven.plugin.MojoExecutionException;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  * Common utilities needed for working with the clusters api.
@@ -31,7 +32,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 public class ClusterUtils {
 
     public static List<String> convertClusterNamesToIds(ClusterService clusterService, Collection<String> clusterNamesToConvert) throws MojoExecutionException {
-        ArrayList clusterIds = new ArrayList<String>();
+        List<String> clusterIds = new ArrayList<>();
         if (clusterNamesToConvert.isEmpty()) {
             return clusterIds;
         }

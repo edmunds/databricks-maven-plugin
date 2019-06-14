@@ -24,7 +24,6 @@ import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_M
 public class BaseDatabricksJobMojoSettingsInitializer implements SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> {
 
     static final String TEAM_TAG = "team";
-    static final String DELTA_TAG = "delta";
     private static final Log log = new SystemStreamLog();
 
     private final boolean validate;
@@ -132,13 +131,6 @@ public class BaseDatabricksJobMojoSettingsInitializer implements SettingsInitial
             if (!tagMap.containsKey(TEAM_TAG) || StringUtils.isEmpty(tagMap.get(TEAM_TAG))) {
                 tagMap.put(TEAM_TAG, groupId);
                 log.info(String.format("%s|set new_cluster.custom_tags.%s from [%s] to [%s]", jobName, TEAM_TAG, tagMap.get(TEAM_TAG), groupId));
-            }
-
-
-            if (ValidationUtil.isDeltaEnabled(settingsDTO.getNewCluster())
-                    && !"true".equalsIgnoreCase(tagMap.get(DELTA_TAG))) {
-                tagMap.put(DELTA_TAG, "true");
-                log.info(String.format("%s|set new_cluster.custom_tags.%s from [%s] to true", jobName, DELTA_TAG, tagMap.get(DELTA_TAG)));
             }
         }
     }

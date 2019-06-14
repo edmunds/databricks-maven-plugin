@@ -77,11 +77,20 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
                                     .stream().findFirst().orElse(EMPTY);
 
                             // setting mandatory fields
-                            CreateClusterRequest.CreateClusterRequestBuilder requestBuilder = new CreateClusterRequest.CreateClusterRequestBuilder(
-                                    ct.getNumWorkers(), ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
-                                    .withAwsAttributes(ct.getAwsAttributes())
-                                    .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
-                                    .withSparkEnvVars(ct.getSparkEnvVars());
+                            CreateClusterRequest.CreateClusterRequestBuilder requestBuilder;
+                            if (ct.getAutoScale() != null) {
+                                requestBuilder = new CreateClusterRequest.CreateClusterRequestBuilder(
+                                        ct.getAutoScale(), ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
+                                        .withAwsAttributes(ct.getAwsAttributes())
+                                        .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
+                                        .withSparkEnvVars(ct.getSparkEnvVars());
+                            } else {
+                                requestBuilder = new CreateClusterRequest.CreateClusterRequestBuilder(
+                                        ct.getNumWorkers(), ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
+                                        .withAwsAttributes(ct.getAwsAttributes())
+                                        .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
+                                        .withSparkEnvVars(ct.getSparkEnvVars());
+                            }
 
                             // setting optional fields
                             CreateClusterRequest request = requestBuilder
@@ -141,15 +150,24 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
         getLog().info(String.format("Applying cluster configuration: name=[%s], id=[%s]", ct.getClusterName(), clusterId));
 
         // setting mandatory fields
-        EditClusterRequest.EditClusterRequestBuilder requestBuilder = new EditClusterRequest.EditClusterRequestBuilder(
-                ct.getNumWorkers(), clusterId, ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId()
-        )
-                .withAwsAttributes(ct.getAwsAttributes())
-                .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
-                .withSparkEnvVars(ct.getSparkEnvVars());
+        EditClusterRequest.EditClusterRequestBuilder requestBuilder;
+        if (ct.getAutoScale() != null) {
+            requestBuilder = new EditClusterRequest.EditClusterRequestBuilder(
+                    ct.getAutoScale(), clusterId, ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
+                    .withAwsAttributes(ct.getAwsAttributes())
+                    .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
+                    .withSparkEnvVars(ct.getSparkEnvVars());
+        } else {
+            requestBuilder = new EditClusterRequest.EditClusterRequestBuilder(
+                    ct.getNumWorkers(), clusterId, ct.getClusterName(), ct.getSparkVersion(), ct.getNodeTypeId())
+                    .withAwsAttributes(ct.getAwsAttributes())
+                    .withAutoterminationMinutes(ct.getAutoTerminationMinutes())
+                    .withSparkEnvVars(ct.getSparkEnvVars());
+        }
 
         // setting optional fields
         EditClusterRequest request = requestBuilder
+                .withEnableElasticDisk(ct.isEnableElasticDisk())
                 .withDriverNodeTypeId(ct.getDriverNodeTypeId())
                 .withSparkConf(ct.getSparkConf())
                 .withClusterLogConf(ct.getClusterLogConf())

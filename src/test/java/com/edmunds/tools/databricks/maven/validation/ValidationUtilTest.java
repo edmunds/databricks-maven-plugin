@@ -23,7 +23,6 @@ import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-
 import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.ARTIFACT_ID;
 import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.GROUP_ID;
 import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.validatePath;
@@ -37,13 +36,13 @@ import static org.mockito.Mockito.when;
  */
 public class ValidationUtilTest {
 
-    public static final String PREFIX_TO_STRIP = "com\\.edmunds\\.";
-    
+    private static final String PREFIX_TO_STRIP = "com\\.edmunds\\.";
+
     @Mock
     private MavenProject mavenProject;
 
     @BeforeMethod
-    public void init() throws Exception {
+    public void init() {
         MockitoAnnotations.initMocks(this);
         System.setProperty(ARTIFACT_ID, "system-property-artifact-id");
         System.setProperty(GROUP_ID, "system-property-group-id");

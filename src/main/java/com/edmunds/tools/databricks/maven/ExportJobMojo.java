@@ -19,13 +19,15 @@ package com.edmunds.tools.databricks.maven;
 import com.edmunds.rest.databricks.DTO.JobDTO;
 import com.edmunds.rest.databricks.DTO.JobsDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
-import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_MAPPER;
 
 /**
  * Exports a job as a JobSettingsDTO json object. Will emit multiple, if job name is not unique.
@@ -50,7 +52,7 @@ public class ExportJobMojo extends BaseDatabricksMojo {
         for (Long jobId : jobIds) {
             try {
                 JobDTO jobDTO = getDatabricksServiceFactory().getJobService().getJob(jobId);
-                getLog().info("\n" + ObjectMapperUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(jobDTO));
+                getLog().info("\n" + OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(jobDTO));
             } catch (DatabricksRestException | IOException e) {
                 throw new MojoExecutionException(String.format("Could not get job for id: [%s]", jobId), e);
             }

@@ -7,7 +7,6 @@ import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
-import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.BeforeClass;
@@ -16,7 +15,6 @@ import org.testng.collections.Maps;
 
 import java.util.Map;
 
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsInitializer.DELTA_TAG;
 import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsInitializer.TEAM_TAG;
 
 /**
@@ -82,31 +80,6 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
         assertEquals(targetDTO.getNewCluster().getCustomTags().get(TEAM_TAG), "overrideTeam");
     }
 
-    @Test
-    public void validateInstanceTags_whenMissingDeltaTag_fillsInDefault() throws Exception {
-        Map<String, String> tags = Maps.newHashMap();
-        tags.put(TEAM_TAG, "myteam");
-
-        JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
-
-        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), environmentDTOSupplier.get());
-
-        assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
-    }
-
-    @Test
-    public void validateInstanceTags_whenDeltaTag_noException() throws Exception {
-        Map<String, String> tags = Maps.newHashMap();
-        tags.put(TEAM_TAG, "myteam");
-        tags.put(DELTA_TAG, "true");
-
-        JobSettingsDTO targetDTO = makeDeltaEnabled(createTestJobSettings(tags));
-
-        settingsInitializer.fillInDefaults(targetDTO, settingsUtils.defaultSettingsDTO(), environmentDTOSupplier.get());
-
-        assertEquals(targetDTO.getNewCluster().getCustomTags().get(DELTA_TAG), "true");
-    }
-
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp =
             "REQUIRED FIELD \\[email_notifications.on_failure\\] was empty. VALIDATION FAILED.")
     public void testValidate_whenNoEmailOnFailure_exception() throws Exception {
@@ -116,7 +89,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp =
-            "JOB NAME VALIDATION FAILED \\[ILLEGAL FORMAT\\]:\n" +
+            "JOB NAME VALIDATION FAILED \\[ILLEGAL FORMAT\\]:.*" +
                     "Expected: \\[groupId/artifactId/...\\] but found: \\[1\\] parts.")
     public void testValidate_whenIncorrectJobName_exception() throws Exception {
         JobSettingsDTO targetDTO = createTestJobSettings(Maps.newHashMap());
@@ -144,13 +117,6 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
         NewClusterDTO newClusterDTO = new NewClusterDTO();
         newClusterDTO.setCustomTags(tags);
         jobSettingsDTO.setNewCluster(newClusterDTO);
-        return jobSettingsDTO;
-    }
-
-    private JobSettingsDTO makeDeltaEnabled(JobSettingsDTO jobSettingsDTO) {
-        Map<String, String> sparkConf = Maps.newHashMap();
-        sparkConf.put(ValidationUtil.DELTA_ENABLED, "true");
-        jobSettingsDTO.getNewCluster().setSparkConf(sparkConf);
         return jobSettingsDTO;
     }
 

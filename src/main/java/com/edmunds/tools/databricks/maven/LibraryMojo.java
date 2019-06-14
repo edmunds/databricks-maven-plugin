@@ -62,7 +62,7 @@ public class LibraryMojo extends BaseLibraryMojo {
 
     /**
      * The library command to execute.<br>
-     *
+     * <p>
      * INSTALL - installs a library to a cluster. It will restart a cluster if necessary.<br>
      * UNINSTALL - removes a library from a cluster. It will restart a cluster if necessary.<br>
      * STATUS - the status of libraries on a cluster.<br>
@@ -94,7 +94,7 @@ public class LibraryMojo extends BaseLibraryMojo {
             try {
 
                 getLog().debug(String.format("preparing to run command [%s] artifact on path: [%s] to cluster id: " +
-                    "[%s]", libraryCommand, artifactPath, clusterId));
+                        "[%s]", libraryCommand, artifactPath, clusterId));
 
                 switch (libraryCommand) {
                     case INSTALL:
@@ -114,7 +114,7 @@ public class LibraryMojo extends BaseLibraryMojo {
 
     }
 
-    private void uninstallPreviousVersions(String clusterId, LibraryService libraryService, ClusterService clusterService) throws IOException, DatabricksRestException, MojoExecutionException {
+    private void uninstallPreviousVersions(String clusterId, LibraryService libraryService) throws IOException, DatabricksRestException, MojoExecutionException {
         LibraryFullStatusDTO[] libraryFullStatuses = getLibraryFullStatusDTOs(clusterId, libraryService);
         for (LibraryFullStatusDTO libraryFullStatus : libraryFullStatuses) {
             String jar = libraryFullStatus.getLibrary().getJar();
@@ -131,7 +131,7 @@ public class LibraryMojo extends BaseLibraryMojo {
         if (project.getArtifact().getType().equals(JAR)) {
             ClusterStateDTO originalState = startCluster(clusterId, clusterService);
             if (libraryCommand == LibraryCommand.INSTALL) {
-                uninstallPreviousVersions(clusterId, libraryService, clusterService);
+                uninstallPreviousVersions(clusterId, libraryService);
                 libraryService.install(clusterId, getLibraryDTOs(artifactPath));
             } else {
                 libraryService.uninstall(clusterId, getLibraryDTOs(artifactPath));
@@ -155,8 +155,8 @@ public class LibraryMojo extends BaseLibraryMojo {
      *
      * @param clusterId      - the cluster id we're working on
      * @param originalState  - the state the cluster was in prior to this mojo
-     * @param clusterService
-     * @param - whether to restart the cluster
+     * @param clusterService - cluster service
+     * @param restart        - whether to restart the cluster
      */
     private void manageClusterState(String clusterId, ClusterStateDTO originalState, ClusterService clusterService,
                                     boolean restart) throws
@@ -170,8 +170,8 @@ public class LibraryMojo extends BaseLibraryMojo {
                     getLog().info("Restarting cluster!");
                     restartCluster(clusterId, clusterService);
                 } else {
-                    getLog().info("restart set to false. Users need to restart cluster in order for new library to take " +
-                        "effect");
+                    getLog().info("restart set to false. " +
+                            "Users need to restart cluster in order for new library to take effect");
                 }
                 break;
             default:
@@ -243,7 +243,7 @@ public class LibraryMojo extends BaseLibraryMojo {
         return defaultIfNull(clusterLibraryStatuses.getLibraryFullStatuses(), new LibraryFullStatusDTO[]{});
     }
 
-    private LibraryDTO[] getLibraryDTOs(String artifactPath) throws MojoExecutionException {
+    private LibraryDTO[] getLibraryDTOs(String artifactPath) {
         LibraryDTO lib = new LibraryDTO();
         lib.setJar(artifactPath);
         return new LibraryDTO[]{lib};

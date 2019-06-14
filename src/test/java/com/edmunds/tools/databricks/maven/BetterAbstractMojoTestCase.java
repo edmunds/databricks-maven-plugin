@@ -181,7 +181,12 @@ package com.edmunds.tools.databricks.maven;
 
 import org.apache.maven.DefaultMaven;
 import org.apache.maven.Maven;
-import org.apache.maven.execution.*;
+import org.apache.maven.execution.DefaultMavenExecutionRequest;
+import org.apache.maven.execution.DefaultMavenExecutionResult;
+import org.apache.maven.execution.MavenExecutionRequest;
+import org.apache.maven.execution.MavenExecutionRequestPopulator;
+import org.apache.maven.execution.MavenExecutionResult;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.project.MavenProject;
@@ -192,7 +197,7 @@ import org.eclipse.aether.internal.impl.SimpleLocalRepositoryManagerFactory;
 import org.eclipse.aether.repository.LocalRepository;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Borrowed from <strong>ahgittin</strong> to provide a working Maven project as part of unit testing.
@@ -220,15 +225,15 @@ public abstract class BetterAbstractMojoTestCase extends AbstractMojoTestCase {
             // (cf MavenRepositorySystemUtils.newSession() which is what is otherwise done)
             DefaultMaven maven = (DefaultMaven) getContainer().lookup(Maven.class);
             DefaultRepositorySystemSession repoSession =
-                (DefaultRepositorySystemSession) maven.newRepositorySession(request);
+                    (DefaultRepositorySystemSession) maven.newRepositorySession(request);
             repoSession.setLocalRepositoryManager(
-                new SimpleLocalRepositoryManagerFactory().newInstance(repoSession,
-                    new LocalRepository(request.getLocalRepository().getBasedir())));
+                    new SimpleLocalRepositoryManagerFactory().newInstance(repoSession,
+                            new LocalRepository(request.getLocalRepository().getBasedir())));
 
             @SuppressWarnings("deprecation")
             MavenSession session = new MavenSession(getContainer(),
-                repoSession,
-                request, result);
+                    repoSession,
+                    request, result);
             return session;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -243,7 +248,7 @@ public abstract class BetterAbstractMojoTestCase extends AbstractMojoTestCase {
     protected MavenSession newMavenSession(MavenProject project) {
         MavenSession session = newMavenSession();
         session.setCurrentProject(project);
-        session.setProjects(Arrays.asList(project));
+        session.setProjects(Collections.singletonList(project));
         return session;
     }
 

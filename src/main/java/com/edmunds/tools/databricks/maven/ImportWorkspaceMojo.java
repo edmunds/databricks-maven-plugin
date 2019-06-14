@@ -29,6 +29,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 import static org.apache.commons.io.FileUtils.readFileToString;
@@ -53,8 +54,7 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
         }
     }
 
-    protected void importWorkspace(File workspacePath) throws IOException, DatabricksRestException,
-                                                              MojoExecutionException {
+    protected void importWorkspace(File workspacePath) throws IOException, DatabricksRestException {
         //We use packaged workspace dir to import notebooks into databricks.
         if (!workspacePath.exists()) {
             // Oh just no notebooks. Warn just incase user wasn't expecting this.
@@ -76,11 +76,11 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
                 LanguageDTO languageDTO = getLanguageDTO(file);
                 getLog().info(String.format("writing remote file: [%s] with source type: [%s]", remoteFilePath, languageDTO));
 
-                String source = readFileToString(file);
-                getLog().debug(String.format("file path: [%s] has source:\n%s", file.getPath(), source));
+                String source = readFileToString(file, StandardCharsets.UTF_8);
+                getLog().debug(String.format("file path: [%s] has source:%n%s", file.getPath(), source));
 
                 ImportWorkspaceRequest importWorkspaceRequest = new ImportWorkspaceRequest.ImportWorkspaceRequestBuilder(remoteFilePath)
-                    .withContent(source.getBytes())
+                    .withContent(source.getBytes(StandardCharsets.UTF_8))
                     .withFormat(ExportFormatDTO.SOURCE)
                     .withLanguage(languageDTO)
                     .withOverwrite(true)

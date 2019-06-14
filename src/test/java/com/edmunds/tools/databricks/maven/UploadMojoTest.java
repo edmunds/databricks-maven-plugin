@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "upload-to-s3";
+    private static final String GOAL = "upload-to-s3";
 
     private UploadMojo underTest;
 
@@ -83,7 +83,7 @@ public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
         Mockito.verify(s3Client).putObject(putRequestCaptor.capture());
         assertEquals("myBucket", putRequestCaptor.getValue().getBucketName());
         assertEquals("repo/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar",
-            putRequestCaptor.getValue().getKey());
+                putRequestCaptor.getValue().getKey());
         assertEquals("myFile.csv", putRequestCaptor.getValue().getFile().getName());
     }
 }

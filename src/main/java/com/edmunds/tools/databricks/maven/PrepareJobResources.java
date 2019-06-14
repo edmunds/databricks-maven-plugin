@@ -25,7 +25,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 @Mojo(name = "prepare-job-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareJobResources extends BaseDatabricksJobMojo {
@@ -47,8 +47,7 @@ public class PrepareJobResources extends BaseDatabricksJobMojo {
     void prepareJobEnvironmentDTO() throws MojoExecutionException {
         try {
             FileUtils.writeStringToFile(jobEnvironmentDTOFileOutput,
-                    ObjectMapperUtils.serialize(getEnvironmentDTOSupplier().get()),
-                    Charset.defaultCharset());
+                    ObjectMapperUtils.serialize(getEnvironmentDTOSupplier().get()), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }

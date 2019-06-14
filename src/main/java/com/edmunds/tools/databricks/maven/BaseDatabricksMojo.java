@@ -23,7 +23,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -32,7 +31,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  */
 public abstract class BaseDatabricksMojo extends AbstractMojo {
 
-    public static final String DEFAULT_DBFS_ROOT_FORMAT = "s3://";
+    private static final String DEFAULT_DBFS_ROOT_FORMAT = "s3://";
 
     private static final String DB_USER = "DB_USER";
     private static final String DB_PASSWORD = "DB_PASSWORD";
@@ -209,7 +208,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
             modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length() - 1);
         }
         if (databricksRepoKey.startsWith("/")) {
-            modifiedDatabricksRepoKey = databricksRepoKey.substring(1, databricksRepoKey.length());
+            modifiedDatabricksRepoKey = databricksRepoKey.substring(1);
         }
         return String.format("%s%s/%s", DEFAULT_DBFS_ROOT_FORMAT, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
     }

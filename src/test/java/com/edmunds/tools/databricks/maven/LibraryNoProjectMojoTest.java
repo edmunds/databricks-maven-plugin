@@ -19,7 +19,6 @@ package com.edmunds.tools.databricks.maven;
 import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
 import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -27,12 +26,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-
 public class LibraryNoProjectMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "library-np";
+    private static final String GOAL = "library-np";
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -60,8 +56,8 @@ public class LibraryNoProjectMojoTest extends DatabricksMavenPluginTestHarness {
         Mockito.verify(clusterService).start("1");
 
         LibraryDTO libraryOne = libraryDTOArgumentCaptor.getValue()[0];
-        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-            "-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
+        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
     }
 
     @Test
@@ -75,7 +71,7 @@ public class LibraryNoProjectMojoTest extends DatabricksMavenPluginTestHarness {
 
     @Test
     public void unInstall_whenClusterMappingExistsAndonlyOneCluster_attachesLibraryToExistingCluster() throws
-                                                                                                       Exception {
+            Exception {
         LibraryMojoNoProject underTest = getOverridesMojo(GOAL, "uninstall");
         ClusterInfoDTO clusterOne = createClusterInfoDTO("1", "my-test-cluster");
         ClusterInfoDTO[] clusters = {clusterOne};
@@ -90,8 +86,8 @@ public class LibraryNoProjectMojoTest extends DatabricksMavenPluginTestHarness {
         Mockito.verify(clusterService).start("1");
 
         LibraryDTO libraryOne = libraryDTOArgumentCaptor.getValue()[0];
-        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-            "-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
+        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
     }
 
     private ClusterInfoDTO createClusterInfoDTO(String clusterId, String clusterName) {
