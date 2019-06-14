@@ -6,11 +6,10 @@ import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
 import com.edmunds.rest.databricks.DTO.ClusterLibraryStatusesDTO;
 import com.edmunds.rest.databricks.DTO.ClusterLogConfDTO;
 import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
-import com.edmunds.rest.databricks.DTO.ClusterTagDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
-import com.edmunds.rest.databricks.request.CreateClusterRequest;
-import com.edmunds.rest.databricks.request.EditClusterRequest;
+import com.edmunds.rest.databricks.DTO.NewClusterDTO;
+import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
 import com.google.common.collect.Sets;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -59,7 +58,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         String clusterId = "clusterId";
 
         when(clusterService.list()).thenReturn(new ClusterInfoDTO[]{});
-        ArgumentCaptor<CreateClusterRequest> reqCaptor = ArgumentCaptor.forClass(CreateClusterRequest.class);
+        ArgumentCaptor<NewClusterDTO> reqCaptor = ArgumentCaptor.forClass(NewClusterDTO.class);
         when(clusterService.create(reqCaptor.capture())).thenReturn(clusterId);
 
         ArgumentCaptor<LibraryDTO[]> libCaptor = ArgumentCaptor.forClass(LibraryDTO[].class);
@@ -69,8 +68,8 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         Thread.sleep(100);
 
         verify(clusterService, times(2)).create(reqCaptor.capture());
-        assertCreateClusterRequestEquality(reqCaptor, Arrays.asList("my-cluster", "my-cluster-2"));
-        verify(clusterService, times(0)).edit(any(EditClusterRequest.class));
+        assertNewClusterDTOEquality(reqCaptor, Arrays.asList("my-cluster", "my-cluster-2"));
+        verify(clusterService, times(0)).edit(any(UpsertClusterDTO.class));
         verify(clusterService, times(0)).restart(clusterId);
         verify(clusterService, times(0)).getInfo(clusterId);
 
@@ -89,7 +88,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         String clusterId = "clusterId";
 
         when(clusterService.list()).thenReturn(new ClusterInfoDTO[]{createClusterInfoDTO()});
-        ArgumentCaptor<EditClusterRequest> reqCaptor = ArgumentCaptor.forClass(EditClusterRequest.class);
+        ArgumentCaptor<UpsertClusterDTO> reqCaptor = ArgumentCaptor.forClass(UpsertClusterDTO.class);
         when(clusterService.getInfo(clusterId)).thenReturn(createClusterInfoDTO());
         when(libraryService.clusterStatus(clusterId)).thenReturn(createClusterLibraryStatusesDTO());
         ArgumentCaptor<LibraryDTO[]> libCaptor = ArgumentCaptor.forClass(LibraryDTO[].class);
@@ -132,22 +131,22 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
 
     protected abstract String getPath();
 
-    private void assertCreateClusterRequestEquality(ArgumentCaptor<CreateClusterRequest> reqCaptor, Collection<String> clusterNames) {
+    private void assertNewClusterDTOEquality(ArgumentCaptor<NewClusterDTO> reqCaptor, Collection<String> clusterNames) {
         // mandatory params
-        Map<String, Object> reqData = reqCaptor.getValue().getData();
-        AutoScaleDTO autoscale = (AutoScaleDTO) reqData.get("autoscale");
+        NewClusterDTO dto = reqCaptor.getValue();
+        AutoScaleDTO autoscale = dto.getAutoScale();
         if (autoscale == null) {
-            assertEquals(1, reqData.get("num_workers"));
+            assertEquals(1, dto.getNumWorkers());
         } else {
             // num_workers param should be ignored when autoscale specified
-            assertNull(reqData.get("num_workers"));
+            assertEquals(0, dto.getNumWorkers());
             assertEquals(1, autoscale.getMinWorkers());
             assertEquals(2, autoscale.getMaxWorkers());
         }
-        assertTrue(clusterNames.contains(reqData.get("cluster_name")));
-        assertEquals("5.2.x-scala2.11", reqData.get("spark_version"));
-        assertEquals("m4.large", reqData.get("node_type_id"));
-        AwsAttributesDTO awsAttributes = (AwsAttributesDTO) reqData.get("aws_attributes");
+        assertTrue(clusterNames.contains(dto.getClusterName()));
+        assertEquals("5.2.x-scala2.11", dto.getSparkVersion());
+        assertEquals("m4.large", dto.getNodeTypeId());
+        AwsAttributesDTO awsAttributes = dto.getAwsAttributes();
         assertEquals(1, awsAttributes.getFirstOnDemand());
         assertEquals(SPOT_WITH_FALLBACK, awsAttributes.getAvailability());
         assertEquals("us-east-1c", awsAttributes.getZoneId());
@@ -156,20 +155,19 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         assertEquals(GENERAL_PURPOSE_SSD, awsAttributes.getEbsVolumeType());
         assertEquals(1, awsAttributes.getEbsVolumeCount());
         assertEquals(100, awsAttributes.getEbsVolumeSize());
-        Map<String, String> sparkEnvVars = (Map<String, String>) reqData.get("spark_env_vars");
+        Map<String, String> sparkEnvVars = dto.getSparkEnvVars();
         assertEquals("/databricks/python3/bin/python3", sparkEnvVars.get("PYSPARK_PYTHON"));
-        assertEquals(10, reqData.get("autotermination_minutes"));
+        assertEquals(10, dto.getAutoTerminationMinutes());
         // optional params
-        assertEquals("m4.large", reqData.get("driver_node_type_id"));
-        Map<String, String> sparkConf = (Map<String, String>) reqData.get("spark_conf");
+        assertEquals("m4.large", dto.getDriverNodeTypeId());
+        Map<String, String> sparkConf = dto.getSparkConf();
         assertEquals("2g", sparkConf.get("spark.driver.maxResultSize"));
-        ClusterLogConfDTO clusterLogConf = (ClusterLogConfDTO) reqData.get("cluster_log_conf");
+        ClusterLogConfDTO clusterLogConf = dto.getClusterLogConf();
         assertNull(clusterLogConf.getDbfs());
         assertNull(clusterLogConf.getS3());
-        ClusterTagDTO[] customTags = (ClusterTagDTO[]) reqData.get("custom_tags");
-        assertEquals("tag", customTags[0].getKey());
-        assertEquals("value", customTags[0].getValue());
-        String[] sshPublicKeys = (String[]) reqData.get("ssh_public_keys");
+        Map<String, String> customTags = dto.getCustomTags();
+        assertEquals("value", customTags.get("tag"));
+        String[] sshPublicKeys = dto.getSshPublicKeys();
         assertEquals("ssh_key1", sshPublicKeys[0]);
         assertEquals("ssh_key2", sshPublicKeys[1]);
     }
