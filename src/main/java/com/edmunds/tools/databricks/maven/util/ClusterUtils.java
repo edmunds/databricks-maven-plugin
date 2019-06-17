@@ -20,22 +20,30 @@ import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.ClusterService;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Common utilities needed for working with the clusters api.
  */
 public class ClusterUtils {
 
+    private static final Log log = new SystemStreamLog();
+
     public static List<String> convertClusterNamesToIds(ClusterService clusterService, Collection<String> clusterNamesToConvert) throws MojoExecutionException {
         List<String> clusterIds = new ArrayList<>();
         if (clusterNamesToConvert.isEmpty()) {
             return clusterIds;
         }
+        Map<String, Integer> foundNames = new HashMap<>();
         try {
             ClusterInfoDTO[] clusters = clusterService.list();
             if (clusters == null) {
@@ -44,12 +52,25 @@ public class ClusterUtils {
             for (ClusterInfoDTO cluster : clusters) {
                 if (clusterNamesToConvert.contains(cluster.getClusterName())) {
                     clusterIds.add(cluster.getClusterId());
+                    foundNames.merge(cluster.getClusterName(), 1, (a, b) -> a + b);
                 }
             }
         } catch (DatabricksRestException | IOException e) {
             throw new MojoExecutionException("Could not list clusters.", e);
         }
-        //TODO should log if not all clusters could be found!
+
+        List<String> duplicateNames = foundNames.entrySet().stream().filter(x -> x.getValue() > 1)
+                .map(x -> x.getKey() + "=" + x.getValue()).collect(Collectors.toList());
+        if (duplicateNames.size() > 0) {
+            log.error(String.format("Duplicate cluster names found: [%s]", duplicateNames.toString()));
+        }
+
+        List<String> notFoundNames = clusterNamesToConvert.stream()
+                .filter(x -> !foundNames.containsKey(x)).collect(Collectors.toList());
+        if (notFoundNames.size() > 0) {
+            log.error(String.format("Some cluster names not found: [%s]", notFoundNames.toString()));
+        }
+
         return clusterIds;
     }
 }

@@ -41,15 +41,13 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
         }
 
         AutoScaleDTO autoScale = settingsDTO.getAutoScale();
-        boolean autoScaleValid = autoScale != null && autoScale.getMinWorkers() != 0 && autoScale.getMaxWorkers() != 0
+        boolean autoScaleValid = autoScale != null
+                && autoScale.getMinWorkers() != 0
+                && autoScale.getMaxWorkers() != 0
                 && autoScale.getMaxWorkers() >= autoScale.getMinWorkers();
-        if (!autoScaleValid) {
-            autoScale = null;
-            settingsDTO.setAutoScale(autoScale);
-            log.info(String.format("%s|set AutoScale with %s", clusterName, autoScale));
-        }
 
         if (!autoScaleValid) {
+            settingsDTO.setAutoScale(null);
             int numWorkers = settingsDTO.getNumWorkers();
             if (numWorkers == 0) {
                 numWorkers = defaultSettingsDTO.getNumWorkers();
