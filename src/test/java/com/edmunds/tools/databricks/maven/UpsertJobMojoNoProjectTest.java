@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
  */
 public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "upsert-job-np";
+    private static final String GOAL = "upsert-job-np";
 
     @BeforeClass
     public void initClass() throws Exception {

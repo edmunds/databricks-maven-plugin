@@ -34,7 +34,7 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -162,7 +162,7 @@ public class SettingsUtils<E extends BaseEnvironmentDTO, S> {
     private Configuration getFreemarkerConfiguration(TemplateLoader templateLoader) throws IOException {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_22);
         cfg.setTemplateLoader(templateLoader);
-        cfg.setDefaultEncoding(Charset.defaultCharset().name());
+        cfg.setDefaultEncoding("UTF-8");
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 
         return cfg;
@@ -180,7 +180,7 @@ public class SettingsUtils<E extends BaseEnvironmentDTO, S> {
 
     private String readDefaultSettingsJson(String defaultSettingsFileName) {
         try {
-            return IOUtils.toString(this.getClass().getResourceAsStream(defaultSettingsFileName), Charset.defaultCharset());
+            return IOUtils.toString(this.getClass().getResourceAsStream(defaultSettingsFileName), StandardCharsets.UTF_8);
         } catch (Exception e) {
             return ExceptionUtils.getStackTrace(e);
         }

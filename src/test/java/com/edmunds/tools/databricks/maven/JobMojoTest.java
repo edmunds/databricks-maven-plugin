@@ -54,7 +54,7 @@ public class JobMojoTest extends BaseDatabricksMojoTest {
 
     @Test
     public void testGetRunDTOs_empty() throws Exception {
-        when(jobService.listRuns(eq(123l), eq(true), anyInt(), anyInt())).thenReturn(new RunsDTO());
+        when(jobService.listRuns(eq(123L), eq(true), anyInt(), anyInt())).thenReturn(new RunsDTO());
 
         RunDTO[] runDTOs = underTest.getRunDTOs(123L);
         assertThat(runDTOs.length, is(0));
@@ -62,7 +62,7 @@ public class JobMojoTest extends BaseDatabricksMojoTest {
 
     @Test
     public void testGetRunDTOs_single() throws Exception {
-        when(jobService.listRuns(eq(123l), eq(true), anyInt(), anyInt())).thenReturn(createRunsDTO());
+        when(jobService.listRuns(eq(123L), eq(true), anyInt(), anyInt())).thenReturn(createRunsDTO());
 
         RunDTO[] runDTOs = underTest.getRunDTOs(123L);
         assertThat(runDTOs.length, is(1));
@@ -71,10 +71,10 @@ public class JobMojoTest extends BaseDatabricksMojoTest {
 
     @Test
     public void testStartRun() throws Exception {
-        when(jobService.listRuns(eq(123l), eq(true), anyInt(), anyInt())).thenReturn(new RunsDTO());
-        when(jobService.runJobNow(eq(123l))).thenReturn(createRunNowDTO());
+        when(jobService.listRuns(eq(123L), eq(true), anyInt(), anyInt())).thenReturn(new RunsDTO());
+        when(jobService.runJobNow(eq(123L))).thenReturn(createRunNowDTO());
 
-        RunNowDTO observed = underTest.startRun(123l);
+        RunNowDTO observed = underTest.startRun(123L);
 
         assertThat(observed.getNumberInJob(), is(1L));
     }
@@ -82,9 +82,9 @@ public class JobMojoTest extends BaseDatabricksMojoTest {
     @Test
     public void testStartRun_existing() throws Exception {
         //Regex no longer works with annotation
-        when(jobService.listRuns(eq(123l), eq(true), anyInt(), anyInt())).thenReturn(createRunsDTO());
+        when(jobService.listRuns(eq(123L), eq(true), anyInt(), anyInt())).thenReturn(createRunsDTO());
         try {
-            underTest.startRun(123l);
+            underTest.startRun(123L);
         } catch (MojoExecutionException e) {
             assertThat(e.getMessage(), containsString("Job: [123] already has an existing active run."));
             return;
@@ -94,18 +94,18 @@ public class JobMojoTest extends BaseDatabricksMojoTest {
 
     @Test
     public void testStopRun_exists() throws Exception {
-        when(jobService.listRuns(eq(123l), eq(true), anyInt(), anyInt())).thenReturn(createRunsDTO());
+        when(jobService.listRuns(eq(123L), eq(true), anyInt(), anyInt())).thenReturn(createRunsDTO());
 
-        underTest.stopActiveRuns(123l);
+        underTest.stopActiveRuns(123L);
 
-        verify(jobService, times(1)).cancelRun(456l);
+        verify(jobService, times(1)).cancelRun(456L);
     }
 
     @Test
     public void testStopRun_no_job() throws Exception {
-        when(jobService.listRuns(eq(123l), eq(true), anyInt(), anyInt())).thenReturn(new RunsDTO());
+        when(jobService.listRuns(eq(123L), eq(true), anyInt(), anyInt())).thenReturn(new RunsDTO());
 
-        underTest.stopActiveRuns(123l);
+        underTest.stopActiveRuns(123L);
 
         verify(jobService, never()).cancelRun(anyLong());
     }
@@ -121,7 +121,7 @@ public class JobMojoTest extends BaseDatabricksMojoTest {
 
         RunDTO runDTO = new RunDTO();
         runDTO.setRunName("test run, fire!");
-        runDTO.setRunId(456l);
+        runDTO.setRunId(456L);
 
         runsDTO.setRuns(new RunDTO[]{runDTO});
         return runsDTO;

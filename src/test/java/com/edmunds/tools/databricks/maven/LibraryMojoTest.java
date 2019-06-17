@@ -33,7 +33,7 @@ import static org.mockito.Mockito.times;
 
 public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private final String GOAL = "library";
+    private static final String GOAL = "library";
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -72,8 +72,8 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
         Mockito.verify(clusterService).start("1");
 
         LibraryDTO libraryOne = libraryDTOArgumentCaptor.getValue()[0];
-        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-            "-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
+        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
     }
 
     @Test
@@ -92,8 +92,8 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
         Mockito.verify(clusterService, times(0)).start("1");
 
         LibraryDTO libraryOne = libraryDTOArgumentCaptor.getValue()[0];
-        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-            "-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
+        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
     }
 
     @Test
@@ -113,13 +113,12 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
         Mockito.verify(clusterService, times(1)).delete("1");
 
         LibraryDTO libraryOne = libraryDTOArgumentCaptor.getValue()[0];
-        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-            "-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
+        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
     }
 
     @Test
-    public void unInstall_whenClusterMappingExistsAndonlyOneCluster_attachesLibraryToExistingCluster() throws
-                                                                                                       Exception {
+    public void unInstall_whenClusterMappingExistsAndonlyOneCluster_attachesLibraryToExistingCluster() throws Exception {
         LibraryMojo underTest = getOverridesMojo(GOAL, "uninstall");
         ClusterInfoDTO clusterOne = createClusterInfoDTO("1", "my-test-cluster", ClusterStateDTO.RUNNING);
         ClusterInfoDTO[] clusters = {clusterOne};
@@ -134,14 +133,13 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
         Mockito.verify(clusterService).start("1");
 
         LibraryDTO libraryOne = libraryDTOArgumentCaptor.getValue()[0];
-        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact" +
-            "-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
+        assertEquals("s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar", libraryOne.getJar());
     }
 
     //TODO proper behavior should be to log here?
     @Test
-    public void unInstall_whenClusterCantBeFound_doesNothing() throws
-                                                                                                       Exception {
+    public void unInstall_whenClusterCantBeFound_doesNothing() throws Exception {
         LibraryMojo underTest = getOverridesMojo(GOAL, "uninstall");
         ClusterInfoDTO clusterOne = createClusterInfoDTO("1", "not-my-cluster", ClusterStateDTO.RUNNING);
         ClusterInfoDTO[] clusters = {clusterOne};
@@ -152,14 +150,14 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
         underTest.execute();
 
         Mockito.verify(libraryService, times(0)).uninstall(Matchers.anyString(), libraryDTOArgumentCaptor
-            .capture());
+                .capture());
         Mockito.verify(clusterService, times(0)).delete("1");
         Mockito.verify(clusterService, times(0)).start("1");
     }
 
     @Test
     public void testCreateArtifactPath_failsWhenMissingMandatoryFields() throws Exception {
-        LibraryMojo underTest = (LibraryMojo) getMissingMandatoryMojo(GOAL);
+        LibraryMojo underTest = getMissingMandatoryMojo(GOAL);
         try {
             underTest.execute();
         } catch (MojoExecutionException e) {
@@ -170,7 +168,7 @@ public class LibraryMojoTest extends DatabricksMavenPluginTestHarness {
 
     @Test
     public void testCreateArtifactPath_succeedsWithOverrides() throws Exception {
-        LibraryMojo underTest = (LibraryMojo) getOverridesMojo(GOAL);
+        LibraryMojo underTest = getOverridesMojo(GOAL);
         assertThat(underTest.createDeployedArtifactPath(), is("s3://my-bucket/artifacts/my-destination"));
     }
 

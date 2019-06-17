@@ -29,7 +29,8 @@ import java.io.IOException;
  */
 public class ObjectMapperUtils {
 
-    public static final ObjectMapper OBJECT_MAPPER = getObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER =
+            new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
 
     /**
      * @param json
@@ -48,10 +49,4 @@ public class ObjectMapperUtils {
         return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
     }
 
-    public static ObjectMapper getObjectMapper() {
-        JsonFactory f = new JsonFactory();
-        f.enable(JsonParser.Feature.ALLOW_COMMENTS);
-
-        return new ObjectMapper(f);
-    }
 }

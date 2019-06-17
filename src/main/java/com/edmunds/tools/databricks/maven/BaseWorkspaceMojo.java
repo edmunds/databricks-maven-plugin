@@ -27,6 +27,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO.stripCompanyPackage;
@@ -64,7 +65,8 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
     private String dbWorkspacePath;
 
     // Valid extensions for databricks notebooks
-    public static final List<String> DATABRICKS_SOURCE_EXTENSIONS = Arrays.asList("scala", "py", "r", "sql");
+    public static final List<String> DATABRICKS_SOURCE_EXTENSIONS =
+            Collections.unmodifiableList(Arrays.asList("scala", "py", "r", "sql"));
 
 
     protected String getSourceFullWorkspacePath() {
@@ -73,7 +75,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
     }
 
     protected String getRemoteFullWorkspacePath() {
-        //Seperator should always be "/"
+        //Separator should always be "/"
         String strippedPrefix = stripCompanyPackage(prefixToStrip, workspacePrefix);
         return (packagedWorkspacePath.getPath() + strippedPrefix).replace("\\", "/");
     }

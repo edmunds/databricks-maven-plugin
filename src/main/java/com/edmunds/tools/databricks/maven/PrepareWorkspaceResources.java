@@ -42,11 +42,10 @@ public class PrepareWorkspaceResources extends BaseWorkspaceMojo {
         prepareNotebooks();
     }
 
-
     void prepareNotebooks() throws MojoExecutionException {
         if (!sourceWorkspacePath.exists()) {
-            getLog().warn("No notebooks found. Skipping packaging and validation: [" + sourceWorkspacePath.getPath()
-                    + "]");
+            getLog().warn("No notebooks found. Skipping packaging and validation: ["
+                    + sourceWorkspacePath.getPath() + "]");
             return;
         }
         validateNotebooks(sourceWorkspacePath);

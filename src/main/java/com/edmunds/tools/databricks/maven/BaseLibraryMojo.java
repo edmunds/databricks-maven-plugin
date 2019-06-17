@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.util.Arrays;
 
 public abstract class BaseLibraryMojo extends BaseDatabricksMojo {
-    public static final String JAR = "jar";
+    static final String JAR = "jar";
 
     /**
      * This should be a comma separated list of cluster names to install to.

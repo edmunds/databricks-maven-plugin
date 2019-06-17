@@ -1,5 +1,6 @@
 package com.edmunds.tools.databricks.maven;
 
+import com.edmunds.rest.databricks.DTO.AutoScaleDTO;
 import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
 import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
 import com.edmunds.rest.databricks.DTO.ClusterLibraryStatusesDTO;
@@ -134,7 +135,15 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
     private void assertCreateClusterRequestEquality(ArgumentCaptor<CreateClusterRequest> reqCaptor, Collection<String> clusterNames) {
         // mandatory params
         Map<String, Object> reqData = reqCaptor.getValue().getData();
-        assertEquals(1, reqData.get("num_workers"));
+        AutoScaleDTO autoscale = (AutoScaleDTO) reqData.get("autoscale");
+        if (autoscale == null) {
+            assertEquals(1, reqData.get("num_workers"));
+        } else {
+            // num_workers param should be ignored when autoscale specified
+            assertNull(reqData.get("num_workers"));
+            assertEquals(1, autoscale.getMinWorkers());
+            assertEquals(2, autoscale.getMaxWorkers());
+        }
         assertTrue(clusterNames.contains(reqData.get("cluster_name")));
         assertEquals("5.2.x-scala2.11", reqData.get("spark_version"));
         assertEquals("m4.large", reqData.get("node_type_id"));
@@ -153,7 +162,6 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         // optional params
         assertEquals("m4.large", reqData.get("driver_node_type_id"));
         Map<String, String> sparkConf = (Map<String, String>) reqData.get("spark_conf");
-        assertEquals("true", sparkConf.get("spark.databricks.delta.preview.enabled"));
         assertEquals("2g", sparkConf.get("spark.driver.maxResultSize"));
         ClusterLogConfDTO clusterLogConf = (ClusterLogConfDTO) reqData.get("cluster_log_conf");
         assertNull(clusterLogConf.getDbfs());
