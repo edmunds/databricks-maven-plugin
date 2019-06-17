@@ -31,7 +31,7 @@
                 <configuration>
                     <environment>PROD</environment>
                     <dbJobFile>databricks-job-settings.json</dbJobFile>
-                    <jobEnvironmentDTOFile>mySerializedProperties.json</jobEnvironmentDTOFile>
+                    <environmentDTOFile>mySerializedProperties.json</environmentDTOFile>
                     <validate>false</validate>
                 </configuration>
                 <executions>

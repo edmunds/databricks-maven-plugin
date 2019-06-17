@@ -21,7 +21,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.Objects;
 
-import static com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO.stripCompanyPackage;
+import static com.edmunds.tools.databricks.maven.model.EnvironmentDTO.stripCompanyPackage;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**

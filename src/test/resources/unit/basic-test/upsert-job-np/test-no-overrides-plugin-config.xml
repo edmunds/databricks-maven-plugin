@@ -30,7 +30,7 @@
                 <version>${project.version}</version>
                 <configuration>
                     <environment>QA</environment>
-                    <jobEnvironmentDTOFile>mySerializedProperties.json</jobEnvironmentDTOFile>
+                    <environmentDTOFile>mySerializedProperties.json</environmentDTOFile>
                 </configuration>
                 <executions>
                     <execution>

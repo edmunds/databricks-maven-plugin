@@ -16,7 +16,7 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -38,21 +38,21 @@ import java.io.File;
 public class JobMojoNoProject extends JobMojo {
 
     /**
-     * The serialized job environment dto is required to be passed in a NoProject scenario.
+     * The serialized environment dto is required to be passed in a NoProject scenario.
      */
-    @Parameter(name = "jobEnvironmentDTOFile", property = "jobEnvironmentDTOFile", required = true)
-    File jobEnvironmentDTOFile;
+    @Parameter(name = "environmentDTOFile", property = "environmentDTOFile", required = true)
+    File environmentDTOFile;
 
     @Override
-    protected EnvironmentDTOSupplier<JobEnvironmentDTO> getEnvironmentDTOSupplier() {
+    protected EnvironmentDTOSupplier getEnvironmentDTOSupplier() {
         return () -> {
-            JobEnvironmentDTO serializedJobEnvironment = JobEnvironmentDTO.loadJobEnvironmentDTOFromFile(jobEnvironmentDTOFile);
+            EnvironmentDTO serializedEnvironment = EnvironmentDTO.loadEnvironmentDTOFromFile(environmentDTOFile);
             //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
             //I consider this code ugly
             if (environment != null) {
-                serializedJobEnvironment.setEnvironment(environment);
+                serializedEnvironment.setEnvironment(environment);
             }
-            return serializedJobEnvironment;
+            return serializedEnvironment;
         };
     }
 }

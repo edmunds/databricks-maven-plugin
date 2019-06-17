@@ -2,7 +2,7 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DTO.JobEmailNotificationsDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
-import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,7 +21,7 @@ import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_M
 /**
  * Class contains logic of {@link BaseDatabricksJobMojo} Settings DTO fields initialization.
  */
-public class BaseDatabricksJobMojoSettingsInitializer implements SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> {
+public class BaseDatabricksJobMojoSettingsInitializer implements SettingsInitializer<JobSettingsDTO> {
 
     static final String TEAM_TAG = "team";
     private static final Log log = new SystemStreamLog();
@@ -36,7 +36,7 @@ public class BaseDatabricksJobMojoSettingsInitializer implements SettingsInitial
 
     @Override
     public void fillInDefaults(JobSettingsDTO settingsDTO, JobSettingsDTO defaultSettingsDTO,
-                               JobEnvironmentDTO environmentDTO) throws JsonProcessingException {
+                               EnvironmentDTO environmentDTO) throws JsonProcessingException {
         String jobName = settingsDTO.getName();
         if (StringUtils.isEmpty(settingsDTO.getName())) {
             jobName = environmentDTO.getGroupWithoutCompany() + "/" + environmentDTO.getArtifactId();
@@ -136,7 +136,7 @@ public class BaseDatabricksJobMojoSettingsInitializer implements SettingsInitial
     }
 
     @Override
-    public void validate(JobSettingsDTO settingsDTO, JobEnvironmentDTO environmentDTO) throws MojoExecutionException {
+    public void validate(JobSettingsDTO settingsDTO, EnvironmentDTO environmentDTO) throws MojoExecutionException {
         if (validate) {
             JobEmailNotificationsDTO emailNotifications = settingsDTO.getEmailNotifications();
             if (emailNotifications == null || ArrayUtils.isEmpty(emailNotifications.getOnFailure())) {

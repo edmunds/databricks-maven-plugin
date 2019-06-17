@@ -42,16 +42,16 @@ public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test
-    public void executeJobEnvironmentDTOFile_default_outputsFile() throws Exception {
+    public void executeEnvironmentDTOFile_default_outputsFile() throws Exception {
         PrepareJobResources underTest = getNoOverridesMojo(GOAL);
         // MUST be done otherwise invocations will read from an existing file instead.
-        underTest.jobEnvironmentDTOFileOutput.delete();
+        underTest.environmentDTOFileOutput.delete();
         underTest.execute();
 
         String key = "unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT" +
                 ".jar";
 
-        String lines = FileUtils.readFileToString(underTest.jobEnvironmentDTOFileOutput, StandardCharsets.UTF_8);
+        String lines = FileUtils.readFileToString(underTest.environmentDTOFileOutput, StandardCharsets.UTF_8);
         assertThat(lines, containsString("  \"groupId\" : \"unit-test-group\","));
         assertThat(lines, containsString("  \"artifactId\" : \"unit-test-artifact\","));
         assertThat(lines, containsString("  \"version\" : \"1.0.0-SNAPSHOT\","));
@@ -64,10 +64,10 @@ public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*databricksRepo.*")
-    public void executeJobEnvironmentDTOFile_missingProperties_ThrowsException() throws Exception {
+    public void executeEnvironmentDTOFile_missingProperties_ThrowsException() throws Exception {
         PrepareJobResources underTest = getMissingMandatoryMojo(GOAL);
         // MUST be done otherwise invocations will read from an existing file instead.
-        underTest.jobEnvironmentDTOFileOutput.delete();
+        underTest.environmentDTOFileOutput.delete();
         underTest.execute();
     }
 }

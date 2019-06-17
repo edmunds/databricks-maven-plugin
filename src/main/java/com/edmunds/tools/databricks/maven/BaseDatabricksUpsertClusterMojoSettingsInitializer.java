@@ -5,8 +5,8 @@ import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
 import com.edmunds.rest.databricks.DTO.AwsAvailabilityDTO;
 import com.edmunds.rest.databricks.DTO.ClusterLogConfDTO;
 import com.edmunds.rest.databricks.DTO.EbsVolumeTypeDTO;
-import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Class contains logic of {@link BaseDatabricksUpsertClusterMojo} Settings DTO fields initialization.
  */
-public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> {
+public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements SettingsInitializer<ClusterSettingsDTO> {
 
     private static final Log log = new SystemStreamLog();
 
@@ -32,7 +32,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
     }
 
     @Override
-    public void fillInDefaults(ClusterSettingsDTO settingsDTO, ClusterSettingsDTO defaultSettingsDTO, ClusterEnvironmentDTO environmentDTO) {
+    public void fillInDefaults(ClusterSettingsDTO settingsDTO, ClusterSettingsDTO defaultSettingsDTO, EnvironmentDTO environmentDTO) {
         String clusterName = settingsDTO.getClusterName();
         if (StringUtils.isEmpty(clusterName)) {
             clusterName = environmentDTO.getGroupWithoutCompany() + "/" + environmentDTO.getArtifactId();
@@ -190,7 +190,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
     }
 
     @Override
-    public void validate(ClusterSettingsDTO settingsDTO, ClusterEnvironmentDTO environmentDTO) throws MojoExecutionException {
+    public void validate(ClusterSettingsDTO settingsDTO, EnvironmentDTO environmentDTO) throws MojoExecutionException {
         // Validate all cluster settings. If any fail terminate.
         if (validate) {
             if (StringUtils.isEmpty(settingsDTO.getClusterName())) {

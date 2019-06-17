@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO.stripCompanyPackage;
+import static com.edmunds.tools.databricks.maven.model.EnvironmentDTO.stripCompanyPackage;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 

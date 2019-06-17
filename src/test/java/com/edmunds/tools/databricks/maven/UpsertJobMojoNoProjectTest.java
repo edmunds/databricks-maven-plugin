@@ -62,8 +62,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
         assert (jobSettingsDTOS.size() == 0);
     }
 
-    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "" +
-            ".*jobEnvironmentDTOFile must be set.*")
+    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "environmentDTOFile must be set!")
     public void execute_whenMissingProperties_fail() throws Exception {
         UpsertJobMojoNoProject underTest = getMissingMandatoryMojo(GOAL);
         underTest.execute();

@@ -16,14 +16,14 @@
 
 package com.edmunds.tools.databricks.maven.util;
 
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import org.apache.maven.plugin.MojoExecutionException;
 
 /**
- * A class implementing this interface should return EnvironmentDTO for a concrete Mojo.
- *
- * @param <E> Environment DTO
+ * A class implementing this interface should return EnvironmentDTO.
+ * Supplier required because of late Maven @Parameter fields initialization.
  */
-public interface EnvironmentDTOSupplier<E> {
+public interface EnvironmentDTOSupplier {
 
     /**
      * Populates and returns an EnvironmentDTO.
@@ -31,6 +31,6 @@ public interface EnvironmentDTOSupplier<E> {
      * @return DTO contains Project and Environment properties.
      * @throws MojoExecutionException exception in case of issues with DTO construction.
      */
-    E get() throws MojoExecutionException;
+    EnvironmentDTO get() throws MojoExecutionException;
 
 }
