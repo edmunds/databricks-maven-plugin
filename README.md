@@ -126,7 +126,7 @@ Note that this file is a template, that has access to both the java system prope
      "aws_attributes": {
        "first_on_demand": 1,
        "availability": "SPOT_WITH_FALLBACK", // Can also set to SPOT
-       "instance_profile_arn": "yourArn",
+       "instance_profile_arn": "<your_arn>",
        "spot_bid_price_percent": 100,
        "ebs_volume_type": "GENERAL_PURPOSE_SSD",
        "ebs_volume_count": 1,
@@ -219,12 +219,15 @@ mvn databricks:job -Djob.command=START
 mvn databricks:job -Djob.command=RESTART
 ```
 
-### Use Case 6 - Control a Cluster (start, stop, upsert)
-You can control a cluster (stop it, start it, create it or recreate) via this mojo. 
+### Use Case 6 - Control a Cluster (start, stop)
+You can control a cluster (stop it, start it) via this mojo. 
 ```bash
-mvn databricks:cluster -Djob.command=STOP
-mvn databricks:cluster -Djob.command=START
+mvn databricks:cluster -Dcluster.command=STOP -Dclusters=cluster_name1,cluster_name2
+mvn databricks:cluster -Dcluster.command=START -Dclusters=cluster_name1,cluster_name2
 ```
+
+### Use Case 7 - Upsert clusters
+You're able to create or recreate clusters. 
 To upsert cluster you should call the following command:
 ```bash
 mvn databricks:upsert-cluster
@@ -239,8 +242,41 @@ mvn databricks:upsert-cluster -DdbClusterFile=${project.build.resources[0].direc
 ```
 And also you ought to do it in case of out-of-project plugin usage.
 
-Note that you can simultaneously manage multiple clusters with a single .json file.
-All configurations will be applied at once in a parallel manner.  
+Here you can see an example of cluster configuration:
+```json
+[
+  {
+    "num_workers": 2,
+    "cluster_name": "myCluster",
+    "spark_version": "5.1.x-scala2.11",
+    "aws_attributes": {
+      "first_on_demand": 1,
+      "availability": "SPOT_WITH_FALLBACK",
+      "zone_id": "us-west-2b",
+      "instance_profile_arn": "<your_arn>",
+      "spot_bid_price_percent": 100,
+      "ebs_volume_type": "GENERAL_PURPOSE_SSD",
+      "ebs_volume_count": 3,
+      "ebs_volume_size": 100
+    },
+    "node_type_id": "r4.xlarge",
+    "spark_env_vars": {
+      "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+    },
+    "autotermination_minutes": 10,
+    "artifact_paths": [
+      "s3://${projectProperties['databricks.repo']}/${groupId}/${artifactId}/${version}/${artifactId}-${version}.jar"
+    ],
+    "driver_node_type_id": "r4.xlarge",
+    "spark_conf": {},
+    "custom_tags": {},
+    "ssh_public_keys": []
+  }
+]
+```
+
+Note that you can simultaneously manage multiple clusters with a single .json file by adding multiple array elements.
+All configurations will be applied at once in a parallel manner.
 
 ## Building, Installing and Running
 

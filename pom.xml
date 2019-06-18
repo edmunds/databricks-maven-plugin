@@ -85,7 +85,7 @@
         <maven-plugin-annotation-version>3.3</maven-plugin-annotation-version>
         <plexus-version>3.0.24</plexus-version>
 
-        <databricks-rest-client-version>[2.2.0, 2.3.0)</databricks-rest-client-version>
+        <databricks-rest-client-version>[2.3.2, 2.4.0)</databricks-rest-client-version>
 
         <!--Test versions-->
         <hamcrest-version>1.3</hamcrest-version>

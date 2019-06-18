@@ -16,7 +16,7 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
-import com.edmunds.rest.databricks.DTO.NewClusterDTO;
+import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collection;
@@ -24,7 +24,7 @@ import java.util.Collection;
 /**
  * POJO with parameters for databricks cluster upsertion.
  */
-public class ClusterSettingsDTO extends NewClusterDTO {
+public class ClusterSettingsDTO extends UpsertClusterDTO {
 
     @JsonProperty("artifact_paths")
     private Collection<String> artifactPaths;
