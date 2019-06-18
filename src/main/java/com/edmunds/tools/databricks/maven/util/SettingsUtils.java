@@ -16,7 +16,7 @@
 
 package com.edmunds.tools.databricks.maven.util;
 
-import com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.StringTemplateLoader;
@@ -43,18 +43,17 @@ import java.util.List;
  * Utility class for Databricks Mojo settings initialization process.
  * Conjuncts Mojo-specific and common part of logic.
  *
- * @param <E> Environment DTO POJO with Project and Environment properties.
  * @param <S> Settings DTO POJO that contains Mojo settings.
  */
-public class SettingsUtils<E extends BaseEnvironmentDTO, S> {
+public class SettingsUtils<S> {
 
     private static final Log log = new SystemStreamLog();
 
     private final Class<S[]> settingsDtoArrayClass;
     private final String defaultSettingsJson;
     private final File userSettingsFile;
-    private final E environmentDTO;
-    private final SettingsInitializer<E, S> settingsInitializer;
+    private final EnvironmentDTO environmentDTO;
+    private final SettingsInitializer<S> settingsInitializer;
 
     /**
      * SettingsUtils constructor. Mojos instantiate this class and use it for building up Settings DTOs.
@@ -62,11 +61,11 @@ public class SettingsUtils<E extends BaseEnvironmentDTO, S> {
      * @param settingsDtoArrayClass   Settings DTO array class, required because of generics type erasure.
      * @param defaultSettingsFileName Default Settings DTO file name.
      * @param userSettingsFile        User Settings DTO file.
-     * @param environmentDTOSupplier  Project and Environment properties DTO supplier.
+     * @param environmentDTOSupplier  Project and Environment properties DTO Supplier.
      * @param settingsInitializer     Settings DTO initializer for a concrete Mojo.
      */
     public SettingsUtils(Class<S[]> settingsDtoArrayClass, String defaultSettingsFileName, File userSettingsFile,
-                         EnvironmentDTOSupplier<E> environmentDTOSupplier, SettingsInitializer<E, S> settingsInitializer)
+                         EnvironmentDTOSupplier environmentDTOSupplier, SettingsInitializer<S> settingsInitializer)
             throws MojoExecutionException {
         this.settingsDtoArrayClass = settingsDtoArrayClass;
         this.defaultSettingsJson = readDefaultSettingsJson(defaultSettingsFileName);

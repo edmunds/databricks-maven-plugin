@@ -20,7 +20,7 @@ import com.edmunds.rest.databricks.DTO.JobDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.JobService;
-import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
@@ -50,11 +50,11 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
     boolean failOnDuplicateJobName = true;
 
     // These fields are being instantiated within getters to await @Parameter fields initialization
-    private SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
-    private EnvironmentDTOSupplier<JobEnvironmentDTO> environmentDTOSupplier;
-    private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer;
+    private SettingsUtils<JobSettingsDTO> settingsUtils;
+    private EnvironmentDTOSupplier environmentDTOSupplier;
+    private SettingsInitializer<JobSettingsDTO> settingsInitializer;
 
-    public SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> getSettingsUtils() throws MojoExecutionException {
+    public SettingsUtils<JobSettingsDTO> getSettingsUtils() throws MojoExecutionException {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
                     JobSettingsDTO[].class, "/default-job.json", dbJobFile,
@@ -63,19 +63,19 @@ public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
         return settingsUtils;
     }
 
-    EnvironmentDTOSupplier<JobEnvironmentDTO> getEnvironmentDTOSupplier() {
+    EnvironmentDTOSupplier getEnvironmentDTOSupplier() {
         if (environmentDTOSupplier == null) {
             environmentDTOSupplier = () -> {
                 if (StringUtils.isBlank(databricksRepo)) {
                     throw new MojoExecutionException("databricksRepo property is missing");
                 }
-                return new JobEnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
+                return new EnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
             };
         }
         return environmentDTOSupplier;
     }
 
-    SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> getSettingsInitializer() {
+    SettingsInitializer<JobSettingsDTO> getSettingsInitializer() {
         if (settingsInitializer == null) {
             settingsInitializer = new BaseDatabricksJobMojoSettingsInitializer(validate, prefixToStrip);
         }

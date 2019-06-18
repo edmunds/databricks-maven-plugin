@@ -1,16 +1,15 @@
 package com.edmunds.tools.databricks.maven.util;
 
-import com.edmunds.tools.databricks.maven.model.BaseEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.maven.plugin.MojoExecutionException;
 
 /**
- * A class implementing this interface should bring Settings DTO fields initialization & validation logic.
+ * A class implementing this interface should fulfill Settings DTO fields initialization & validation logic.
  *
- * @param <E> Environment DTO.
  * @param <S> Settings DTO A POJO that contains Mojo settings.
  */
-public interface SettingsInitializer<E extends BaseEnvironmentDTO, S> {
+public interface SettingsInitializer<S> {
 
     /**
      * This method enriches User Settings DTO (first parameter) with Default Settings
@@ -21,7 +20,7 @@ public interface SettingsInitializer<E extends BaseEnvironmentDTO, S> {
      * @param environmentDTO     Project and Environment properties.
      * @throws JsonProcessingException
      */
-    void fillInDefaults(S settingsDTO, S defaultSettingsDTO, E environmentDTO) throws JsonProcessingException;
+    void fillInDefaults(S settingsDTO, S defaultSettingsDTO, EnvironmentDTO environmentDTO) throws JsonProcessingException;
 
     /**
      * Checks whether Settings DTO properties valid or not.
@@ -31,6 +30,6 @@ public interface SettingsInitializer<E extends BaseEnvironmentDTO, S> {
      * @param environmentDTO Project and Environment properties.
      * @throws MojoExecutionException
      */
-    void validate(S settingsDTO, E environmentDTO) throws MojoExecutionException;
+    void validate(S settingsDTO, EnvironmentDTO environmentDTO) throws MojoExecutionException;
 
 }

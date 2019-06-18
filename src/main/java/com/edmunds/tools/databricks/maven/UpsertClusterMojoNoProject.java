@@ -1,6 +1,6 @@
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -17,21 +17,21 @@ import java.io.File;
 public class UpsertClusterMojoNoProject extends UpsertClusterMojo {
 
     /**
-     * The serialized cluster environment dto is required to be passed in a NoProject scenario.
+     * The serialized environment dto is required to be passed in a NoProject scenario.
      */
-    @Parameter(name = "clusterEnvironmentDTOFile", property = "clusterEnvironmentDTOFile", required = true)
-    private File clusterEnvironmentDTOFile;
+    @Parameter(name = "environmentDTOFile", property = "environmentDTOFile", required = true)
+    private File environmentDTOFile;
 
     @Override
-    protected EnvironmentDTOSupplier<ClusterEnvironmentDTO> getEnvironmentDTOSupplier() {
+    protected EnvironmentDTOSupplier getEnvironmentDTOSupplier() {
         return () -> {
-            ClusterEnvironmentDTO serializedClusterEnvironment = ClusterEnvironmentDTO.loadClusterEnvironmentDTOFromFile(clusterEnvironmentDTOFile);
+            EnvironmentDTO serializedEnvironment = EnvironmentDTO.loadEnvironmentDTOFromFile(environmentDTOFile);
             //We now set properties that are based on runtime and not buildtime. Ideally this would be enforced.
             //I consider this code ugly
             if (environment != null) {
-                serializedClusterEnvironment.setEnvironment(environment);
+                serializedEnvironment.setEnvironment(environment);
             }
-            return serializedClusterEnvironment;
+            return serializedEnvironment;
         };
     }
 

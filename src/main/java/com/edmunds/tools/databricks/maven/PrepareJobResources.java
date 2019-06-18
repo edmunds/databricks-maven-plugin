@@ -30,23 +30,23 @@ import java.nio.charset.StandardCharsets;
 @Mojo(name = "prepare-job-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareJobResources extends BaseDatabricksJobMojo {
 
-    private final static String ENVIRONMENT_FILE_NAME = "job-environment.json";
+    private final static String ENVIRONMENT_FILE_NAME = "environment.json";
 
     /**
-     * The destination of where to serialize the job environment DTO.
+     * The destination of where to serialize the environment DTO.
      */
-    @Parameter(property = "jobEnvironmentDTOFileOutput", defaultValue = "${project.build" +
-            ".directory}/databricks-plugin/" + ENVIRONMENT_FILE_NAME)
-    protected File jobEnvironmentDTOFileOutput;
+    @Parameter(property = "environmentDTOFileOutput",
+            defaultValue = "${project.build.directory}/databricks-plugin/" + ENVIRONMENT_FILE_NAME)
+    protected File environmentDTOFileOutput;
 
     @Override
     public void execute() throws MojoExecutionException {
-        prepareJobEnvironmentDTO();
+        prepareEnvironmentDTO();
     }
 
-    void prepareJobEnvironmentDTO() throws MojoExecutionException {
+    void prepareEnvironmentDTO() throws MojoExecutionException {
         try {
-            FileUtils.writeStringToFile(jobEnvironmentDTOFileOutput,
+            FileUtils.writeStringToFile(environmentDTOFileOutput,
                     ObjectMapperUtils.serialize(getEnvironmentDTOSupplier().get()), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);

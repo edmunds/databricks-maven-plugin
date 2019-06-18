@@ -16,17 +16,23 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
+import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
 /**
- * Base POJO for keeping Project and Environment properties.
+ * Simple POJO for keeping Project and Environment properties.
  */
-public abstract class BaseEnvironmentDTO {
+public class EnvironmentDTO {
 
     private static final String DEPLOY_VERSION = "deploy-version";
 
@@ -43,13 +49,29 @@ public abstract class BaseEnvironmentDTO {
     private String databricksRepo;
     private String databricksRepoKey;
 
+    public static String stripCompanyPackage(String prefixToStrip, String path) {
+        return path.replaceAll(prefixToStrip, "");
+    }
+
+    public static EnvironmentDTO loadEnvironmentDTOFromFile(File environmentDTOFile) throws MojoExecutionException {
+        if (environmentDTOFile == null) {
+            throw new MojoExecutionException("environmentDTOFile must be set!");
+        }
+        try {
+            String environmentDTOJson = FileUtils.readFileToString(environmentDTOFile, StandardCharsets.UTF_8);
+            return ObjectMapperUtils.deserialize(environmentDTOJson, EnvironmentDTO.class);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
+    }
+
     /**
      * Don't use this - it's for jackson deserialization only!
      */
-    public BaseEnvironmentDTO() {
+    public EnvironmentDTO() {
     }
 
-    public BaseEnvironmentDTO(MavenProject project, String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
+    public EnvironmentDTO(MavenProject project, String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
         this.groupId = project.getGroupId();
         this.artifactId = project.getArtifactId();
         this.projectProperties = project.getProperties();
@@ -62,10 +84,6 @@ public abstract class BaseEnvironmentDTO {
         //TODO NEED TO GET RID OF this once we are ready. This is for backwards compatibility
         projectProperties.setProperty("databricks.repo", databricksRepo);
         projectProperties.setProperty("databricks.repo.key", databricksRepoKey);
-    }
-
-    public static String stripCompanyPackage(String prefixToStrip, String path) {
-        return path.replaceAll(prefixToStrip, "");
     }
 
     public Properties getProjectProperties() {

@@ -1,6 +1,5 @@
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
@@ -16,9 +15,9 @@ import java.util.Collections;
  */
 public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends DatabricksMavenPluginTestHarness {
 
-    private SettingsUtils<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
-    private EnvironmentDTOSupplier<ClusterEnvironmentDTO> environmentDTOSupplier;
-    private SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsInitializer;
+    private SettingsUtils<ClusterSettingsDTO> settingsUtils;
+    private EnvironmentDTOSupplier environmentDTOSupplier;
+    private SettingsInitializer<ClusterSettingsDTO> settingsInitializer;
 
     @BeforeClass
     public void initClass() throws Exception {

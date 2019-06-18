@@ -16,8 +16,8 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.ClusterEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
+import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
@@ -39,11 +39,11 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     protected File dbClusterFile;
 
     // These fields are being instantiated within getters to await @Parameter fields initialization
-    private SettingsUtils<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsUtils;
-    private EnvironmentDTOSupplier<ClusterEnvironmentDTO> environmentDTOSupplier;
-    private SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> settingsInitializer;
+    private SettingsUtils<ClusterSettingsDTO> settingsUtils;
+    private EnvironmentDTOSupplier environmentDTOSupplier;
+    private SettingsInitializer<ClusterSettingsDTO> settingsInitializer;
 
-    public SettingsUtils<ClusterEnvironmentDTO, ClusterSettingsDTO> getSettingsUtils() throws MojoExecutionException {
+    public SettingsUtils<ClusterSettingsDTO> getSettingsUtils() throws MojoExecutionException {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
                     ClusterSettingsDTO[].class, "/default-cluster.json", dbClusterFile,
@@ -52,19 +52,19 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
         return settingsUtils;
     }
 
-    EnvironmentDTOSupplier<ClusterEnvironmentDTO> getEnvironmentDTOSupplier() {
+    EnvironmentDTOSupplier getEnvironmentDTOSupplier() {
         if (environmentDTOSupplier == null) {
             environmentDTOSupplier = () -> {
                 if (StringUtils.isBlank(databricksRepo)) {
                     throw new MojoExecutionException("databricksRepo property is missing");
                 }
-                return new ClusterEnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
+                return new EnvironmentDTO(project, environment, databricksRepo, databricksRepoKey, prefixToStrip);
             };
         }
         return environmentDTOSupplier;
     }
 
-    SettingsInitializer<ClusterEnvironmentDTO, ClusterSettingsDTO> getSettingsInitializer() {
+    SettingsInitializer<ClusterSettingsDTO> getSettingsInitializer() {
         if (settingsInitializer == null) {
             settingsInitializer = new BaseDatabricksUpsertClusterMojoSettingsInitializer(validate);
         }

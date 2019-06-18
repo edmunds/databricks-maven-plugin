@@ -3,7 +3,6 @@ package com.edmunds.tools.databricks.maven;
 import com.edmunds.rest.databricks.DTO.JobEmailNotificationsDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.NewClusterDTO;
-import com.edmunds.tools.databricks.maven.model.JobEnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
@@ -22,9 +21,9 @@ import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsIn
  */
 public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMavenPluginTestHarness {
 
-    private SettingsUtils<JobEnvironmentDTO, JobSettingsDTO> settingsUtils;
-    private EnvironmentDTOSupplier<JobEnvironmentDTO> environmentDTOSupplier;
-    private SettingsInitializer<JobEnvironmentDTO, JobSettingsDTO> settingsInitializer;
+    private SettingsUtils<JobSettingsDTO> settingsUtils;
+    private EnvironmentDTOSupplier environmentDTOSupplier;
+    private SettingsInitializer<JobSettingsDTO> settingsInitializer;
 
     @BeforeClass
     public void initClass() throws Exception {
