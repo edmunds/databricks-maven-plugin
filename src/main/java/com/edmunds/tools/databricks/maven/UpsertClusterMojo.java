@@ -18,10 +18,10 @@ package com.edmunds.tools.databricks.maven;
 import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
 import com.edmunds.rest.databricks.DTO.LibraryDTO;
 import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
+import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
-import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +54,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
     }
 
     private void upsertJobSettings() throws MojoExecutionException {
-        List<ClusterSettingsDTO> cts = getSettingsUtils().buildSettingsDTOsWithDefaults();
+        List<UpsertClusterDTO> cts = getSettingsUtils().buildSettingsDTOsWithDefaults();
         if (cts.size() == 0) {
             getLog().info("Clusters settings list is empty: nothing to do");
             return;
@@ -64,7 +64,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
 
         // Upserting clusters in parallel manner
         ForkJoinPool forkJoinPool = new ForkJoinPool(cts.size());
-        for (ClusterSettingsDTO ct : cts) {
+        for (UpsertClusterDTO ct : cts) {
             forkJoinPool.execute(() -> {
                         try {
                             ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
@@ -93,7 +93,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
                                     clusterService.edit(ct);
                                 }
                             } catch (DatabricksRestException | IOException e) {
-                                throw new MojoExecutionException(String.format("Exception while [%s]. ClusterSettingsDTO=[%s]", logMessage, ct), e);
+                                throw new MojoExecutionException(String.format("Exception while [%s]. UpsertClusterDTO=[%s]", logMessage, ct), e);
                             }
                         } catch (MojoExecutionException e) {
                             getLog().error(e);
@@ -116,7 +116,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
      * @throws IOException
      * @throws DatabricksRestException
      */
-    private void startCluster(ClusterSettingsDTO ct) throws IOException, DatabricksRestException {
+    private void startCluster(UpsertClusterDTO ct) throws IOException, DatabricksRestException {
         String clusterId = ct.getClusterId();
         ClusterService clusterService = getDatabricksServiceFactory().getClusterService();
         ClusterStateDTO clusterState = clusterService.getInfo(clusterId).getState();
@@ -159,7 +159,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
      * @throws IOException
      * @throws DatabricksRestException
      */
-    private void detachLibraries(ClusterSettingsDTO ct, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
+    private void detachLibraries(UpsertClusterDTO ct, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
         getLog().info(String.format("Removing libraries from the cluster: name=[%s], id=[%s]", ct.getClusterName(), ct.getClusterId()));
         Set<LibraryDTO> libsToDelete = getLibrariesToDelete(clusterLibraries, ct.getArtifactPaths());
         if (CollectionUtils.isNotEmpty(libsToDelete)) {
@@ -176,7 +176,7 @@ public class UpsertClusterMojo extends BaseDatabricksUpsertClusterMojo {
      * @throws IOException
      * @throws DatabricksRestException
      */
-    private void attachLibraries(ClusterSettingsDTO ct, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
+    private void attachLibraries(UpsertClusterDTO ct, Set<LibraryDTO> clusterLibraries) throws IOException, DatabricksRestException {
         getLog().info(String.format("Attaching libraries to the cluster: name=[%s], id=[%s]", ct.getClusterName(), ct.getClusterId()));
         Set<LibraryDTO> libsToInstall = getLibrariesToInstall(clusterLibraries, ct.getArtifactPaths());
         if (CollectionUtils.isNotEmpty(libsToInstall)) {

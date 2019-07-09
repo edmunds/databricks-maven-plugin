@@ -16,7 +16,7 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
+import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
 import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
@@ -39,14 +39,14 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     protected File dbClusterFile;
 
     // These fields are being instantiated within getters to await @Parameter fields initialization
-    private SettingsUtils<ClusterSettingsDTO> settingsUtils;
+    private SettingsUtils<UpsertClusterDTO> settingsUtils;
     private EnvironmentDTOSupplier environmentDTOSupplier;
-    private SettingsInitializer<ClusterSettingsDTO> settingsInitializer;
+    private SettingsInitializer<UpsertClusterDTO> settingsInitializer;
 
-    public SettingsUtils<ClusterSettingsDTO> getSettingsUtils() throws MojoExecutionException {
+    public SettingsUtils<UpsertClusterDTO> getSettingsUtils() throws MojoExecutionException {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
-                    ClusterSettingsDTO[].class, "/default-cluster.json", dbClusterFile,
+                    UpsertClusterDTO[].class, "/default-cluster.json", dbClusterFile,
                     getEnvironmentDTOSupplier(), getSettingsInitializer());
         }
         return settingsUtils;
@@ -64,7 +64,7 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
         return environmentDTOSupplier;
     }
 
-    SettingsInitializer<ClusterSettingsDTO> getSettingsInitializer() {
+    SettingsInitializer<UpsertClusterDTO> getSettingsInitializer() {
         if (settingsInitializer == null) {
             settingsInitializer = new BaseDatabricksUpsertClusterMojoSettingsInitializer(validate);
         }
