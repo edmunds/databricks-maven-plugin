@@ -175,6 +175,21 @@ Note that this file is a template, that has access to both the java system prope
  }
 ]
 ```
+Note that you can specify different libraries types e.g. Maven:
+```json
+    "libraries": [
+      {
+        "jar": "s3://${projectProperties['databricks.repo']}/${projectProperties['databricks.repo.key']}"
+      },
+      {
+        "maven": {
+          "coordinates": "org.apache.hbase:hbase-common:1.2.0",
+          "repo": "",
+          "exclusions": []
+        }
+      }
+    ]
+```
 
 To upsert your job run the following:
 You can invoke it manually, like so, or attach it as an execution (see case 2 for example):

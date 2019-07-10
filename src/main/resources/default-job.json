@@ -21,13 +21,6 @@
     "libraries": [
       {
         "jar": "s3://${projectProperties['databricks.repo']}/${projectProperties['databricks.repo.key']}"
-      },
-      {
-        "maven": {
-          "coordinates": "Huawei-Spark:Spark-SQL-on-HBase:1.0.0",
-          "repo": "",
-          "exclusions": []
-        }
       }
     ],
     "email_notifications": {
