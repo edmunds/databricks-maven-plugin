@@ -1,6 +1,6 @@
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.model.ClusterSettingsDTO;
+import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
@@ -15,9 +15,9 @@ import java.util.Collections;
  */
 public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends DatabricksMavenPluginTestHarness {
 
-    private SettingsUtils<ClusterSettingsDTO> settingsUtils;
+    private SettingsUtils<UpsertClusterDTO> settingsUtils;
     private EnvironmentDTOSupplier environmentDTOSupplier;
-    private SettingsInitializer<ClusterSettingsDTO> settingsInitializer;
+    private SettingsInitializer<UpsertClusterDTO> settingsInitializer;
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -30,8 +30,8 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends Data
 
     @Test
     public void testFillInDefaults() throws Exception {
-        ClusterSettingsDTO defaultSettingsDTO = settingsUtils.defaultSettingsDTO();
-        ClusterSettingsDTO targetDTO = new ClusterSettingsDTO();
+        UpsertClusterDTO defaultSettingsDTO = settingsUtils.defaultSettingsDTO();
+        UpsertClusterDTO targetDTO = new UpsertClusterDTO();
 
         settingsInitializer.fillInDefaults(targetDTO, defaultSettingsDTO, environmentDTOSupplier.get());
 
@@ -54,14 +54,14 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends Data
     @Test(expectedExceptions = MojoExecutionException.class,
             expectedExceptionsMessageRegExp = "REQUIRED FIELD \\[cluster_name\\] was empty. VALIDATION FAILED.")
     public void testValidate_whenNoClusterName_exception() throws Exception {
-        ClusterSettingsDTO targetDTO = new ClusterSettingsDTO();
+        UpsertClusterDTO targetDTO = new UpsertClusterDTO();
 
         settingsInitializer.validate(targetDTO, environmentDTOSupplier.get());
     }
 
     @Test
     public void testValidate_whenClusterNameFilled_noException() throws Exception {
-        ClusterSettingsDTO targetDTO = new ClusterSettingsDTO();
+        UpsertClusterDTO targetDTO = new UpsertClusterDTO();
         targetDTO.setClusterName("my-cluster-name");
 
         settingsInitializer.validate(targetDTO, environmentDTOSupplier.get());
