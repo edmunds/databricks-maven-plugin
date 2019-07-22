@@ -24,14 +24,14 @@ import com.amazonaws.event.ProgressListener;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-
-import java.io.File;
 
 /**
  * Uploads an artifact to s3.
@@ -54,7 +54,9 @@ public class UploadMojo extends BaseDatabricksMojo {
             String bucket = uri.getBucket();
             String key = uri.getKey();
             try {
-                PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, key, file);
+                PutObjectRequest putObjectRequest =
+                        new PutObjectRequest(bucket, key, file)
+                        .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
                 putObjectRequest.setGeneralProgressListener(new LoggingProgressListener(getLog(), file.length()));
 
                 getLog().info(String.format("Starting upload for bucket: [%s] key: [%s], file: [%s]", bucket,
