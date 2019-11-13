@@ -99,7 +99,7 @@ public class BaseDatabricksJobMojoSettingsInitializer implements SettingsInitial
         }
 
         // Can't have libraries if its a spark submit task
-        if ((settingsDTO.getLibraries() == null || settingsDTO.getLibraries().length == 0) && settingsDTO.getSparkSubmitTask() == null) {
+        if ((settingsDTO.getLibraries() == null) && settingsDTO.getSparkSubmitTask() == null) {
             settingsDTO.setLibraries(SerializationUtils.clone(defaultSettingsDTO.getLibraries()));
             log.info(String.format("%s|set libraries with %s", jobName, OBJECT_MAPPER.writeValueAsString(defaultSettingsDTO.getLibraries())));
         }
