@@ -16,18 +16,17 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.JobDTO;
-import com.edmunds.rest.databricks.DTO.JobsDTO;
-import com.edmunds.rest.databricks.DatabricksRestException;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
+import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_MAPPER;
 
+import com.edmunds.rest.databricks.DTO.JobsDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobDTO;
+import com.edmunds.rest.databricks.DatabricksRestException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_MAPPER;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Exports a job as a JobSettingsDTO json object. Will emit multiple, if job name is not unique.

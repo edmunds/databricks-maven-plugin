@@ -16,9 +16,9 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
-import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
-import com.edmunds.rest.databricks.DTO.LibraryDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterInfoDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterStateDTO;
+import com.edmunds.rest.databricks.DTO.libraries.LibraryDTO;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mockito;

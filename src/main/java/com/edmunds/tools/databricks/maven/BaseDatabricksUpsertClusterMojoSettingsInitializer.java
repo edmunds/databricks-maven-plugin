@@ -1,11 +1,11 @@
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.AutoScaleDTO;
-import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
-import com.edmunds.rest.databricks.DTO.AwsAvailabilityDTO;
-import com.edmunds.rest.databricks.DTO.ClusterLogConfDTO;
 import com.edmunds.rest.databricks.DTO.EbsVolumeTypeDTO;
 import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
+import com.edmunds.rest.databricks.DTO.clusters.AutoScaleDTO;
+import com.edmunds.rest.databricks.DTO.clusters.AwsAttributesDTO;
+import com.edmunds.rest.databricks.DTO.clusters.AwsAvailabilityDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterLogConfDTO;
 import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import org.apache.commons.collections.CollectionUtils;

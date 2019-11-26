@@ -16,24 +16,23 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.JobDTO;
-import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
-import com.edmunds.rest.databricks.DTO.JobsDTO;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import java.util.List;
-
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.edmunds.rest.databricks.DTO.JobsDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobSettingsDTO;
+import java.util.List;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  * Tests for @{@link UpsertJobMojo}.

@@ -16,8 +16,8 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.JobDTO;
-import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobSettingsDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.JobService;
 import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;

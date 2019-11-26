@@ -16,22 +16,21 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.ExportFormatDTO;
-import com.edmunds.rest.databricks.DTO.LanguageDTO;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.verify;
+
+import com.edmunds.rest.databricks.DTO.workspace.ExportFormatDTO;
+import com.edmunds.rest.databricks.DTO.workspace.LanguageDTO;
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
 import com.google.common.collect.Maps;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentMatcher;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.verify;
 
 public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
 

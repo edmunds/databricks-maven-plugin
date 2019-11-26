@@ -16,17 +16,16 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.JobDTO;
-import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
+import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_MAPPER;
+
+import com.edmunds.rest.databricks.DTO.jobs.JobDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobSettingsDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Mojo;
-
 import java.io.IOException;
 import java.util.List;
-
-import static com.edmunds.tools.databricks.maven.util.ObjectMapperUtils.OBJECT_MAPPER;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Mojo;
 
 /**
  * Upserts databricks jobs with the given name based on the artifacts job settings json file.

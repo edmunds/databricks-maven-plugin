@@ -16,19 +16,17 @@
 
 package com.edmunds.tools.databricks.maven;
 
-
-import com.edmunds.rest.databricks.DTO.LanguageDTO;
-import com.edmunds.rest.databricks.DTO.ObjectInfoDTO;
-import com.edmunds.rest.databricks.DTO.ObjectTypeDTO;
+import com.edmunds.rest.databricks.DTO.workspace.LanguageDTO;
+import com.edmunds.rest.databricks.DTO.workspace.ObjectInfoDTO;
+import com.edmunds.rest.databricks.DTO.workspace.ObjectTypeDTO;
 import com.edmunds.rest.databricks.request.ExportWorkspaceRequest;
-import jdk.nashorn.internal.ir.annotations.Ignore;
-import org.mockito.Mockito;
-import org.testng.annotations.BeforeMethod;
-
 import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import jdk.nashorn.internal.ir.annotations.Ignore;
+import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
 
 public class WorkspaceToolMojoTest extends BaseDatabricksMojoTest {
 

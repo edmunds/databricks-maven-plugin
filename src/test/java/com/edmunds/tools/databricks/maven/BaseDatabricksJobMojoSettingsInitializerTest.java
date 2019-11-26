@@ -1,20 +1,19 @@
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.JobEmailNotificationsDTO;
-import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
-import com.edmunds.rest.databricks.DTO.NewClusterDTO;
+import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsInitializer.TEAM_TAG;
+
+import com.edmunds.rest.databricks.DTO.jobs.JobEmailNotificationsDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobSettingsDTO;
+import com.edmunds.rest.databricks.DTO.jobs.NewClusterDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
+import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.collections.Maps;
-
-import java.util.Map;
-
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsInitializer.TEAM_TAG;
 
 /**
  * Tests for @{@link BaseDatabricksJobMojoSettingsInitializer}.

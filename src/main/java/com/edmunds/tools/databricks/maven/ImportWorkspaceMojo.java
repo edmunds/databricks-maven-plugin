@@ -16,8 +16,8 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.rest.databricks.DTO.ExportFormatDTO;
-import com.edmunds.rest.databricks.DTO.LanguageDTO;
+import com.edmunds.rest.databricks.DTO.workspace.ExportFormatDTO;
+import com.edmunds.rest.databricks.DTO.workspace.LanguageDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
 import com.edmunds.rest.databricks.service.WorkspaceService;
