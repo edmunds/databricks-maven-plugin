@@ -13,9 +13,6 @@
         "ebs_volume_count": 0,
         "ebs_volume_size": 0
       },
-      "node_type_id": "m5d.large",
-      "num_workers": 1,
-      //"autotermination_minutes": 30,  autotermination is currently not working  at 2018.06.25
       "enable_elastic_disk": false
     },
     //Can override by setting to libraries:[]
