@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Version 1.8.1]
 - Supports instance pools
+- No default properties for node type or number of nodes
 
 ## [Version 1.7.1]
 
