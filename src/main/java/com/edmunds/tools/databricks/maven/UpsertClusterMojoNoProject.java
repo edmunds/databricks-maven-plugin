@@ -2,14 +2,12 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
+import java.io.File;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
-
 /**
  * Cluster mojo, to perform databricks cluster upsert (create or update through recreation).
- * <p>
  * NoProject mojo has been extracted into a separate class
  * so we have both mojos for non-project execution and for multi-module projects.
  */

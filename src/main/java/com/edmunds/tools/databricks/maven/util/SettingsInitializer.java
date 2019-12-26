@@ -12,23 +12,23 @@ import org.apache.maven.plugin.MojoExecutionException;
 public interface SettingsInitializer<S> {
 
     /**
-     * This method enriches User Settings DTO (first parameter) with Default Settings
-     * and Project/Environment Properties  if any mandatory fields are empty.
+     * This method enriches User Settings DTO (first parameter) with Default Settings and Project/Environment Properties
+     * if any mandatory fields are empty.
      *
-     * @param settingsDTO        User settings.
+     * @param settingsDTO User settings.
      * @param defaultSettingsDTO Default settings.
-     * @param environmentDTO     Project and Environment properties.
-     * @throws JsonProcessingException
+     * @param environmentDTO Project and Environment properties.
+     * @throws JsonProcessingException exception
      */
-    void fillInDefaults(S settingsDTO, S defaultSettingsDTO, EnvironmentDTO environmentDTO) throws JsonProcessingException;
+    void fillInDefaults(S settingsDTO, S defaultSettingsDTO, EnvironmentDTO environmentDTO)
+        throws JsonProcessingException;
 
     /**
-     * Checks whether Settings DTO properties valid or not.
-     * Validation logic varies for different Mojo DTOs.
+     * Checks whether Settings DTO properties valid or not. Validation logic varies for different Mojo DTOs.
      *
-     * @param settingsDTO    Settings DTO.
+     * @param settingsDTO Settings DTO.
      * @param environmentDTO Project and Environment properties.
-     * @throws MojoExecutionException
+     * @throws MojoExecutionException exception
      */
     void validate(S settingsDTO, EnvironmentDTO environmentDTO) throws MojoExecutionException;
 

@@ -8,15 +8,14 @@ import com.edmunds.rest.databricks.DTO.EbsVolumeTypeDTO;
 import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
 import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
+import java.util.Collection;
+import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * Class contains logic of {@link BaseDatabricksUpsertClusterMojo} Settings DTO fields initialization.
@@ -32,7 +31,8 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
     }
 
     @Override
-    public void fillInDefaults(UpsertClusterDTO settingsDTO, UpsertClusterDTO defaultSettingsDTO, EnvironmentDTO environmentDTO) {
+    public void fillInDefaults(UpsertClusterDTO settingsDTO, UpsertClusterDTO defaultSettingsDTO,
+        EnvironmentDTO environmentDTO) {
         String clusterName = settingsDTO.getClusterName();
         if (StringUtils.isEmpty(clusterName)) {
             clusterName = environmentDTO.getGroupWithoutCompany() + "/" + environmentDTO.getArtifactId();
@@ -42,9 +42,9 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
 
         AutoScaleDTO autoScale = settingsDTO.getAutoScale();
         boolean autoScaleValid = autoScale != null
-                && autoScale.getMinWorkers() != 0
-                && autoScale.getMaxWorkers() != 0
-                && autoScale.getMaxWorkers() >= autoScale.getMinWorkers();
+            && autoScale.getMinWorkers() != 0
+            && autoScale.getMaxWorkers() != 0
+            && autoScale.getMaxWorkers() >= autoScale.getMinWorkers();
 
         if (!autoScaleValid) {
             settingsDTO.setAutoScale(null);
@@ -181,7 +181,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializer implements Setti
 
         ClusterLogConfDTO defaultClusterLogConf = defaultSettingsDTO.getClusterLogConf();
         if (settingsDTO.getClusterLogConf() == null && defaultClusterLogConf != null
-                && (defaultClusterLogConf.getDbfs() != null || defaultClusterLogConf.getS3() != null)) {
+            && (defaultClusterLogConf.getDbfs() != null || defaultClusterLogConf.getS3() != null)) {
             settingsDTO.setClusterLogConf(defaultClusterLogConf);
             log.info(String.format("%s|set ClusterLogConf with %s", clusterName, defaultClusterLogConf));
         }

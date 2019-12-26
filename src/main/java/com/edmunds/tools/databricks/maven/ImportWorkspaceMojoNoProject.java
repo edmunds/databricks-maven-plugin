@@ -17,27 +17,30 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.rest.databricks.DatabricksRestException;
+import java.io.IOException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 
-import java.io.IOException;
-
 /**
  * A mojo that is responsible for taking care of importing notebooks into databricks.
- *
  * No project is split out because otherwise it will only work on one pom at a time
  * and thus not work correctly for multi-module projects.
  */
 @Mojo(name = "import-workspace-np", requiresProject = false)
 public class ImportWorkspaceMojoNoProject extends ImportWorkspaceMojo {
 
+    /**
+     * Execute ImportWorkspaceMojoNoProject.
+     *
+     * @throws MojoExecutionException exception
+     */
     public void execute() throws MojoExecutionException {
         try {
             // In this case, validation happened during build so we are ok.
             importWorkspace(packagedWorkspacePath);
         } catch (DatabricksRestException | IOException e) {
-            throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: " +
-                "[%s] TO DB: [%s]", "IMPORT", packagedWorkspacePath, workspacePrefix), e);
+            throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: "
+                + "[%s] TO DB: [%s]", "IMPORT", packagedWorkspacePath, workspacePrefix), e);
         }
     }
 }

@@ -16,18 +16,17 @@
 
 package com.edmunds.tools.databricks.maven.util;
 
-import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
-import com.edmunds.tools.databricks.maven.BaseDatabricksMojoTest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import java.util.Collections;
-import java.util.List;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
+
+import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
+import com.edmunds.tools.databricks.maven.BaseDatabricksMojoTest;
+import java.util.Collections;
+import java.util.List;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 public class ClusterUtilsTest extends BaseDatabricksMojoTest {
 
@@ -38,9 +37,11 @@ public class ClusterUtilsTest extends BaseDatabricksMojoTest {
 
     @Test
     public void testConvertClusterNamesToIds() throws Exception {
-        when(clusterService.list()).thenReturn(new ClusterInfoDTO[]{getClusterInfoDTO("test1", "123"), getClusterInfoDTO("test2", "456")});
+        when(clusterService.list())
+            .thenReturn(new ClusterInfoDTO[]{getClusterInfoDTO("test1", "123"), getClusterInfoDTO("test2", "456")});
 
-        List<String> clusterIds = ClusterUtils.convertClusterNamesToIds(clusterService, Collections.singletonList("test2"));
+        List<String> clusterIds = ClusterUtils
+            .convertClusterNamesToIds(clusterService, Collections.singletonList("test2"));
 
         assertThat(clusterIds, hasItem("456"));
         assertThat(clusterIds.size(), is(1));

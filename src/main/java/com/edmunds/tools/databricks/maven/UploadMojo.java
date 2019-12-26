@@ -39,13 +39,13 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "upload-to-s3", defaultPhase = LifecyclePhase.DEPLOY)
 public class UploadMojo extends BaseDatabricksMojo {
 
+    protected AmazonS3 s3Client;
     /**
      * The local file to upload.
      */
-    @Parameter(property = "file", required = true, defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
+    @Parameter(property = "file", required = true,
+        defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
     private File file;
-
-    protected AmazonS3 s3Client;
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -55,18 +55,17 @@ public class UploadMojo extends BaseDatabricksMojo {
             String key = uri.getKey();
             try {
                 PutObjectRequest putObjectRequest =
-                        new PutObjectRequest(bucket, key, file)
+                    new PutObjectRequest(bucket, key, file)
                         .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
                 putObjectRequest.setGeneralProgressListener(new LoggingProgressListener(getLog(), file.length()));
 
-                getLog().info(String.format("Starting upload for bucket: [%s] key: [%s], file: [%s]", bucket,
-                    key, file
-                    .getPath()));
+                getLog().info(String.format("Starting upload for bucket: [%s] key: [%s], file: [%s]",
+                    bucket, key, file.getPath()));
 
                 getS3Client().putObject(putObjectRequest);
             } catch (SdkClientException e) {
-                throw new MojoExecutionException(String.format("Could not upload file: [%s] to bucket: [%s] with " +
-                    "remote prefix: [%s]", file.getPath(), bucket, key), e);
+                throw new MojoExecutionException(String.format("Could not upload file: [%s] to bucket: [%s] with "
+                    + "remote prefix: [%s]", file.getPath(), bucket, key), e);
             }
         } else {
             getLog().warn(String.format("Target upload file does not exist, skipping: [%s]", file.getPath()));
@@ -107,7 +106,8 @@ public class UploadMojo extends BaseDatabricksMojo {
             double percent = (progress / size) * 100;
             long now = System.currentTimeMillis();
             if (now - lastTimeLogged > 2000) {
-                log.info(String.format("Transferred %.2f%% to s3, total run time: %ss.", percent, (now - startTime) / 1000));
+                log.info(
+                    String.format("Transferred %.2f%% to s3, total run time: %ss.", percent, (now - startTime) / 1000));
                 lastTimeLogged = now;
             }
 

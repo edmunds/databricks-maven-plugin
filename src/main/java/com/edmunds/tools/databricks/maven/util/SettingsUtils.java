@@ -25,12 +25,6 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugin.logging.SystemStreamLog;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -38,6 +32,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 
 /**
  * Utility class for Databricks Mojo settings initialization process.
@@ -58,15 +57,15 @@ public class SettingsUtils<S> {
     /**
      * SettingsUtils constructor. Mojos instantiate this class and use it for building up Settings DTOs.
      *
-     * @param settingsDtoArrayClass   Settings DTO array class, required because of generics type erasure.
+     * @param settingsDtoArrayClass Settings DTO array class, required because of generics type erasure.
      * @param defaultSettingsFileName Default Settings DTO file name.
-     * @param userSettingsFile        User Settings DTO file.
-     * @param environmentDTOSupplier  Project and Environment properties DTO Supplier.
-     * @param settingsInitializer     Settings DTO initializer for a concrete Mojo.
+     * @param userSettingsFile User Settings DTO file.
+     * @param environmentDTOSupplier Project and Environment properties DTO Supplier.
+     * @param settingsInitializer Settings DTO initializer for a concrete Mojo.
      */
     public SettingsUtils(Class<S[]> settingsDtoArrayClass, String defaultSettingsFileName, File userSettingsFile,
-                         EnvironmentDTOSupplier environmentDTOSupplier, SettingsInitializer<S> settingsInitializer)
-            throws MojoExecutionException {
+        EnvironmentDTOSupplier environmentDTOSupplier, SettingsInitializer<S> settingsInitializer)
+        throws MojoExecutionException {
         this.settingsDtoArrayClass = settingsDtoArrayClass;
         this.defaultSettingsJson = readDefaultSettingsJson(defaultSettingsFileName);
         this.userSettingsFile = userSettingsFile;
@@ -75,13 +74,11 @@ public class SettingsUtils<S> {
     }
 
     /**
-     * FIXME - it is possible for the example to be invalid, and the user settings file being valid. This should be fixed.
-     *
-     * <p>
+     * FIXME - it is possible for the example to be invalid, and the user settings file being valid.
      * Default SettingsDTO is used to fill the value when user settings has missing value.
      *
      * @return Default Mojo Settings DTO.
-     * @throws MojoExecutionException
+     * @throws MojoExecutionException exception
      */
     public S defaultSettingsDTO() throws MojoExecutionException {
         return deserializeSettings(enrichDefaultSettingsWithEnvironment())[0];
@@ -91,7 +88,7 @@ public class SettingsUtils<S> {
      * Constructs Settings DTO from user specified settings, default settings, project and environment properties.
      *
      * @return Mojo Settings DTO.
-     * @throws MojoExecutionException
+     * @throws MojoExecutionException exception
      */
     public List<S> buildSettingsDTOsWithDefaults() throws MojoExecutionException {
         String userSettingsJson = getUserSettingsJson();
@@ -118,7 +115,7 @@ public class SettingsUtils<S> {
      * Produces Mojo Settings DTO json from User Settings file and Environment DTO.
      *
      * @return Mojo Settings DTO json.
-     * @throws MojoExecutionException
+     * @throws MojoExecutionException exception
      */
     String getUserSettingsJson() throws MojoExecutionException {
         String userSettingsPath = userSettingsFile.getAbsolutePath();
@@ -132,7 +129,9 @@ public class SettingsUtils<S> {
             Template temp = getFreemarkerConfiguration(templateLoader).getTemplate(userSettingsFile.getName());
             temp.process(environmentDTO, stringWriter);
         } catch (IOException | TemplateException e) {
-            throw new MojoExecutionException(String.format("Failed to process User Settings file: [%s]%nFreemarker message:%n%s", userSettingsPath, e.getMessage()), e);
+            throw new MojoExecutionException(String
+                .format("Failed to process User Settings file: [%s]%nFreemarker message:%n%s", userSettingsPath,
+                    e.getMessage()), e);
         }
 
         return stringWriter.toString();
@@ -142,7 +141,7 @@ public class SettingsUtils<S> {
      * Produces Mojo Settings DTO json from Default Settings json and Environment DTO.
      *
      * @return Mojo Settings DTO json.
-     * @throws MojoExecutionException
+     * @throws MojoExecutionException exception
      */
     private String enrichDefaultSettingsWithEnvironment() throws MojoExecutionException {
         StringWriter stringWriter = new StringWriter();
@@ -152,7 +151,9 @@ public class SettingsUtils<S> {
             Template temp = getFreemarkerConfiguration(templateLoader).getTemplate("defaultSettings");
             temp.process(environmentDTO, stringWriter);
         } catch (IOException | TemplateException e) {
-            throw new MojoExecutionException(String.format("Failed to process Default Settings json: [%s]%nFreemarker message:%n%s", defaultSettingsJson, e.getMessage()), e);
+            throw new MojoExecutionException(String
+                .format("Failed to process Default Settings json: [%s]%nFreemarker message:%n%s", defaultSettingsJson,
+                    e.getMessage()), e);
         }
 
         return stringWriter.toString();
@@ -171,15 +172,17 @@ public class SettingsUtils<S> {
         try {
             return ObjectMapperUtils.deserialize(settingsDTOJson, settingsDtoArrayClass);
         } catch (IOException e) {
-            throw new MojoExecutionException(String.format("Failed to unmarshal Settings DTO:%n[%s]%nHere is an example, of what it should look like:%n[%s]%n",
-                    settingsDTOJson,
-                    defaultSettingsJson), e);
+            throw new MojoExecutionException(String.format(
+                "Failed to unmarshal Settings DTO:%n[%s]%nHere is an example, of what it should look like:%n[%s]%n",
+                settingsDTOJson,
+                defaultSettingsJson), e);
         }
     }
 
     private String readDefaultSettingsJson(String defaultSettingsFileName) {
         try {
-            return IOUtils.toString(this.getClass().getResourceAsStream(defaultSettingsFileName), StandardCharsets.UTF_8);
+            return IOUtils
+                .toString(this.getClass().getResourceAsStream(defaultSettingsFileName), StandardCharsets.UTF_8);
         } catch (Exception e) {
             return ExceptionUtils.getStackTrace(e);
         }

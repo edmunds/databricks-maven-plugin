@@ -17,13 +17,12 @@
 package com.edmunds.tools.databricks.maven;
 
 
+import static org.testng.Assert.assertEquals;
+
 import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
+import java.io.File;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.io.File;
-
-import static org.testng.Assert.assertEquals;
 
 /**
  * Tests for {@link JobMojoNoProject}.

@@ -74,12 +74,36 @@ mvn release:clean release:prepare release:perform -Pdeploy
 ```
 [Verify](https://oss.sonatype.org/#nexus-search;quick~databricks-maven-plugin)
 
-
 ## Use a Consistent Coding Style
 We use a slight modification of google java style.
 Please configure your setup to use the checkstyle/google_checkstyle.xml files
-(For Intellij users, you should use the google-idea-checkstyle.xml for your auto-formatting)
+(For Intellij users, see the section on [setting up intellij checkstyle](#setting-up-intellij-checkstyle))
 Currently, builds are configured to fail if style requirements are not met.
+
+# Setting Up Intellij Checkstyle
+1) Import Formatter Settings
+    - Navigate to Settings -> Editor -> Code Style -> Java
+    - Click on cogwheel near the "Scheme" selector
+    - Choose "Import Scheme" -> "Intellij IDEA code style XML"
+    - Select databricks-maven-plugin/checkstyle/google-idea-checkstyle.xml file
+2) Install CheckStyle Plugin
+    - Instructions on how to do so can be found [here](https://medium.com/@jayanga/how-to-configure-checkstyle-and-findbugs-plugins-to-intellij-idea-for-wso2-products-c5f4bbe9673a)
+    or just
+    - Ctrl + Shift + A -> enter "plugins" -> go to "Marketplace" tab
+    - Find "CheckStyle-IDEA" plugin, install it and restart IDEA
+3) Configure CheckStyle Plugin
+    - Navigate to Preferences -> Other Settings -> Checkstyle
+    - Click "+" under Configuration File to add a new configuration
+    - Add a relevant description
+    - Click the "Use a local Checkstyle file" radio button
+    - Click "Browse" and navigate to the databricks-maven-plugin/checkstyle/google_checkstyle.xml file
+    - The new checkstyle file should now be listed under "Configuration File", check it and apply
+4) Run the "Checkstyle real-time scan"
+    - Right click on a file you would like to apply the checkstyle to
+    - Navigate to Analyze -> Run Inspection By Name
+    - In the search bar that appears, type "Checkstyle real-time scan"
+    - You can now select to run the checkstyle on files of your choosing
+5) Fix checkstyle errors that the scan detects
 
 ## References
 This document was adapted from the open-source contribution guidelines for [Transcriptase](https://gist.github.com/briandk/3d2e8b3ec8daf5a27a62)

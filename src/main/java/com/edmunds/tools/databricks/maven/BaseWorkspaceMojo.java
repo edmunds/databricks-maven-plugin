@@ -16,58 +16,55 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Parameter;
+import static com.edmunds.tools.databricks.maven.model.EnvironmentDTO.stripCompanyPackage;
+import static org.apache.commons.io.FilenameUtils.getBaseName;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 
+import com.edmunds.tools.databricks.maven.validation.ValidationUtil;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.edmunds.tools.databricks.maven.model.EnvironmentDTO.stripCompanyPackage;
-import static org.apache.commons.io.FilenameUtils.getBaseName;
-import static org.apache.commons.lang3.StringUtils.substringAfter;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * A base class for workspace mojos.
  */
 public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
 
+    // Valid extensions for databricks notebooks
+    public static final List<String> DATABRICKS_SOURCE_EXTENSIONS =
+        Collections.unmodifiableList(Arrays.asList("scala", "py", "r", "sql"));
     /**
      * This is the base path where databricks notebooks live in your project.
      */
-    @Parameter(property = "sourceWorkspacePath", required = true, defaultValue = "${project.basedir}/src/main/notebooks")
+    @Parameter(property = "sourceWorkspacePath", required = true,
+        defaultValue = "${project.basedir}/src/main/notebooks")
     protected File sourceWorkspacePath;
-
     /**
      * This is where the databricks notebooks are packaged as part of a build.
      * This should not require changing.
      */
     //TODO this property should probably not be changeable
-    @Parameter(property = "packagedWorkspacePath", required = true, defaultValue = "${project.build.directory}/notebooks/")
+    @Parameter(property = "packagedWorkspacePath", required = true,
+        defaultValue = "${project.build.directory}/notebooks/")
     protected File packagedWorkspacePath;
-
     //TODO this prefix should not be changeable, and seems repeat of dbWorkspacePath
-    @Parameter(property = "workspacePrefix", required = true, defaultValue = "${project.groupId}/${project.artifactId}")
+    @Parameter(property = "workspacePrefix", required = true,
+        defaultValue = "${project.groupId}/${project.artifactId}")
     protected String workspacePrefix;
-
     /**
      * This is where the notebooks live in the databricks workspace.
      */
-    @Parameter(property = "dbWorkspacePath", required = true, defaultValue = "/${project.groupId}/${project" +
-            ".artifactId}")
+    @Parameter(property = "dbWorkspacePath", required = true,
+        defaultValue = "/${project.groupId}/${project.artifactId}")
     private String dbWorkspacePath;
-
-    // Valid extensions for databricks notebooks
-    public static final List<String> DATABRICKS_SOURCE_EXTENSIONS =
-            Collections.unmodifiableList(Arrays.asList("scala", "py", "r", "sql"));
-
 
     protected String getSourceFullWorkspacePath() {
         String strippedPrefix = stripCompanyPackage(prefixToStrip, workspacePrefix);
@@ -92,15 +89,16 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
             return;
         }
         Collection<File> files = FileUtils.listFiles(notebookPath,
-                new SuffixFileFilter(DATABRICKS_SOURCE_EXTENSIONS),
-                DirectoryFileFilter.DIRECTORY);
+            new SuffixFileFilter(DATABRICKS_SOURCE_EXTENSIONS),
+            DirectoryFileFilter.DIRECTORY);
         for (File file : files) {
             // e.g. the path under the local root, not the full path to it
             String relativePath = substringAfter(file.getParentFile().getPath(), notebookPath.getPath());
             String remoteFilePath = relativePath + "/" + getBaseName(file.getName());
             getLog().info(String.format("Validating: [%s]", remoteFilePath));
             if (validate) {
-                ValidationUtil.validatePath(remoteFilePath, project.getGroupId(), project.getArtifactId(), prefixToStrip);
+                ValidationUtil
+                    .validatePath(remoteFilePath, project.getGroupId(), project.getArtifactId(), prefixToStrip);
             }
         }
     }

@@ -16,17 +16,17 @@
 
 package com.edmunds.tools.databricks.maven.validation;
 
+import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.ARTIFACT_ID;
+import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.GROUP_ID;
+import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.validatePath;
+import static org.mockito.Mockito.when;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.ARTIFACT_ID;
-import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.GROUP_ID;
-import static com.edmunds.tools.databricks.maven.validation.ValidationUtil.validatePath;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link ValidationUtil}.
@@ -54,7 +54,8 @@ public class ValidationUtilTest {
     @Test
     public void testValidPath_no_maven() throws Exception {
         when(mavenProject.getArtifactId()).thenReturn("standalone-pom");
-        validatePath("/system-property-group-id/system-property-artifact-id", mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
+        validatePath("/system-property-group-id/system-property-artifact-id",
+            mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
 
         //nothing to assert, failure will throw an exception
     }
@@ -63,7 +64,8 @@ public class ValidationUtilTest {
     public void testValidPath_with_maven() throws Exception {
         System.setProperty(ARTIFACT_ID, "");
         System.setProperty(GROUP_ID, "");
-        validatePath("/maven-group-id/maven-artifact-id", mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
+        validatePath("/maven-group-id/maven-artifact-id",
+            mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
 
         //nothing to assert, failure will throw an exception
     }
@@ -71,7 +73,8 @@ public class ValidationUtilTest {
     @Test
     public void testValidPath_with_company_name() throws Exception {
         when(mavenProject.getGroupId()).thenReturn("com.edmunds.maven-group-id");
-        validatePath("/maven-group-id/maven-artifact-id", mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
+        validatePath("/maven-group-id/maven-artifact-id",
+            mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
 
         //nothing to assert, failure will throw an exception
     }
@@ -82,7 +85,8 @@ public class ValidationUtilTest {
         System.setProperty(GROUP_ID, "");
         when(mavenProject.getGroupId()).thenReturn("");
 
-        validatePath("/maven-group-id/maven-artifact-id", mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
+        validatePath("/maven-group-id/maven-artifact-id",
+            mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*'artifactId' is not set.*")
@@ -91,19 +95,22 @@ public class ValidationUtilTest {
         System.setProperty(GROUP_ID, "");
         when(mavenProject.getArtifactId()).thenReturn("");
 
-        validatePath("/maven-group-id/maven-artifact-id", mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
+        validatePath("/maven-group-id/maven-artifact-id",
+            mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*Expected: \\[groupId/artifactId/...\\] but found: \\[1\\] parts.*")
     public void testInvalidPath_no_maven_missing_artifact_id() throws Exception {
         when(mavenProject.getArtifactId()).thenReturn("standalone-pom");
-        validatePath("/system-property-group-id/", mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
+        validatePath("/system-property-group-id/",
+            mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = ".*Expected: \\[system-property-artifact-id] but found: \\[foo\\].*")
     public void testInvalidPath_no_maven_bad_artifact_id() throws Exception {
         when(mavenProject.getArtifactId()).thenReturn("standalone-pom");
-        validatePath("/system-property-group-id/foo", mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
+        validatePath("/system-property-group-id/foo",
+            mavenProject.getGroupId(), mavenProject.getArtifactId(), PREFIX_TO_STRIP);
     }
 
 }

@@ -17,26 +17,25 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 @Mojo(name = "prepare-job-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareJobResources extends BaseDatabricksJobMojo {
 
-    private final static String ENVIRONMENT_FILE_NAME = "environment.json";
+    private static final String ENVIRONMENT_FILE_NAME = "environment.json";
 
     /**
      * The destination of where to serialize the environment DTO.
      */
     @Parameter(property = "environmentDTOFileOutput",
-            defaultValue = "${project.build.directory}/databricks-plugin/" + ENVIRONMENT_FILE_NAME)
+        defaultValue = "${project.build.directory}/databricks-plugin/" + ENVIRONMENT_FILE_NAME)
     protected File environmentDTOFileOutput;
 
     @Override
@@ -47,7 +46,7 @@ public class PrepareJobResources extends BaseDatabricksJobMojo {
     void prepareEnvironmentDTO() throws MojoExecutionException {
         try {
             FileUtils.writeStringToFile(environmentDTOFileOutput,
-                    ObjectMapperUtils.serialize(getEnvironmentDTOSupplier().get()), StandardCharsets.UTF_8);
+                ObjectMapperUtils.serialize(getEnvironmentDTOSupplier().get()), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }

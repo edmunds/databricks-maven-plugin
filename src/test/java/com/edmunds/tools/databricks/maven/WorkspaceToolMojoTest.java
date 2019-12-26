@@ -21,14 +21,13 @@ import com.edmunds.rest.databricks.DTO.LanguageDTO;
 import com.edmunds.rest.databricks.DTO.ObjectInfoDTO;
 import com.edmunds.rest.databricks.DTO.ObjectTypeDTO;
 import com.edmunds.rest.databricks.request.ExportWorkspaceRequest;
-import jdk.nashorn.internal.ir.annotations.Ignore;
-import org.mockito.Mockito;
-import org.testng.annotations.BeforeMethod;
-
 import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import jdk.nashorn.internal.ir.annotations.Ignore;
+import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
 
 public class WorkspaceToolMojoTest extends BaseDatabricksMojoTest {
 
@@ -58,10 +57,10 @@ public class WorkspaceToolMojoTest extends BaseDatabricksMojoTest {
         objectInfoDTOS[1] = buildObjectInfoDTO(basePath, "myNested", ObjectTypeDTO.DIRECTORY);
         Mockito.when(workspaceService.listStatus(URLEncoder.encode(basePath, "UTF-8"))).thenReturn(objectInfoDTOS);
         Mockito.when(workspaceService.listStatus(URLEncoder.encode(basePath + "/myNested", "UTF-8"))).thenReturn(new
-                ObjectInfoDTO[]{
-                buildObjectInfoDTO(basePath + "/myNested", "myNestedFile", ObjectTypeDTO.NOTEBOOK)});
+            ObjectInfoDTO[]{
+            buildObjectInfoDTO(basePath + "/myNested", "myNestedFile", ObjectTypeDTO.NOTEBOOK)});
         Mockito.when(workspaceService.exportWorkspace(Mockito.any(ExportWorkspaceRequest.class))).thenReturn
-                ("MyCode!".getBytes(StandardCharsets.UTF_8));
+            ("MyCode!".getBytes(StandardCharsets.UTF_8));
 
         underTest.execute();
 
@@ -70,7 +69,7 @@ public class WorkspaceToolMojoTest extends BaseDatabricksMojoTest {
 
         assert (Paths.get(sourceWorkspace.getPath(), "test/mycoolartifact/myFile.scala").toFile().exists());
         assert (Paths.get(sourceWorkspace.getPath(), "test/mycoolartifact/myNested/myNestedFile.scala").toFile()
-                .exists());
+            .exists());
     }
 
     private ObjectInfoDTO buildObjectInfoDTO(String basePath, String fileName, ObjectTypeDTO objectTypeDTO) {
