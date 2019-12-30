@@ -45,7 +45,7 @@ public class WorkspaceToolMojoTest extends BaseDatabricksMojoTest {
     @Ignore
     public void testExportExecute() throws Exception {
         String basePath = "test/mycoolartifact";
-        underTest.setDbWorkspacePath("com.edmunds.test/mycoolartifact");
+        underTest.setWorkspacePrefix("com.edmunds.test/mycoolartifact");
         File sourceWorkspace = new File("./target/src/main/notebooks");
 
         underTest.setSourceWorkspacePath(sourceWorkspace);

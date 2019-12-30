@@ -55,16 +55,13 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
     @Parameter(property = "packagedWorkspacePath", required = true,
         defaultValue = "${project.build.directory}/notebooks/")
     protected File packagedWorkspacePath;
-    //TODO this prefix should not be changeable, and seems repeat of dbWorkspacePath
-    @Parameter(property = "workspacePrefix", required = true,
-        defaultValue = "${project.groupId}/${project.artifactId}")
-    protected String workspacePrefix;
     /**
      * This is where the notebooks live in the databricks workspace.
      */
-    @Parameter(property = "dbWorkspacePath", required = true,
-        defaultValue = "/${project.groupId}/${project.artifactId}")
-    private String dbWorkspacePath;
+    //TODO this prefix should not be changeable
+    @Parameter(property = "workspacePrefix", required = true,
+        defaultValue = "${project.groupId}/${project.artifactId}")
+    protected String workspacePrefix;
 
     protected String getSourceFullWorkspacePath() {
         String strippedPrefix = stripCompanyPackage(prefixToStrip, workspacePrefix);
@@ -111,15 +108,11 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
         this.workspacePrefix = workspacePrefix;
     }
 
+    public String getWorkspacePrefix() {
+        return stripCompanyPackage(prefixToStrip, workspacePrefix).replaceAll("\\.", "/");
+    }
+
     public void setSourceWorkspacePath(File sourceWorkspacePath) {
         this.sourceWorkspacePath = sourceWorkspacePath;
-    }
-
-    public String getDbWorkspacePath() {
-        return stripCompanyPackage(prefixToStrip, dbWorkspacePath).replaceAll("\\.", "/");
-    }
-
-    public void setDbWorkspacePath(String dbWorkspacePath) {
-        this.dbWorkspacePath = dbWorkspacePath;
     }
 }

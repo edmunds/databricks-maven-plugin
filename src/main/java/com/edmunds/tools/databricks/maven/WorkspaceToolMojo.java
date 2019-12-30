@@ -74,19 +74,19 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
             }
         } catch (DatabricksRestException | IOException e) {
             throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: "
-                + "[%s] DB Path: [%s]", workspaceCommand, getSourceFullWorkspacePath(), getDbWorkspacePath()), e);
+                + "[%s] DB Path: [%s]", workspaceCommand, getSourceFullWorkspacePath(), getWorkspacePrefix()), e);
         }
     }
 
     private void listWorkspace() throws IOException, DatabricksRestException {
-        getLog().info(String.format("List for: [%s]", getDbWorkspacePath()));
-        accept(getDbWorkspacePath(), objectInfoDTO ->
+        getLog().info(String.format("List for: [%s]", getWorkspacePrefix()));
+        accept(getWorkspacePrefix(), objectInfoDTO ->
             getLog().info(ReflectionToStringBuilder.toString(objectInfoDTO, ToStringStyle.JSON_STYLE)));
     }
 
     private void exportWorkspace() throws IOException, DatabricksRestException {
         // We export databricks notebooks into our source code directory (sourceWorkspacePath).
-        accept(getDbWorkspacePath(), objectInfoDTO -> {
+        accept(getWorkspacePrefix(), objectInfoDTO -> {
             if (objectInfoDTO.getObjectType() == ObjectTypeDTO.NOTEBOOK) {
                 String outputFilename = createOutputFilename(objectInfoDTO);
 
@@ -113,7 +113,7 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
             extension = "py";
         }
 
-        return substringAfter(objectInfoDTO.getPath(), getDbWorkspacePath()) + "." + extension;
+        return substringAfter(objectInfoDTO.getPath(), getWorkspacePrefix()) + "." + extension;
     }
 
     private void accept(String path, ObjectInfoVisitor visitor) throws IOException, DatabricksRestException {

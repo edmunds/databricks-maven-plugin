@@ -26,6 +26,9 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+/**
+ * Serialize project and system properties as an EnvironmentDTO to a environment.json file.
+ */
 @Mojo(name = "prepare-job-resources", requiresProject = true, defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class PrepareJobResources extends BaseDatabricksJobMojo {
 

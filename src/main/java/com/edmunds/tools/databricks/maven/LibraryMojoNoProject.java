@@ -29,6 +29,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "library-np", requiresProject = false)
 public class LibraryMojoNoProject extends LibraryMojo {
 
+    /**
+     * The serialized LibraryClustersModel should be passed in a NoProject scenario.
+     */
     @Parameter(property = "libraryMappingFile", required = true)
     protected File libraryMappingFile;
 
