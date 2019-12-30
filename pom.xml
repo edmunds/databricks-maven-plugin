@@ -19,7 +19,7 @@
 
     <groupId>com.edmunds</groupId>
     <artifactId>databricks-maven-plugin</artifactId>
-    <version>1.8.2-SNAPSHOT</version>
+    <version>1.8.3-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
 
@@ -126,7 +126,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.16</version>
+                        <version>8.18</version>
                     </dependency>
                 </dependencies>
                 <executions>
