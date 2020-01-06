@@ -18,17 +18,16 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
+import java.io.File;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-
-import java.io.File;
 
 /**
  * Controls a given databricks job [start\stop\restart].
  * <p>
- * NOTE 1: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false, in which case only the first one will be updated.
+ * NOTE 1: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false,
+ * in which case only the first one will be updated.
  * </p>
- * <p>
  * NOTE 2: If a job has more than 1 active run, ALL of them will be cancelled on STOP\RESTART.
  * <p>
  * NoProject is split out so that we have a mojo that will work with multi module projects.

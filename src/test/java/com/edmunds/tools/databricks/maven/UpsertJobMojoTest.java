@@ -60,7 +60,7 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     public void test_executeWithDefault() throws Exception {
         underTest = getNoOverridesMojo(GOAL);
         Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
-                ("unit-test-group/unit-test-artifact", 1));
+            ("unit-test-group/unit-test-artifact", 1));
         underTest.execute();
 
         List<JobSettingsDTO> jobSettingsDTOs = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
@@ -74,13 +74,13 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     public void test_executeWithProjectProperties() throws Exception {
         underTest = getOverridesMojo(GOAL, "_viaProperties");
         Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
-                ("unit-test-group/unit-test-artifact", 1));
+            ("unit-test-group/unit-test-artifact", 1));
         List<JobSettingsDTO> jobSettingsDTOs = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
         underTest.execute();
         assertThat(jobSettingsDTOs.size(), is(1));
         assertThat(jobSettingsDTOs.get(0).getLibraries()[0].getJar(), is
-                ("s3://projectProperty/unit-test-group/unit-test-artifact/" +
-                        "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
+            ("s3://projectProperty/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
         ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
         verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
         assertEquals(jobSettingsDTOs.get(0), jobCaptor.getValue());
@@ -90,13 +90,13 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     public void test_executeWithProjectPropertiesAndConfig() throws Exception {
         underTest = getOverridesMojo(GOAL, "_viaBothSettings");
         Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
-                ("unit-test-group/unit-test-artifact", 1));
+            ("unit-test-group/unit-test-artifact", 1));
         List<JobSettingsDTO> jobSettingsDTOs = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
         underTest.execute();
         assertThat(jobSettingsDTOs.size(), is(1));
         assertThat(jobSettingsDTOs.get(0).getLibraries()[0].getJar(), is
-                ("s3://configProperty/unit-test-group/unit-test-artifact/" +
-                        "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
+            ("s3://configProperty/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
         ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
         verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
         assertEquals(jobSettingsDTOs.get(0), jobCaptor.getValue());
@@ -121,8 +121,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
         assertThat(jobSettingsDTOs.size(), is(1));
         assertThat(jobSettingsDTOs.get(0).getName(), is("unit-test-group/unit-test-artifact"));
         assertThat(jobSettingsDTOs.get(0).getLibraries()[0].getJar(), is
-                ("s3://my-bucket/unit-test-group/unit-test-artifact/" +
-                        "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
+            ("s3://my-bucket/unit-test-group/unit-test-artifact/" +
+                "1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
     }
 
     @Test
@@ -143,7 +143,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
     @Test
     public void testGetJobId_multiple() throws Exception {
-        when(jobService.listAllJobs()).thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
+        when(jobService.listAllJobs())
+            .thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
         when(jobService.getJobByName("test-job", true)).thenThrow(new IllegalStateException());
         try {
             underTest.getJobId("test-job");
@@ -156,7 +157,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
     @Test
     public void testGetJobId_multiple_no_exception() throws Exception {
         underTest.failOnDuplicateJobName = false;
-        when(jobService.listAllJobs()).thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
+        when(jobService.listAllJobs())
+            .thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
 
         when(jobService.getJobByName("test-job", false)).thenReturn(createJobDTO("test-job", 123L));
 
@@ -166,7 +168,8 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
     @Test
     public void testGetJobId_none() throws Exception {
-        when(jobService.listAllJobs()).thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
+        when(jobService.listAllJobs())
+            .thenReturn(createJobsDTO(createJobDTO("test-job", 123L), createJobDTO("test-job", 456L)));
         when(jobService.getJobByName("fake-job", true)).thenReturn(null);
 
         Long jobId = underTest.getJobId("fake-job");

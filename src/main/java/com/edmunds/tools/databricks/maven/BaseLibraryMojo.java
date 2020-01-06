@@ -17,12 +17,12 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.LibraryClustersModel;
+import java.util.Arrays;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.util.Arrays;
-
 public abstract class BaseLibraryMojo extends BaseDatabricksMojo {
+
     static final String JAR = "jar";
 
     /**

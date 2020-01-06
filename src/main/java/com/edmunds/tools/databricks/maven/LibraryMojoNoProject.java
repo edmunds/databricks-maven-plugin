@@ -17,19 +17,21 @@
 package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.LibraryClustersModel;
+import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
-
 /**
- * This is the No Project version of the library Mojo.
- * Used to deploy a specific artifact to a databricks cluster when you are not working with the source code.
+ * This is the No Project version of the library Mojo. Used to deploy a specific artifact to a databricks cluster when
+ * you are not working with the source code.
  */
 @Mojo(name = "library-np", requiresProject = false)
 public class LibraryMojoNoProject extends LibraryMojo {
 
+    /**
+     * The serialized LibraryClustersModel should be passed in a NoProject scenario.
+     */
     @Parameter(property = "libraryMappingFile", required = true)
     protected File libraryMappingFile;
 

@@ -16,6 +16,8 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
+
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.ClusterService;
 import java.io.IOException;
@@ -24,9 +26,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-
-import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
-
 /**
  * Cluster mojo, to perform basic ops on a databricks cluster (e.g. start, stop).
  */
@@ -34,29 +33,25 @@ import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertCluste
 public class ClusterMojo extends BaseDatabricksMojo {
 
     /**
-     * The cluster commands.
-     */
-    public enum ClusterCommand {
-        STOP, START
-    }
-
-    /**
      * This should be a list of cluster names to operate on.
      */
     @Parameter(property = "clusters", required = true)
     private String[] clusters;
-
     /**
      * What command to run.<br>
-     *
      * STOP - stop a cluster.<br>
      * START - start a cluster.<br>
      */
     @Parameter(property = "cluster.command", required = true)
     private ClusterCommand command;
 
+    /**
+     * Execute ClusterMojo.
+     * @throws MojoExecutionException exception
+     */
     public void execute() throws MojoExecutionException {
-        for (String clusterId : convertClusterNamesToIds(getDatabricksServiceFactory().getClusterService(), Arrays.asList(clusters))) {
+        for (String clusterId : convertClusterNamesToIds(getDatabricksServiceFactory().getClusterService(),
+            Arrays.asList(clusters))) {
             try {
 
                 getLog().info(String.format("preparing to [%s] cluster id: [%s]", command, clusterId));
@@ -76,8 +71,16 @@ public class ClusterMojo extends BaseDatabricksMojo {
                 }
 
             } catch (DatabricksRestException | IOException e) {
-                throw new MojoExecutionException(String.format("Could not run command: [%s] on [%s]", command, clusterId), e);
+                throw new MojoExecutionException(
+                    String.format("Could not run command: [%s] on [%s]", command, clusterId), e);
             }
         }
+    }
+
+    /**
+     * The cluster commands.
+     */
+    public enum ClusterCommand {
+        STOP, START
     }
 }

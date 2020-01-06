@@ -57,12 +57,16 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
 
         underTest.execute();
 
-        verify(workspaceService).importWorkspace(argThat(getMatcher("/test/mycoolartifact/test1/myFile", LanguageDTO.SQL, "select * from mytable")));
-        verify(workspaceService).importWorkspace(argThat(getMatcher("/test/mycoolartifact/test2/myFile", LanguageDTO.SCALA, "println(\"scala is cool\")")));
-        verify(workspaceService).importWorkspace(argThat(getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
+        verify(workspaceService).importWorkspace(
+            argThat(getMatcher("/test/mycoolartifact/test1/myFile", LanguageDTO.SQL, "select * from mytable")));
+        verify(workspaceService).importWorkspace(
+            argThat(getMatcher("/test/mycoolartifact/test2/myFile", LanguageDTO.SCALA, "println(\"scala is cool\")")));
+        verify(workspaceService).importWorkspace(argThat(
+            getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
     }
 
-    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp = "JOB NAME VALIDATION FAILED \\[ILLEGAL VALUE\\]:.*" +
+    @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp =
+        "JOB NAME VALIDATION FAILED \\[ILLEGAL VALUE\\]:.*" +
             "Expected: \\[failed-test\\] but found: \\[test\\]")
     public void execute_whenDefaultPrefixIsSetAndDoesNotMatchGroupId_failsValidation() throws Exception {
 
@@ -80,25 +84,28 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
         ImportWorkspaceMojo underTest = getOverridesMojo(GOAL);
 
         File workspacePath = new File(this.getClass().getResource("/notebooks")
-                .getPath());
+            .getPath());
 
         underTest.validate = true;
         underTest.setSourceWorkspacePath(workspacePath);
 
         underTest.execute();
 
-        verify(workspaceService).importWorkspace(argThat(getMatcher("/test/mycoolartifact/test1/myFile", LanguageDTO.SQL, "select * from mytable")));
-        verify(workspaceService).importWorkspace(argThat(getMatcher("/test/mycoolartifact/test2/myFile", LanguageDTO.SCALA, "println(\"scala is cool\")")));
-        verify(workspaceService).importWorkspace(argThat(getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
+        verify(workspaceService).importWorkspace(
+            argThat(getMatcher("/test/mycoolartifact/test1/myFile", LanguageDTO.SQL, "select * from mytable")));
+        verify(workspaceService).importWorkspace(
+            argThat(getMatcher("/test/mycoolartifact/test2/myFile", LanguageDTO.SCALA, "println(\"scala is cool\")")));
+        verify(workspaceService).importWorkspace(argThat(
+            getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
     }
 
     private ImportWorkspaceRequestMatcher getMatcher(String path, LanguageDTO languageDTO, String content) {
         ImportWorkspaceRequest importWorkspaceRequest = new ImportWorkspaceRequest.ImportWorkspaceRequestBuilder(path)
-                .withFormat(ExportFormatDTO.SOURCE)
-                .withLanguage(languageDTO)
-                .withOverwrite(true)
-                .withContent(content.getBytes(StandardCharsets.UTF_8))
-                .build();
+            .withFormat(ExportFormatDTO.SOURCE)
+            .withLanguage(languageDTO)
+            .withOverwrite(true)
+            .withContent(content.getBytes(StandardCharsets.UTF_8))
+            .build();
         return new ImportWorkspaceRequestMatcher(importWorkspaceRequest);
     }
 
@@ -106,6 +113,7 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
      * This is needed, because ImportWorkspaceRequest does not implement the equals method.
      */
     private static class ImportWorkspaceRequestMatcher extends ArgumentMatcher<ImportWorkspaceRequest> {
+
         private static final String CONTENT = "content";
         private final ImportWorkspaceRequest expected;
 

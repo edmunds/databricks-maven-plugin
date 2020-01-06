@@ -37,7 +37,16 @@ public class ClusterUtils {
 
     private static final Log log = new SystemStreamLog();
 
-    public static List<String> convertClusterNamesToIds(ClusterService clusterService, Collection<String> clusterNamesToConvert) throws MojoExecutionException {
+    /**
+     * Convert cluster names to ids.
+     *
+     * @param clusterService clusterService
+     * @param clusterNamesToConvert clusterNamesToConvert
+     * @return clusters ids
+     * @throws MojoExecutionException exception
+     */
+    public static List<String> convertClusterNamesToIds(ClusterService clusterService,
+        Collection<String> clusterNamesToConvert) throws MojoExecutionException {
         List<String> clusterIds = new ArrayList<>();
         if (clusterNamesToConvert.isEmpty()) {
             return clusterIds;
@@ -59,13 +68,13 @@ public class ClusterUtils {
         }
 
         List<String> duplicateNames = foundNames.entrySet().stream().filter(x -> x.getValue() > 1)
-                .map(x -> x.getKey() + "=" + x.getValue()).collect(Collectors.toList());
+            .map(x -> x.getKey() + "=" + x.getValue()).collect(Collectors.toList());
         if (duplicateNames.size() > 0) {
             log.error(String.format("Duplicate cluster names found: [%s]", duplicateNames.toString()));
         }
 
         List<String> notFoundNames = clusterNamesToConvert.stream()
-                .filter(x -> !foundNames.containsKey(x)).collect(Collectors.toList());
+            .filter(x -> !foundNames.containsKey(x)).collect(Collectors.toList());
         if (notFoundNames.size() > 0) {
             log.error(String.format("Some cluster names not found: [%s]", notFoundNames.toString()));
         }

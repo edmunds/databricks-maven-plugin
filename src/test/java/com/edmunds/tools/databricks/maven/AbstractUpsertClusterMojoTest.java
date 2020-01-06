@@ -31,7 +31,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo> extends DatabricksMavenPluginTestHarness {
+public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo> extends
+    DatabricksMavenPluginTestHarness {
 
     protected String GOAL;
 
@@ -74,7 +75,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         verify(libraryService, times(0)).uninstall(eq(clusterId), any(LibraryDTO[].class));
         verify(libraryService).install(eq(clusterId), libCaptor.capture());
         Set<String> jarPaths = Sets.newHashSet("dbfs:/Libs/jars/app_sdk_0_1_2-345.jar",
-                "s3://bucket-name/artifacts/com.company.project/my-artifact-name/1.0.132/my-artifact-name-1.0.132.jar");
+            "s3://bucket-name/artifacts/com.company.project/my-artifact-name/1.0.132/my-artifact-name-1.0.132.jar");
         LibraryDTO[] libs = libCaptor.getValue();
         assertTrue(jarPaths.contains(libs[0].getJar()));
         assertTrue(jarPaths.contains(libs[1].getJar()));
@@ -108,7 +109,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
     }
 
     @Test(expectedExceptions = MojoExecutionException.class,
-            expectedExceptionsMessageRegExp = "Failed to unmarshal Settings DTO.*")
+        expectedExceptionsMessageRegExp = "Failed to unmarshal Settings DTO.*")
     public void test_executeWithOverride_malformedConfigException() throws Exception {
         underTest = getOverridesMojo(GOAL, "-malformed");
         assertTrue(getPath().endsWith("databricks-cluster-settings-malformed.json"));
@@ -185,7 +186,7 @@ public abstract class AbstractUpsertClusterMojoTest<T extends UpsertClusterMojo>
         libraryFullStatusDTO.setLibrary(libraryDTO);
         ClusterLibraryStatusesDTO libraryStatusesDTO = new ClusterLibraryStatusesDTO();
         libraryStatusesDTO.setLibraryFullStatuses(
-                new LibraryFullStatusDTO[]{libraryFullStatusDTO}
+            new LibraryFullStatusDTO[]{libraryFullStatusDTO}
         );
         return libraryStatusesDTO;
     }

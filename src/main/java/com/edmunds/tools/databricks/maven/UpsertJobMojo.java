@@ -29,11 +29,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 /**
  * Upserts databricks jobs with the given name based on the artifacts job settings json file.
- * <p>
  * This file should be in the resources directory named ${artifactId}-job-settings.json and
  * should be a serialized form of an array of type JobSettingsDTO.
- * <p>
- * NOTE: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false, in which case only the first one will be updated.
+ * NOTE: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false,
+ * in which case only the first one will be updated.
  */
 @Mojo(name = "upsert-job", requiresProject = true)
 public class UpsertJobMojo extends BaseDatabricksJobMojo {
@@ -61,9 +60,8 @@ public class UpsertJobMojo extends BaseDatabricksJobMojo {
                 } catch (JsonProcessingException jpe) {
                     getLog().error("Fail to stringify json", jpe);
                 }
-                throw new MojoExecutionException(String.format("Could not upsert job: [%s] with:%n%s", settingsDTO
-                        .getName(), jobJson),
-                        e);
+                throw new MojoExecutionException(String.format("Could not upsert job: [%s] with:%n%s",
+                    settingsDTO.getName(), jobJson), e);
             }
         }
     }

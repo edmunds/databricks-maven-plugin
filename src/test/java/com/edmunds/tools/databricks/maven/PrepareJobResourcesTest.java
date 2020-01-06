@@ -16,16 +16,15 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.nio.charset.StandardCharsets;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
 
@@ -49,7 +48,7 @@ public class PrepareJobResourcesTest extends DatabricksMavenPluginTestHarness {
         underTest.execute();
 
         String key = "unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT" +
-                ".jar";
+            ".jar";
 
         String lines = FileUtils.readFileToString(underTest.environmentDTOFileOutput, StandardCharsets.UTF_8);
         assertThat(lines, containsString("  \"groupId\" : \"unit-test-group\","));

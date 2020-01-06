@@ -16,18 +16,17 @@
 
 package com.edmunds.tools.databricks.maven.model;
 
-import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
+import com.edmunds.tools.databricks.maven.util.ObjectMapperUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-
-import static org.apache.commons.lang3.StringUtils.defaultString;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Simple POJO for keeping Project and Environment properties.
@@ -49,29 +48,23 @@ public class EnvironmentDTO {
     private String databricksRepo;
     private String databricksRepoKey;
 
-    public static String stripCompanyPackage(String prefixToStrip, String path) {
-        return path.replaceAll(prefixToStrip, "");
-    }
-
-    public static EnvironmentDTO loadEnvironmentDTOFromFile(File environmentDTOFile) throws MojoExecutionException {
-        if (environmentDTOFile == null) {
-            throw new MojoExecutionException("environmentDTOFile must be set!");
-        }
-        try {
-            String environmentDTOJson = FileUtils.readFileToString(environmentDTOFile, StandardCharsets.UTF_8);
-            return ObjectMapperUtils.deserialize(environmentDTOJson, EnvironmentDTO.class);
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getMessage(), e);
-        }
-    }
-
     /**
-     * Don't use this - it's for jackson deserialization only!
+     * Don't use this - it's for jackson deserialization only.
      */
     public EnvironmentDTO() {
     }
 
-    public EnvironmentDTO(MavenProject project, String environment, String databricksRepo, String databricksRepoKey, String prefixToStrip) {
+    /**
+     * EnvironmentDTO constructor.
+     *
+     * @param project project
+     * @param environment environment
+     * @param databricksRepo databricksRepo
+     * @param databricksRepoKey databricksRepoKey
+     * @param prefixToStrip prefixToStrip
+     */
+    public EnvironmentDTO(MavenProject project, String environment, String databricksRepo, String databricksRepoKey,
+        String prefixToStrip) {
         this.groupId = project.getGroupId();
         this.artifactId = project.getArtifactId();
         this.projectProperties = project.getProperties();
@@ -84,6 +77,29 @@ public class EnvironmentDTO {
         //TODO NEED TO GET RID OF this once we are ready. This is for backwards compatibility
         projectProperties.setProperty("databricks.repo", databricksRepo);
         projectProperties.setProperty("databricks.repo.key", databricksRepoKey);
+    }
+
+    public static String stripCompanyPackage(String prefixToStrip, String path) {
+        return path.replaceAll(prefixToStrip, "");
+    }
+
+    /**
+     * Load EnvironmentDTO from file.
+     *
+     * @param environmentDTOFile environmentDTO file
+     * @return EnvironmentDTO
+     * @throws MojoExecutionException exception
+     */
+    public static EnvironmentDTO loadEnvironmentDTOFromFile(File environmentDTOFile) throws MojoExecutionException {
+        if (environmentDTOFile == null) {
+            throw new MojoExecutionException("environmentDTOFile must be set!");
+        }
+        try {
+            String environmentDTOJson = FileUtils.readFileToString(environmentDTOFile, StandardCharsets.UTF_8);
+            return ObjectMapperUtils.deserialize(environmentDTOJson, EnvironmentDTO.class);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
     }
 
     public Properties getProjectProperties() {

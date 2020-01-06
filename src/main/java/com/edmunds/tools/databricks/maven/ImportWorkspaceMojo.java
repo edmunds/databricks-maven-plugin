@@ -16,26 +16,25 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static org.apache.commons.io.FileUtils.readFileToString;
+import static org.apache.commons.io.FilenameUtils.getBaseName;
+import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
+
 import com.edmunds.rest.databricks.DTO.workspace.ExportFormatDTO;
 import com.edmunds.rest.databricks.DTO.workspace.LanguageDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
 import com.edmunds.rest.databricks.service.WorkspaceService;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-
-import static org.apache.commons.io.FileUtils.readFileToString;
-import static org.apache.commons.io.FilenameUtils.getBaseName;
-import static org.apache.commons.io.FilenameUtils.getExtension;
-import static org.apache.commons.lang3.StringUtils.substringAfter;
 
 /**
  * A mojo that is responsible for taking care of importing notebooks into databricks.
@@ -43,14 +42,19 @@ import static org.apache.commons.lang3.StringUtils.substringAfter;
 @Mojo(name = "import-workspace", requiresProject = true)
 public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
 
+    /**
+     * Execute ImportWorkspaceMojo.
+     *
+     * @throws MojoExecutionException exception
+     */
     public void execute() throws MojoExecutionException {
         try {
             //We have to validate before importing because it hasn't been done already.
             validateNotebooks(sourceWorkspacePath);
             importWorkspace(sourceWorkspacePath);
         } catch (DatabricksRestException | IOException e) {
-            throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: " +
-                "[%s] TO DB: [%s]", "IMPORT", packagedWorkspacePath, workspacePrefix), e);
+            throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: "
+                + "[%s] TO DB: [%s]", "IMPORT", packagedWorkspacePath, workspacePrefix), e);
         }
     }
 
@@ -74,17 +78,20 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
                 createRemoteDir(relativePath);
 
                 LanguageDTO languageDTO = getLanguageDTO(file);
-                getLog().info(String.format("writing remote file: [%s] with source type: [%s]", remoteFilePath, languageDTO));
+                getLog().info(
+                    String.format("writing remote file: [%s] with source type: [%s]", remoteFilePath, languageDTO));
 
                 String source = readFileToString(file, StandardCharsets.UTF_8);
                 getLog().debug(String.format("file path: [%s] has source:%n%s", file.getPath(), source));
 
-                ImportWorkspaceRequest importWorkspaceRequest = new ImportWorkspaceRequest.ImportWorkspaceRequestBuilder(remoteFilePath)
-                    .withContent(source.getBytes(StandardCharsets.UTF_8))
-                    .withFormat(ExportFormatDTO.SOURCE)
-                    .withLanguage(languageDTO)
-                    .withOverwrite(true)
-                    .build();
+                ImportWorkspaceRequest importWorkspaceRequest =
+                    new ImportWorkspaceRequest.ImportWorkspaceRequestBuilder(
+                        remoteFilePath)
+                        .withContent(source.getBytes(StandardCharsets.UTF_8))
+                        .withFormat(ExportFormatDTO.SOURCE)
+                        .withLanguage(languageDTO)
+                        .withOverwrite(true)
+                        .build();
 
                 getWorkspaceService().importWorkspace(importWorkspaceRequest);
             }

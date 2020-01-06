@@ -37,9 +37,11 @@ public class ClusterUtilsTest extends BaseDatabricksMojoTest {
 
     @Test
     public void testConvertClusterNamesToIds() throws Exception {
-        when(clusterService.list()).thenReturn(new ClusterInfoDTO[]{getClusterInfoDTO("test1", "123"), getClusterInfoDTO("test2", "456")});
+        when(clusterService.list())
+            .thenReturn(new ClusterInfoDTO[]{getClusterInfoDTO("test1", "123"), getClusterInfoDTO("test2", "456")});
 
-        List<String> clusterIds = ClusterUtils.convertClusterNamesToIds(clusterService, Collections.singletonList("test2"));
+        List<String> clusterIds = ClusterUtils
+            .convertClusterNamesToIds(clusterService, Collections.singletonList("test2"));
 
         assertThat(clusterIds, hasItem("456"));
         assertThat(clusterIds.size(), is(1));

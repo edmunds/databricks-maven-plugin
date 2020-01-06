@@ -16,12 +16,18 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static org.apache.commons.lang3.StringUtils.substringAfter;
+
 import com.edmunds.rest.databricks.DTO.workspace.ExportFormatDTO;
 import com.edmunds.rest.databricks.DTO.workspace.ObjectInfoDTO;
 import com.edmunds.rest.databricks.DTO.workspace.ObjectTypeDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.request.ExportWorkspaceRequest;
 import com.edmunds.rest.databricks.service.WorkspaceService;
+import java.io.File;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.FileUtils;
@@ -31,25 +37,11 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
-import static org.apache.commons.lang3.StringUtils.substringAfter;
-
 /**
  * Interacts with the databricks workspace api.
  */
 @Mojo(name = "workspace-tool", requiresProject = true)
 public class WorkspaceToolMojo extends BaseWorkspaceMojo {
-
-    /**
-     * Workspace command to execute.
-     */
-    public enum WorkspaceCommand {
-        EXPORT, LIST
-    }
 
     /**
      * The workspace command to execute.<br>
@@ -59,6 +51,11 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
     @Parameter(property = "workspace.command", required = true)
     private WorkspaceCommand workspaceCommand;
 
+    /**
+     * Execute WorkspaceToolMojo.
+     *
+     * @throws MojoExecutionException exception
+     */
     public void execute() throws MojoExecutionException {
 
         try {
@@ -76,27 +73,27 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
                 }
             }
         } catch (DatabricksRestException | IOException e) {
-            throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: " +
-                    "[%s] DB Path: [%s]", workspaceCommand, getSourceFullWorkspacePath(), getDbWorkspacePath()), e);
+            throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: "
+                + "[%s] DB Path: [%s]", workspaceCommand, getSourceFullWorkspacePath(), getWorkspacePrefix()), e);
         }
     }
 
     private void listWorkspace() throws IOException, DatabricksRestException {
-        getLog().info(String.format("List for: [%s]", getDbWorkspacePath()));
-        accept(getDbWorkspacePath(), objectInfoDTO ->
-                getLog().info(ReflectionToStringBuilder.toString(objectInfoDTO, ToStringStyle.JSON_STYLE)));
+        getLog().info(String.format("List for: [%s]", getWorkspacePrefix()));
+        accept(getWorkspacePrefix(), objectInfoDTO ->
+            getLog().info(ReflectionToStringBuilder.toString(objectInfoDTO, ToStringStyle.JSON_STYLE)));
     }
 
     private void exportWorkspace() throws IOException, DatabricksRestException {
         // We export databricks notebooks into our source code directory (sourceWorkspacePath).
-        accept(getDbWorkspacePath(), objectInfoDTO -> {
+        accept(getWorkspacePrefix(), objectInfoDTO -> {
             if (objectInfoDTO.getObjectType() == ObjectTypeDTO.NOTEBOOK) {
                 String outputFilename = createOutputFilename(objectInfoDTO);
 
                 getLog().info(String.format("exporting: [%s] to: [%s]", outputFilename, getSourceFullWorkspacePath()));
 
                 FileUtils.writeStringToFile(new File(getSourceFullWorkspacePath(), outputFilename),
-                        getSource(objectInfoDTO), StandardCharsets.UTF_8);
+                    getSource(objectInfoDTO), StandardCharsets.UTF_8);
             }
         });
     }
@@ -104,8 +101,8 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
     private String getSource(ObjectInfoDTO objectInfoDTO) throws IOException, DatabricksRestException {
         String path = URLEncoder.encode(objectInfoDTO.getPath(), "UTF-8");
         ExportWorkspaceRequest exportWorkspaceRequest = new ExportWorkspaceRequest.ExportWorkspaceRequestBuilder(path)
-                .withFormat(ExportFormatDTO.SOURCE)
-                .build();
+            .withFormat(ExportFormatDTO.SOURCE)
+            .build();
         byte[] bytes = getWorkspaceService().exportWorkspace(exportWorkspaceRequest);
         return StringUtils.newStringUtf8(Base64.decodeBase64(new String(bytes, StandardCharsets.UTF_8)));
     }
@@ -116,7 +113,7 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
             extension = "py";
         }
 
-        return substringAfter(objectInfoDTO.getPath(), getDbWorkspacePath()) + "." + extension;
+        return substringAfter(objectInfoDTO.getPath(), getWorkspacePrefix()) + "." + extension;
     }
 
     private void accept(String path, ObjectInfoVisitor visitor) throws IOException, DatabricksRestException {
@@ -143,10 +140,18 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
     }
 
     /**
+     * Workspace command to execute.
+     */
+    public enum WorkspaceCommand {
+        EXPORT, LIST
+    }
+
+    /**
      * Simple visitor pattern to visit ObjectInfoDTO elements.
      */
     @FunctionalInterface
     public interface ObjectInfoVisitor {
+
         void visit(ObjectInfoDTO objectInfoDTO) throws IOException, DatabricksRestException;
     }
 }

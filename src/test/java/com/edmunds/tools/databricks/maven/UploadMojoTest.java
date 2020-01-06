@@ -16,6 +16,9 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,9 +29,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 /**
  * Tests for @{@link UpsertJobMojo}.
  * <p>
@@ -37,11 +37,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
 
     private static final String GOAL = "upload-to-s3";
-
-    private UploadMojo underTest;
-
     @Mock
     AmazonS3Client s3Client;
+    private UploadMojo underTest;
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -83,7 +81,7 @@ public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
         Mockito.verify(s3Client).putObject(putRequestCaptor.capture());
         assertEquals("myBucket", putRequestCaptor.getValue().getBucketName());
         assertEquals("repo/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar",
-                putRequestCaptor.getValue().getKey());
+            putRequestCaptor.getValue().getKey());
         assertEquals("myFile.csv", putRequestCaptor.getValue().getFile().getName());
     }
 }

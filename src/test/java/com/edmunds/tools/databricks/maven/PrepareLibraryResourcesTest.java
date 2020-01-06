@@ -16,15 +16,14 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.nio.charset.StandardCharsets;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 
 public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarness {
 
@@ -44,7 +43,7 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
     public void createArtifactPath_default_NOOP() throws Exception {
         PrepareLibraryResources underTest = getNoOverridesMojo(GOAL);
         assertThat(underTest.createDeployedArtifactPath(), is("s3://my-bucket/artifacts/unit-test-group" +
-                "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
+            "/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar"));
         underTest.execute();
     }
 
@@ -60,11 +59,12 @@ public class PrepareLibraryResourcesTest extends DatabricksMavenPluginTestHarnes
         underTest.execute();
 
         String expected = String.format("{%n" +
-                "  \"artifactPath\" : \"s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar\",%n" +
-                "  \"clusterNames\" : [ \"my-test-cluster\", \"my-other-cluster\" ]%n" +
-                "}");
+            "  \"artifactPath\" : \"s3://my-bucket/artifacts/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar\",%n"
+            +
+            "  \"clusterNames\" : [ \"my-test-cluster\", \"my-other-cluster\" ]%n" +
+            "}");
 
-        String actual = FileUtils.readFileToString(underTest.libaryMappingFileOutput, StandardCharsets.UTF_8);
+        String actual = FileUtils.readFileToString(underTest.libraryMappingFileOutput, StandardCharsets.UTF_8);
 
         assertEquals(expected, actual);
     }

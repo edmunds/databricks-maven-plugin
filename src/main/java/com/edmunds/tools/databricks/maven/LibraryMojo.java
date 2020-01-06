@@ -16,6 +16,11 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.contains;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import com.edmunds.rest.databricks.DTO.clusters.ClusterInfoDTO;
 import com.edmunds.rest.databricks.DTO.clusters.ClusterStateDTO;
 import com.edmunds.rest.databricks.DTO.libraries.ClusterLibraryStatusesDTO;
@@ -26,50 +31,34 @@ import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.tools.databricks.maven.model.LibraryClustersModel;
 import com.google.common.util.concurrent.Uninterruptibles;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.apache.commons.lang3.StringUtils.contains;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 /**
  * Installs\Uninstalls a library to\from a databricks cluster.
- * <p>
  * Please NOTE:
  * 1) Libraries attached via the API will NOT show up in the databricks UI - only through the API
  * 2) The library call is async and will not return a response if the library is invalid see <a href="https://docs.databricks.com/api/latest/libraries.html#install">here.</a>
  * 3) dbfs is the only format supported, at least initially - the artifact name will have this prepended
- * 4) In order to modify a library on a cluster, the cluster has to be up. Therefore, this mojo will start a stopped cluster to do its work.
+ * 4) In order to modify a library on a cluster, the cluster has to be up.
+ * Therefore, this mojo will start a stopped cluster to do its work.
  * It will return the cluster to it's original state when complete.
  */
 @Mojo(name = "library", requiresProject = true)
 public class LibraryMojo extends BaseLibraryMojo {
 
     private static final int SLEEP_TIME_MS = 200;
-
-    /**
-     * The library commands.
-     */
-    public enum LibraryCommand {
-        INSTALL, UNINSTALL, STATUS
-    }
-
     /**
      * The library command to execute.<br>
-     * <p>
      * INSTALL - installs a library to a cluster. It will restart a cluster if necessary.<br>
      * UNINSTALL - removes a library from a cluster. It will restart a cluster if necessary.<br>
      * STATUS - the status of libraries on a cluster.<br>
      */
     @Parameter(name = "libraryCommand", property = "library.command", required = true)
     private LibraryCommand libraryCommand;
-
     /**
      * If set to true (default), the cluster will be restarted in order for the new library to immediately take effect.
      * If set to false, the cluster will not be restarted which means that in order for new library to be installed,
@@ -78,6 +67,11 @@ public class LibraryMojo extends BaseLibraryMojo {
     @Parameter(property = "restart", required = false, defaultValue = "true")
     private boolean restart;
 
+    /**
+     * Execute LibraryMojo.
+     *
+     * @throws MojoExecutionException exception
+     */
     public void execute() throws MojoExecutionException {
 
         LibraryService libraryService = getDatabricksServiceFactory().getLibraryService();
@@ -93,8 +87,9 @@ public class LibraryMojo extends BaseLibraryMojo {
         for (String clusterId : convertClusterNamesToIds(clusterService, libraryClustersModel.getClusterNames())) {
             try {
 
-                getLog().debug(String.format("preparing to run command [%s] artifact on path: [%s] to cluster id: " +
-                        "[%s]", libraryCommand, artifactPath, clusterId));
+                getLog().debug(
+                    String.format("preparing to run command [%s] artifact on path: [%s] to cluster id: [%s]",
+                        libraryCommand, artifactPath, clusterId));
 
                 switch (libraryCommand) {
                     case INSTALL:
@@ -108,13 +103,15 @@ public class LibraryMojo extends BaseLibraryMojo {
                         throw new IllegalStateException("No valid library command was found.");
                 }
             } catch (DatabricksRestException | IOException e) {
-                throw new MojoExecutionException(String.format("Could not [%s] library: [%s] to [%s]", libraryCommand, artifactPath, clusterId), e);
+                throw new MojoExecutionException(
+                    String.format("Could not [%s] library: [%s] to [%s]", libraryCommand, artifactPath, clusterId), e);
             }
         }
 
     }
 
-    private void uninstallPreviousVersions(String clusterId, LibraryService libraryService) throws IOException, DatabricksRestException, MojoExecutionException {
+    private void uninstallPreviousVersions(String clusterId, LibraryService libraryService)
+        throws IOException, DatabricksRestException, MojoExecutionException {
         LibraryFullStatusDTO[] libraryFullStatuses = getLibraryFullStatusDTOs(clusterId, libraryService);
         for (LibraryFullStatusDTO libraryFullStatus : libraryFullStatuses) {
             String jar = libraryFullStatus.getLibrary().getJar();
@@ -126,7 +123,8 @@ public class LibraryMojo extends BaseLibraryMojo {
     }
 
     private void runCommand(String artifactPath, String clusterId, LibraryCommand libraryCommand, ClusterService
-            clusterService, LibraryService libraryService) throws IOException, DatabricksRestException, MojoExecutionException {
+        clusterService, LibraryService libraryService)
+        throws IOException, DatabricksRestException, MojoExecutionException {
 
         if (project.getArtifact().getType().equals(JAR)) {
             ClusterStateDTO originalState = startCluster(clusterId, clusterService);
@@ -149,18 +147,17 @@ public class LibraryMojo extends BaseLibraryMojo {
      * There are 2 valid operations:
      * 1. If the cluster was stopped prior to this mojo, turn it back off.
      * 2. If the cluster was running, restart it.
-     * <p>
      * Both of these actions are there to account for how library-cluster interaction works in databricks.
      * e.g. You cannot modify libraries on a stopped cluster, and a restart is required on running ones.
      *
-     * @param clusterId      - the cluster id we're working on
-     * @param originalState  - the state the cluster was in prior to this mojo
+     * @param clusterId - the cluster id we're working on
+     * @param originalState - the state the cluster was in prior to this mojo
      * @param clusterService - cluster service
-     * @param restart        - whether to restart the cluster
+     * @param restart - whether to restart the cluster
      */
     private void manageClusterState(String clusterId, ClusterStateDTO originalState, ClusterService clusterService,
-                                    boolean restart) throws
-            IOException, DatabricksRestException {
+        boolean restart) throws
+        IOException, DatabricksRestException {
         switch (originalState) {
             case PENDING:
             case RESTARTING:
@@ -170,8 +167,8 @@ public class LibraryMojo extends BaseLibraryMojo {
                     getLog().info("Restarting cluster!");
                     restartCluster(clusterId, clusterService);
                 } else {
-                    getLog().info("restart set to false. " +
-                            "Users need to restart cluster in order for new library to take effect");
+                    getLog().info("restart set to false. "
+                        + "Users need to restart cluster in order for new library to take effect");
                 }
                 break;
             default:
@@ -182,7 +179,7 @@ public class LibraryMojo extends BaseLibraryMojo {
     }
 
     private void restartCluster(String clusterId, ClusterService clusterService) throws
-            IOException, DatabricksRestException {
+        IOException, DatabricksRestException {
         getLog().info(String.format("restarting cluster: [%s]", clusterId));
 
         stopCluster(clusterId, clusterService);
@@ -191,7 +188,7 @@ public class LibraryMojo extends BaseLibraryMojo {
     }
 
     private void stopCluster(String clusterId, ClusterService clusterService) throws
-            IOException, DatabricksRestException {
+        IOException, DatabricksRestException {
         clusterService.delete(clusterId);
 
         while (clusterService.getInfo(clusterId).getState() == ClusterStateDTO.TERMINATING) {
@@ -201,13 +198,13 @@ public class LibraryMojo extends BaseLibraryMojo {
     }
 
     /**
-     * NOOP if the cluster is already running
+     * NOOP if the cluster is already running.
      *
      * @param clusterId - the cluster id to start
      * @return - the cluster state
      */
     private ClusterStateDTO startCluster(String clusterId, ClusterService clusterService) throws
-            IOException, DatabricksRestException {
+        IOException, DatabricksRestException {
         ClusterInfoDTO info = clusterService.getInfo(clusterId);
         ClusterStateDTO originalState = info.getState();
         switch (originalState) {
@@ -215,7 +212,8 @@ public class LibraryMojo extends BaseLibraryMojo {
             case RESTARTING:
             case RESIZING:
             case RUNNING:
-                getLog().info(String.format("cluster: [%s] is in state: [%s], skipping start.", clusterId, originalState));
+                getLog()
+                    .info(String.format("cluster: [%s] is in state: [%s], skipping start.", clusterId, originalState));
                 break;
             default:
                 clusterService.start(clusterId);
@@ -227,7 +225,7 @@ public class LibraryMojo extends BaseLibraryMojo {
     }
 
     private void listLibraryStatus(String clusterId, LibraryService libraryService) throws
-            IOException, DatabricksRestException {
+        IOException, DatabricksRestException {
         LibraryFullStatusDTO[] libraryFullStatuses = getLibraryFullStatusDTOs(clusterId, libraryService);
         for (LibraryFullStatusDTO libraryFullStatus : libraryFullStatuses) {
             String jar = libraryFullStatus.getLibrary().getJar();
@@ -238,8 +236,9 @@ public class LibraryMojo extends BaseLibraryMojo {
     }
 
     private LibraryFullStatusDTO[] getLibraryFullStatusDTOs(String clusterId, LibraryService libraryService) throws
-            IOException, DatabricksRestException {
-        ClusterLibraryStatusesDTO clusterLibraryStatuses = defaultIfNull(libraryService.clusterStatus(clusterId), new ClusterLibraryStatusesDTO());
+        IOException, DatabricksRestException {
+        ClusterLibraryStatusesDTO clusterLibraryStatuses = defaultIfNull(libraryService.clusterStatus(clusterId),
+            new ClusterLibraryStatusesDTO());
         return defaultIfNull(clusterLibraryStatuses.getLibraryFullStatuses(), new LibraryFullStatusDTO[]{});
     }
 
@@ -247,5 +246,12 @@ public class LibraryMojo extends BaseLibraryMojo {
         LibraryDTO lib = new LibraryDTO();
         lib.setJar(artifactPath);
         return new LibraryDTO[]{lib};
+    }
+
+    /**
+     * The library commands.
+     */
+    public enum LibraryCommand {
+        INSTALL, UNINSTALL, STATUS
     }
 }

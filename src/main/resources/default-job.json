@@ -3,7 +3,7 @@
   {
     "name": "${groupWithoutCompany}/${artifactId}",
     "new_cluster": {
-      "spark_version": "6.1.x-scala2.11",
+      "spark_version": "6.2.x-scala2.11",
       "aws_attributes": {
         "first_on_demand": 1,
         "availability": "SPOT_WITH_FALLBACK",
@@ -13,9 +13,6 @@
         "ebs_volume_count": 0,
         "ebs_volume_size": 0
       },
-      "node_type_id": "m5d.large",
-      "num_workers": 1,
-      //"autotermination_minutes": 30,  autotermination is currently not working  at 2018.06.25
       "enable_elastic_disk": false
     },
     //Can override by setting to libraries:[]
