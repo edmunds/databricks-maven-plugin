@@ -16,21 +16,20 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.verify;
+
 import com.edmunds.rest.databricks.DTO.JobDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
+import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.verify;
 
 /**
  * Tests for @{@link UpsertJobMojo}.
@@ -55,7 +54,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
     public void execute_NoJobFile_NothingHappens() throws Exception {
         UpsertJobMojoNoProject underTest = getNoOverridesMojo(GOAL);
         Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
-                ("unit-test-group/unit-test-artifact", 1));
+            ("unit-test-group/unit-test-artifact", 1));
         underTest.execute();
 
         List<JobSettingsDTO> jobSettingsDTOS = underTest.getSettingsUtils().buildSettingsDTOsWithDefaults();
@@ -81,7 +80,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
     public void execute_whenJobFileAndTemplateExists_upsertsJob() throws Exception {
         UpsertJobMojoNoProject underTest = getOverridesMojo(GOAL, "2");
         Mockito.when(jobService.getJobByName("dwh/inventory-databricks", true)).thenReturn(createJobDTO
-                ("dwh/inventory-databricks", 1));
+            ("dwh/inventory-databricks", 1));
 
         underTest.execute();
 
@@ -90,9 +89,9 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
         assertThat(jobSettingsDTOS.get(0).getEmailNotifications().getOnFailure(), is(new String[]{"QA.com"}));
         assertThat(jobSettingsDTOS.get(0).getName(), is("dwh/inventory-databricks"));
         assertThat(jobSettingsDTOS.get(0).getLibraries()[0].getJar(), is
-                ("s3://edmunds-repos/artifacts/com.edmunds" +
-                        ".dwh/inventory-databricks/1.1.182-SNAPSHOT/inventory-databricks-1.1.182-SNAPSHOT" +
-                        ".jar"));
+            ("s3://edmunds-repos/artifacts/com.edmunds" +
+                ".dwh/inventory-databricks/1.1.182-SNAPSHOT/inventory-databricks-1.1.182-SNAPSHOT" +
+                ".jar"));
 
         ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
         verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
@@ -103,7 +102,7 @@ public class UpsertJobMojoNoProjectTest extends DatabricksMavenPluginTestHarness
     public void execute_whenJobFileAndTemplateExistsAndEnvironmentIsProd_upsertsJob() throws Exception {
         UpsertJobMojoNoProject underTest = getOverridesMojo(GOAL, "-prod");
         Mockito.when(jobService.getJobByName("dwh/inventory-databricks", true)).thenReturn(createJobDTO
-                ("dwh/inventory-databricks", 1));
+            ("dwh/inventory-databricks", 1));
 
         underTest.execute();
 

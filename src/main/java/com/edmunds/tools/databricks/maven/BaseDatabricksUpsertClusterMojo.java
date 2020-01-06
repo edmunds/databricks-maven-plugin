@@ -21,11 +21,10 @@ import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
+import java.io.File;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
-
-import java.io.File;
 
 /**
  * Base class for Databricks UpsertCluster Mojos.
@@ -35,7 +34,9 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     /**
      * The databricks cluster json file that contains all of the information for how to create databricks cluster.
      */
-    @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json", property = "dbClusterFile")
+    @Parameter(
+        defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-cluster-settings.json",
+        property = "dbClusterFile")
     protected File dbClusterFile;
 
     // These fields are being instantiated within getters to await @Parameter fields initialization
@@ -43,11 +44,17 @@ public abstract class BaseDatabricksUpsertClusterMojo extends BaseDatabricksMojo
     private EnvironmentDTOSupplier environmentDTOSupplier;
     private SettingsInitializer<UpsertClusterDTO> settingsInitializer;
 
+    /**
+     * Get SettingsUtils.
+     *
+     * @return SettingsUtils
+     * @throws MojoExecutionException exception
+     */
     public SettingsUtils<UpsertClusterDTO> getSettingsUtils() throws MojoExecutionException {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
-                    UpsertClusterDTO[].class, "/default-cluster.json", dbClusterFile,
-                    getEnvironmentDTOSupplier(), getSettingsInitializer());
+                UpsertClusterDTO[].class, "/default-cluster.json", dbClusterFile,
+                getEnvironmentDTOSupplier(), getSettingsInitializer());
         }
         return settingsUtils;
     }

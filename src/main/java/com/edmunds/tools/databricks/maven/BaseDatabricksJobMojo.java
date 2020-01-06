@@ -24,12 +24,11 @@ import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
+import java.io.File;
+import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Base class for Databricks Job Mojos.
@@ -37,28 +36,33 @@ import java.io.IOException;
 public abstract class BaseDatabricksJobMojo extends BaseDatabricksMojo {
 
     /**
-     * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
-     */
-    @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-job-settings.json", property = "dbJobFile")
-    private File dbJobFile;
-
-    /**
-     * If true, any command that involves working by databricks job name, will fail if more then one job exists
-     * with that job name.
+     * If true, any command that involves working by databricks job name, will fail if more then one job exists with
+     * that job name.
      */
     @Parameter(property = "failOnDuplicateJobName")
     boolean failOnDuplicateJobName = true;
-
+    /**
+     * The databricks job json file that contains all of the information for how to create one or more databricks jobs.
+     */
+    @Parameter(defaultValue = "${project.build.resources[0].directory}/databricks-plugin/databricks-job-settings.json",
+        property = "dbJobFile")
+    private File dbJobFile;
     // These fields are being instantiated within getters to await @Parameter fields initialization
     private SettingsUtils<JobSettingsDTO> settingsUtils;
     private EnvironmentDTOSupplier environmentDTOSupplier;
     private SettingsInitializer<JobSettingsDTO> settingsInitializer;
 
+    /**
+     * Get SettingsUtils.
+     *
+     * @return SettingsUtils
+     * @throws MojoExecutionException exception
+     */
     public SettingsUtils<JobSettingsDTO> getSettingsUtils() throws MojoExecutionException {
         if (settingsUtils == null) {
             settingsUtils = new SettingsUtils<>(
-                    JobSettingsDTO[].class, "/default-job.json", dbJobFile,
-                    getEnvironmentDTOSupplier(), getSettingsInitializer());
+                JobSettingsDTO[].class, "/default-job.json", dbJobFile,
+                getEnvironmentDTOSupplier(), getSettingsInitializer());
         }
         return settingsUtils;
     }

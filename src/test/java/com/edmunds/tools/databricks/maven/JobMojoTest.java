@@ -17,13 +17,6 @@
 package com.edmunds.tools.databricks.maven;
 
 
-import com.edmunds.rest.databricks.DTO.RunDTO;
-import com.edmunds.rest.databricks.DTO.RunNowDTO;
-import com.edmunds.rest.databricks.DTO.RunsDTO;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -35,6 +28,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.fail;
+
+import com.edmunds.rest.databricks.DTO.RunDTO;
+import com.edmunds.rest.databricks.DTO.RunNowDTO;
+import com.edmunds.rest.databricks.DTO.RunsDTO;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  * Tests for {@link JobMojo}.

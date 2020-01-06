@@ -18,19 +18,16 @@ package com.edmunds.tools.databricks.maven;
 
 import com.edmunds.tools.databricks.maven.model.EnvironmentDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
+import java.io.File;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
-
 /**
  * Upserts databricks jobs with the given name based on the artifacts job settings json file.
- * <p>
  * This file should be in the resources directory named ${artifactId}-job-settings.json and
  * should be a serialized form of an array of type JobSettingsDTO.
- * <p>
- * NOTE: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false, in which case only the first one will be updated.
- * <p>
+ * NOTE: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false,
+ * in which case only the first one will be updated.
  * no project is split out so we have a mojo that will work with multi-module projects
  */
 @Mojo(name = "upsert-job-np", requiresProject = false)

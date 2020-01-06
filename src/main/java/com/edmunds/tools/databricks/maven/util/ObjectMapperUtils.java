@@ -20,23 +20,14 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.File;
 import java.io.IOException;
 
-/**
- *
- */
 public class ObjectMapperUtils {
 
     public static final ObjectMapper OBJECT_MAPPER =
-            new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
+        new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
 
-    /**
-     * @param json
-     * @return
-     * @throws IOException
-     */
     public static <T> T deserialize(String json, Class<T> clazz) throws IOException {
         return OBJECT_MAPPER.readValue(json, clazz);
     }

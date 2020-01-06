@@ -4,11 +4,10 @@ import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
+import java.util.Collections;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.util.Collections;
 
 /**
  * Tests for @{@link BaseDatabricksUpsertClusterMojoSettingsInitializer}.
@@ -52,7 +51,7 @@ public class BaseDatabricksUpsertClusterMojoSettingsInitializerTest extends Data
     }
 
     @Test(expectedExceptions = MojoExecutionException.class,
-            expectedExceptionsMessageRegExp = "REQUIRED FIELD \\[cluster_name\\] was empty. VALIDATION FAILED.")
+        expectedExceptionsMessageRegExp = "REQUIRED FIELD \\[cluster_name\\] was empty. VALIDATION FAILED.")
     public void testValidate_whenNoClusterName_exception() throws Exception {
         UpsertClusterDTO targetDTO = new UpsertClusterDTO();
 

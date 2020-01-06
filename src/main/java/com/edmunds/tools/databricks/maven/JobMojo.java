@@ -16,27 +16,27 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.RunDTO;
 import com.edmunds.rest.databricks.DTO.RunNowDTO;
 import com.edmunds.rest.databricks.DTO.RunsDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.google.common.util.concurrent.Uninterruptibles;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 /**
  * Controls a given databricks job [start\stop\restart].
  * <p>
- * NOTE 1: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false, in which case only the first one will be updated.
+ * NOTE 1: If a job does not have a unique name, it will fail unless failOnDuplicateJobName=false,
+ * in which case only the first one will be updated.
  * </p>
  * <p>
  * NOTE 2: If a job has more than 1 active run, ALL of them will be cancelled on STOP\RESTART.
@@ -48,30 +48,19 @@ public class JobMojo extends BaseDatabricksJobMojo {
     private static final int RUNS_OFFSET = 0;
     private static final int RUNS_LIMIT = 1000;
     private static final String STREAM = "stream";
-
-    /**
-     * Job command to execute.
-     */
-    public enum JobCommand {
-        START, STOP, RESTART
-    }
-
     /**
      * The databricks job name to operate on.
      */
     @Parameter(property = "jobName")
     private String jobName;
-
     /**
      * The databricks job command to execute.<br>
-     *
      * STOP - stop a job.<br>
      * START - start a job.<br>
      * RESTART - restart a running job.<br>
      */
     @Parameter(defaultValue = "RESTART", property = "job.command", required = true)
     private JobCommand command;
-
     /**
      * Whether the command should be only executed on streaming jobs only.
      * Whether a job is streaming is based on its job name.
@@ -95,7 +84,10 @@ public class JobMojo extends BaseDatabricksJobMojo {
 
     private void controlJob() throws MojoExecutionException {
         if (streamingOnly && !containsIgnoreCase(jobName, STREAM)) {
-            getLog().warn(String.format("Job: [%s] is not streaming. Either include '%s' in the name if this is incorrect, or set streamingOnly=false to override this.", jobName, STREAM));
+            getLog().warn(String.format(
+                "Job: [%s] is not streaming. Either include '%s' in the name if this is incorrect, "
+                    + "or set streamingOnly=false to override this.",
+                jobName, STREAM));
             return;
         }
 
@@ -129,7 +121,8 @@ public class JobMojo extends BaseDatabricksJobMojo {
                     }
                 }
             } catch (DatabricksRestException | IOException e) {
-                throw new MojoExecutionException(String.format("Could not control job: [%s] with command: [%s]", jobId, command.name()), e);
+                throw new MojoExecutionException(
+                    String.format("Could not control job: [%s] with command: [%s]", jobId, command.name()), e);
             }
         } else {
             getLog().error(String.format("No job id found for: [%s]", jobName));
@@ -168,10 +161,17 @@ public class JobMojo extends BaseDatabricksJobMojo {
     }
 
     /**
-     * NOTE - only for unit testing!
+     * NOTE - only for unit testing.
      */
     void setStreamingOnly(boolean streamingOnly) {
         this.streamingOnly = streamingOnly;
+    }
+
+    /**
+     * Job command to execute.
+     */
+    public enum JobCommand {
+        START, STOP, RESTART
     }
 
 }

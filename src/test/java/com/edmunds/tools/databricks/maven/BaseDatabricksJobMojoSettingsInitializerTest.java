@@ -1,20 +1,19 @@
 package com.edmunds.tools.databricks.maven;
 
+import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsInitializer.TEAM_TAG;
+
 import com.edmunds.rest.databricks.DTO.JobEmailNotificationsDTO;
 import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.NewClusterDTO;
 import com.edmunds.tools.databricks.maven.util.EnvironmentDTOSupplier;
 import com.edmunds.tools.databricks.maven.util.SettingsInitializer;
 import com.edmunds.tools.databricks.maven.util.SettingsUtils;
+import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.collections.Maps;
-
-import java.util.Map;
-
-import static com.edmunds.tools.databricks.maven.BaseDatabricksJobMojoSettingsInitializer.TEAM_TAG;
 
 /**
  * Tests for @{@link BaseDatabricksJobMojoSettingsInitializer}.
@@ -49,7 +48,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
         assertEquals(userCluster.getNodeTypeId(), defaultCluster.getNodeTypeId());
         assertEquals(userCluster.getNumWorkers(), defaultCluster.getNumWorkers());
         assertEquals(userCluster.getAwsAttributes().getEbsVolumeSize(),
-                defaultCluster.getAwsAttributes().getEbsVolumeSize());
+            defaultCluster.getAwsAttributes().getEbsVolumeSize());
 
         assertEquals(targetDTO.getLibraries()[0].getJar(), defaultSettingsDTO.getLibraries()[0].getJar());
 
@@ -80,7 +79,7 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp =
-            "REQUIRED FIELD \\[email_notifications.on_failure\\] was empty. VALIDATION FAILED.")
+        "REQUIRED FIELD \\[email_notifications.on_failure\\] was empty. VALIDATION FAILED.")
     public void testValidate_whenNoEmailOnFailure_exception() throws Exception {
         JobSettingsDTO targetDTO = createTestJobSettings(Maps.newHashMap());
 
@@ -88,8 +87,8 @@ public class BaseDatabricksJobMojoSettingsInitializerTest extends DatabricksMave
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp =
-            "JOB NAME VALIDATION FAILED \\[ILLEGAL FORMAT\\]:.*" +
-                    "Expected: \\[groupId/artifactId/...\\] but found: \\[1\\] parts.")
+        "JOB NAME VALIDATION FAILED \\[ILLEGAL FORMAT\\]:.*" +
+            "Expected: \\[groupId/artifactId/...\\] but found: \\[1\\] parts.")
     public void testValidate_whenIncorrectJobName_exception() throws Exception {
         JobSettingsDTO targetDTO = createTestJobSettings(Maps.newHashMap());
         JobEmailNotificationsDTO jobEmailNotificationsDTO = new JobEmailNotificationsDTO();

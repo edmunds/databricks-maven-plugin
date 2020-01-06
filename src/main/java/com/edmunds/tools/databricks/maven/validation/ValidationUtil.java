@@ -16,13 +16,12 @@
 
 package com.edmunds.tools.databricks.maven.validation;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.MojoExecutionException;
-
-import java.util.Objects;
-
 import static com.edmunds.tools.databricks.maven.model.EnvironmentDTO.stripCompanyPackage;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  * The plugin validation utility - only needed for the common path validation method.
@@ -34,19 +33,19 @@ public class ValidationUtil {
 
     /**
      * Validate the path that is passed in. Note, path can also be a job name.
-     * <p>
      * What the validation does:
      * split it by /
      * part[0] == groupId
      * part[1] == artifactId
      * part[...] - don't check, doesn't matter, as user defined
      *
-     * @param path       - the path to validate, can be a job name as well
-     * @param groupId    - the projects groupId
+     * @param path - the path to validate, can be a job name as well
+     * @param groupId - the projects groupId
      * @param artifactId - the projects artifactId
      * @throws MojoExecutionException - thrown when the job name does not conform
      */
-    public static void validatePath(String path, String groupId, String artifactId, String prefixToStrip) throws MojoExecutionException {
+    public static void validatePath(String path, String groupId, String artifactId, String prefixToStrip)
+        throws MojoExecutionException {
 
         path = path.replace('\\', '/');
         //workspace path starts at root, job names do not have '/' prefix
@@ -56,8 +55,8 @@ public class ValidationUtil {
 
         String[] jobNameParts = path.split("/");
         if (jobNameParts.length < 2) {
-            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL FORMAT]:%n" +
-                    "Expected: [groupId/artifactId/...] but found: [%s] parts.", jobNameParts.length));
+            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL FORMAT]:%n"
+                + "Expected: [groupId/artifactId/...] but found: [%s] parts.", jobNameParts.length));
         }
 
         validatePart(jobNameParts[0], getStrippedGroupId(groupId, artifactId, prefixToStrip), GROUP_ID);
@@ -80,20 +79,21 @@ public class ValidationUtil {
         return Objects.toString(System.getProperties().get(key), "");
     }
 
-    private static void validatePart(String jobNamePart, String expectedValue, String keyName) throws MojoExecutionException {
+    private static void validatePart(String jobNamePart, String expectedValue, String keyName)
+        throws MojoExecutionException {
         if (isBlank(expectedValue)) {
             throw new MojoExecutionException(
-                    String.format(
-                            "JOB NAME VALIDATION FAILED [REQUIRED PROPERTY]: '%s' is not set.%n" +
-                                    "Please set it in your POM file.%n" +
-                                    "ex: <%s>foo</%s>%n" +
-                                    "Or, pass it as a program argument.%n" +
-                                    "ex: -D%s=foo", keyName, keyName, keyName, keyName));
+                String.format(
+                    "JOB NAME VALIDATION FAILED [REQUIRED PROPERTY]: '%s' is not set.%n"
+                        + "Please set it in your POM file.%n"
+                        + "ex: <%s>foo</%s>%n"
+                        + "Or, pass it as a program argument.%n"
+                        + "ex: -D%s=foo", keyName, keyName, keyName, keyName));
         }
 
         if (!StringUtils.equals(expectedValue, jobNamePart)) {
-            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL VALUE]:%n" +
-                    "Expected: [%s] but found: [%s]", expectedValue, jobNamePart));
+            throw new MojoExecutionException(String.format("JOB NAME VALIDATION FAILED [ILLEGAL VALUE]:%n"
+                + "Expected: [%s] but found: [%s]", expectedValue, jobNamePart));
         }
     }
 

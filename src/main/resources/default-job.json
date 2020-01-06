@@ -3,7 +3,7 @@
   {
     "name": "${groupWithoutCompany}/${artifactId}",
     "new_cluster": {
-      "spark_version": "6.1.x-scala2.11",
+      "spark_version": "6.2.x-scala2.11",
       "aws_attributes": {
         "first_on_demand": 1,
         "availability": "SPOT_WITH_FALLBACK",

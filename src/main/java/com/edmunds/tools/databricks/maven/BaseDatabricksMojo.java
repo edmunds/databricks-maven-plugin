@@ -16,15 +16,15 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import com.edmunds.rest.databricks.DatabricksServiceFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * The base databricks mojo.
@@ -48,9 +48,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      * BUT you can also specify a common prefix here in addition to a bucket,
      * for example:
      * "my-bucket/artifacts"
-     * <p>
      * This property is not required due to the no project option.
-     * <p>
      * If both project property and mojo configuration is set, mojo configuration wins.
      */
     @Parameter(name = "databricksRepo", property = "databricks.repo")
@@ -62,8 +60,8 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      * groupId/artifactId/version/artifact-version.jar
      */
     @Parameter(name = "databricksRepoKey", property = "databricks.repo.key",
-            defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}" +
-                    ".${project.packaging}")
+        defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}"
+            + ".${project.packaging}")
     protected String databricksRepoKey;
 
     /**
@@ -79,30 +77,26 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     protected String environment;
 
     /**
-     * This property can be picked up via an environment property!
-     * DB_URL
+     * This property can be picked up via an environment property. DB_URL
      */
     @Parameter(name = "host", property = "host")
     protected String host;
 
     /**
-     * This property can be picked up via an environment property!
-     * DB_TOKEN
-     * NOTE: user+password authentication will take precedence over token based authentication if both are provided.
+     * This property can be picked up via an environment property. DB_TOKEN NOTE: user+password authentication will take
+     * precedence over token based authentication if both are provided.
      */
     @Parameter(name = "token", property = "token")
     protected String token;
 
     /**
-     * This property can be picked up via an environment property!
-     * DB_USER
+     * This property can be picked up via an environment property. DB_USER
      */
     @Parameter(name = "user", property = "user")
     protected String user;
 
     /**
-     * This property can be picked up via an environment property!
-     * DB_PASSWORD
+     * This property can be picked up via an environment property. DB_PASSWORD
      */
     @Parameter(name = "password", property = "password")
     protected String password;
@@ -115,7 +109,6 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
 
     /**
      * The value that will be stripped off of the groupId and used in path setting and job names.
-     * <p>
      * For example: 'com.edmunds' or 'org.myproject'. Keep in mind, this value is a regex, so, '.' should be escaped.
      * With the default prefixToStrip, if we have a group of 'com.edmunds.tools' the resulting value expected for use in
      * workspace root and job ids will be 'tools'.
@@ -133,19 +126,28 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
 
             if (user != null && password != null) {
                 return DatabricksServiceFactory
-                        .Builder
-                        .createUserPasswordAuthentication(user, password, host)
-                        .build();
+                    .Builder
+                    .createUserPasswordAuthentication(user, password, host)
+                    .build();
             } else if (token != null) {
                 return DatabricksServiceFactory
-                        .Builder
-                        .createTokenAuthentication(token, host)
-                        .build();
+                    .Builder
+                    .createTokenAuthentication(token, host)
+                    .build();
             } else {
                 throw new IllegalArgumentException("Must either specify user/password or token!");
             }
         }
         return databricksServiceFactory;
+    }
+
+    /**
+     * NOTE - only for unit testing.
+     *
+     * @param databricksServiceFactory - the mock factory to use
+     */
+    void setDatabricksServiceFactory(DatabricksServiceFactory databricksServiceFactory) {
+        this.databricksServiceFactory = databricksServiceFactory;
     }
 
     private void loadPropertiesFromSystemEnvironment() {
@@ -168,23 +170,14 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     }
 
     /**
-     * NOTE - only for unit testing!
-     *
-     * @param databricksServiceFactory - the mock factory to use
-     */
-    void setDatabricksServiceFactory(DatabricksServiceFactory databricksServiceFactory) {
-        this.databricksServiceFactory = databricksServiceFactory;
-    }
-
-    /**
-     * NOTE - only for unit testing!
+     * NOTE - only for unit testing.
      */
     void setEnvironment(String environment) {
         this.environment = environment;
     }
 
     /**
-     * NOTE - only for unit testing!
+     * NOTE - only for unit testing.
      */
     void setProject(MavenProject project) {
         this.project = project;
