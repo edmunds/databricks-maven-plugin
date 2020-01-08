@@ -23,9 +23,9 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.edmunds.rest.databricks.DTO.JobDTO;
-import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
 import com.edmunds.rest.databricks.DTO.JobsDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobSettingsDTO;
 import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;

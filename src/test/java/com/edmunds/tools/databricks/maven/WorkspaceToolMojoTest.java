@@ -16,10 +16,9 @@
 
 package com.edmunds.tools.databricks.maven;
 
-
-import com.edmunds.rest.databricks.DTO.LanguageDTO;
-import com.edmunds.rest.databricks.DTO.ObjectInfoDTO;
-import com.edmunds.rest.databricks.DTO.ObjectTypeDTO;
+import com.edmunds.rest.databricks.DTO.workspace.LanguageDTO;
+import com.edmunds.rest.databricks.DTO.workspace.ObjectInfoDTO;
+import com.edmunds.rest.databricks.DTO.workspace.ObjectTypeDTO;
 import com.edmunds.rest.databricks.request.ExportWorkspaceRequest;
 import java.io.File;
 import java.net.URLEncoder;

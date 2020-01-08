@@ -21,11 +21,11 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
-import com.edmunds.rest.databricks.DTO.ClusterLibraryStatusesDTO;
-import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
-import com.edmunds.rest.databricks.DTO.LibraryDTO;
-import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterInfoDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterStateDTO;
+import com.edmunds.rest.databricks.DTO.libraries.ClusterLibraryStatusesDTO;
+import com.edmunds.rest.databricks.DTO.libraries.LibraryDTO;
+import com.edmunds.rest.databricks.DTO.libraries.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;

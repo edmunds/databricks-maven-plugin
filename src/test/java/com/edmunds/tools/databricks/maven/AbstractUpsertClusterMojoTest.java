@@ -1,7 +1,7 @@
 package com.edmunds.tools.databricks.maven;
 
-import static com.edmunds.rest.databricks.DTO.AwsAvailabilityDTO.SPOT_WITH_FALLBACK;
 import static com.edmunds.rest.databricks.DTO.EbsVolumeTypeDTO.GENERAL_PURPOSE_SSD;
+import static com.edmunds.rest.databricks.DTO.clusters.AwsAvailabilityDTO.SPOT_WITH_FALLBACK;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
@@ -9,16 +9,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.edmunds.rest.databricks.DTO.AutoScaleDTO;
-import com.edmunds.rest.databricks.DTO.AwsAttributesDTO;
-import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
-import com.edmunds.rest.databricks.DTO.ClusterLibraryStatusesDTO;
-import com.edmunds.rest.databricks.DTO.ClusterLogConfDTO;
-import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
-import com.edmunds.rest.databricks.DTO.LibraryDTO;
-import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
-import com.edmunds.rest.databricks.DTO.NewClusterDTO;
 import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
+import com.edmunds.rest.databricks.DTO.clusters.AutoScaleDTO;
+import com.edmunds.rest.databricks.DTO.clusters.AwsAttributesDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterInfoDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterLogConfDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterStateDTO;
+import com.edmunds.rest.databricks.DTO.jobs.NewClusterDTO;
+import com.edmunds.rest.databricks.DTO.libraries.ClusterLibraryStatusesDTO;
+import com.edmunds.rest.databricks.DTO.libraries.LibraryDTO;
+import com.edmunds.rest.databricks.DTO.libraries.LibraryFullStatusDTO;
 import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Collection;

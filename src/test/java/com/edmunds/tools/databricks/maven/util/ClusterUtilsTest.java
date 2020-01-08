@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 
-import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterInfoDTO;
 import com.edmunds.tools.databricks.maven.BaseDatabricksMojoTest;
 import java.util.Collections;
 import java.util.List;

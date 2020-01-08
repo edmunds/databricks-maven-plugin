@@ -16,7 +16,7 @@
 
 package com.edmunds.tools.databricks.maven.util;
 
-import com.edmunds.rest.databricks.DTO.ClusterInfoDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterInfoDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.ClusterService;
 import java.io.IOException;

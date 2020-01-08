@@ -19,8 +19,8 @@ package com.edmunds.tools.databricks.maven;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.verify;
 
-import com.edmunds.rest.databricks.DTO.ExportFormatDTO;
-import com.edmunds.rest.databricks.DTO.LanguageDTO;
+import com.edmunds.rest.databricks.DTO.workspace.ExportFormatDTO;
+import com.edmunds.rest.databricks.DTO.workspace.LanguageDTO;
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
 import com.google.common.collect.Maps;
 import java.io.File;

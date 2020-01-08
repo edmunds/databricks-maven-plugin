@@ -21,8 +21,8 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 
-import com.edmunds.rest.databricks.DTO.ExportFormatDTO;
-import com.edmunds.rest.databricks.DTO.LanguageDTO;
+import com.edmunds.rest.databricks.DTO.workspace.ExportFormatDTO;
+import com.edmunds.rest.databricks.DTO.workspace.LanguageDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.request.ImportWorkspaceRequest;
 import com.edmunds.rest.databricks.service.WorkspaceService;

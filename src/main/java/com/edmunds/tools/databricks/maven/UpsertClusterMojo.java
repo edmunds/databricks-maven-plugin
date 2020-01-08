@@ -19,10 +19,10 @@ package com.edmunds.tools.databricks.maven;
 import static com.edmunds.tools.databricks.maven.util.ClusterUtils.convertClusterNamesToIds;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import com.edmunds.rest.databricks.DTO.ClusterStateDTO;
-import com.edmunds.rest.databricks.DTO.LibraryDTO;
-import com.edmunds.rest.databricks.DTO.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.DTO.UpsertClusterDTO;
+import com.edmunds.rest.databricks.DTO.clusters.ClusterStateDTO;
+import com.edmunds.rest.databricks.DTO.libraries.LibraryDTO;
+import com.edmunds.rest.databricks.DTO.libraries.LibraryFullStatusDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.edmunds.rest.databricks.service.ClusterService;
 import com.edmunds.rest.databricks.service.LibraryService;

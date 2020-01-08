@@ -19,10 +19,10 @@ package com.edmunds.tools.databricks.maven;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import com.edmunds.rest.databricks.DTO.JobSettingsDTO;
-import com.edmunds.rest.databricks.DTO.RunDTO;
 import com.edmunds.rest.databricks.DTO.RunNowDTO;
 import com.edmunds.rest.databricks.DTO.RunsDTO;
+import com.edmunds.rest.databricks.DTO.jobs.JobSettingsDTO;
+import com.edmunds.rest.databricks.DTO.jobs.RunDTO;
 import com.edmunds.rest.databricks.DatabricksRestException;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.IOException;
