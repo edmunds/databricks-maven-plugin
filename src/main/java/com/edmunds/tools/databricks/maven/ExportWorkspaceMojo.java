@@ -31,60 +31,29 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
+
 
 /**
- * Interacts with the databricks workspace api.
- *
- * @deprecated This is deprecated in favor of {@link ExportWorkspaceMojo}. There will be no replacement for list.
+ * Exports a workspace folder into a local directory.
+ * Useful when developing on databricks and then copying it down to your development environment.
  */
-@Deprecated
-@Mojo(name = "workspace-tool", requiresProject = true)
-public class WorkspaceToolMojo extends BaseWorkspaceMojo {
+@Mojo(name = "export-workspace", requiresProject = true)
+public class ExportWorkspaceMojo extends BaseWorkspaceMojo {
 
     /**
-     * The workspace command to execute.<br>
-     * EXPORT - export a workspace path FROM databricks to your local machine.<br>
-     * LIST - list the contents of a workspace path.<br>
-     */
-    @Parameter(property = "workspace.command", required = true)
-    private WorkspaceCommand workspaceCommand;
-
-    /**
-     * Execute WorkspaceToolMojo.
+     * Execute ExportWorkspaceMojo.
      *
      * @throws MojoExecutionException exception
      */
     public void execute() throws MojoExecutionException {
-
         try {
-            switch (workspaceCommand) {
-                case EXPORT: {
-                    exportWorkspace();
-                    break;
-                }
-                case LIST: {
-                    listWorkspace();
-                    break;
-                }
-                default: {
-                    throw new MojoExecutionException("this should not happen");
-                }
-            }
+            exportWorkspace();
         } catch (DatabricksRestException | IOException e) {
-            throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: "
-                + "[%s] DB Path: [%s]", workspaceCommand, getSourceFullWorkspacePath(), getWorkspacePrefix()), e);
+            throw new MojoExecutionException(String.format("Could not export workspace. Local Path: "
+                    + "[%s] DB Path: [%s]", getSourceFullWorkspacePath(), getWorkspacePrefix()), e);
         }
-    }
-
-    private void listWorkspace() throws IOException, DatabricksRestException {
-        getLog().info(String.format("List for: [%s]", getWorkspacePrefix()));
-        accept(getWorkspacePrefix(), objectInfoDTO ->
-            getLog().info(ReflectionToStringBuilder.toString(objectInfoDTO, ToStringStyle.JSON_STYLE)));
     }
 
     private void exportWorkspace() throws IOException, DatabricksRestException {
@@ -96,7 +65,7 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
                 getLog().info(String.format("exporting: [%s] to: [%s]", outputFilename, getSourceFullWorkspacePath()));
 
                 FileUtils.writeStringToFile(new File(getSourceFullWorkspacePath(), outputFilename),
-                    getSource(objectInfoDTO), StandardCharsets.UTF_8);
+                        getSource(objectInfoDTO), StandardCharsets.UTF_8);
             }
         });
     }
@@ -104,8 +73,8 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
     private String getSource(ObjectInfoDTO objectInfoDTO) throws IOException, DatabricksRestException {
         String path = URLEncoder.encode(objectInfoDTO.getPath(), "UTF-8");
         ExportWorkspaceRequest exportWorkspaceRequest = new ExportWorkspaceRequest.ExportWorkspaceRequestBuilder(path)
-            .withFormat(ExportFormatDTO.SOURCE)
-            .build();
+                .withFormat(ExportFormatDTO.SOURCE)
+                .build();
         byte[] bytes = getWorkspaceService().exportWorkspace(exportWorkspaceRequest);
         return StringUtils.newStringUtf8(Base64.decodeBase64(new String(bytes, StandardCharsets.UTF_8)));
     }
@@ -136,17 +105,6 @@ public class WorkspaceToolMojo extends BaseWorkspaceMojo {
 
     private WorkspaceService getWorkspaceService() {
         return getDatabricksServiceFactory().getWorkspaceService();
-    }
-
-    public void setWorkspaceCommand(WorkspaceCommand workspaceCommand) {
-        this.workspaceCommand = workspaceCommand;
-    }
-
-    /**
-     * Workspace command to execute.
-     */
-    public enum WorkspaceCommand {
-        EXPORT, LIST
     }
 
     /**
