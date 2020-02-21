@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Version 1.9.2]
+ - export-workspace now is a first level mojo
+ - deprecated workspace-tool, suggest we remove it in a new 2.0.1 version to come later
+ - fixing bug with newest rest-client such that it requires a "/" to be pre-prended.
+
 ## [Version 1.9.1]
  - databricks-rest-plugin 2.6.1
    - API parameters changes in accordance with databricks updates

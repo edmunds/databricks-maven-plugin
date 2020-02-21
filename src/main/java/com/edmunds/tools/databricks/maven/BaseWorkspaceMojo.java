@@ -109,7 +109,7 @@ public abstract class BaseWorkspaceMojo extends BaseDatabricksMojo {
     }
 
     public String getWorkspacePrefix() {
-        return stripCompanyPackage(prefixToStrip, workspacePrefix).replaceAll("\\.", "/");
+        return "/" + stripCompanyPackage(prefixToStrip, workspacePrefix).replaceAll("\\.", "/");
     }
 
     public void setSourceWorkspacePath(File sourceWorkspacePath) {
