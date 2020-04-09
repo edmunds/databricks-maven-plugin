@@ -112,7 +112,20 @@ databricks:library databricks:import-workspace \
 -Dlibrary.command=INSTALL -Dclusters=sam_test
 ```
 
-### Use Case 4 - Upsert a Job to a Workspace
+### Use Case 4 - Exporting Notebooks from a Workspace
+This command demonstrates how you can export notebooks from a databricks workspace to local.
+
+By default, it uses your maven groupId and artifactId as the databricks workspace prefix:
+```bash
+mvn databricks:export-workspace
+```
+
+If you need to override the default prefix, you can do so here:
+```bash
+mvn databricks:export-workspace -DworkspacePrefix=deployments/eas-pipeline
+```
+
+### Use Case 5 - Upsert a Job to a Workspace
 You must have a job definition file. This file should be in the resources directory named databricks-plugin/databricks-job-settings.json and should be a serialized form of an array of type JobSettingsDTO. 
 Note that this file is a template, that has access to both the java system properties, as well as the maven project data. It uses freemarker to merge this file, with that data.
 
