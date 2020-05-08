@@ -236,7 +236,41 @@ https://docs.databricks.com/api/latest/jobs.html#create
 And the JobSettingsDTO in:
 https://www.javadoc.io/doc/com.edmunds/databricks-rest-client/
 
-### Use Case 5 - Control a Job (start, stop, restart)
+### Use Case 6 - Multiple Jobs Definition
+To process several jobs in one repo (for example, a set of notebooks),
+you can describe all of them in the in your databricks-job-settings.json:
+```json
+[
+  {
+    "name": "myTeam/myFirstJob",
+    "libraries": [],
+    "existing_cluster_id": "cluster-id",
+    "timeout_seconds": 0,
+    "notebook_task": {
+      "notebook_path" : "/path/to/the/notebook"
+    },
+    "max_concurrent_runs": 1
+  },
+  {
+    "name": "myTeam/mySecondJob",
+    "libraries": [],
+    "existing_cluster_id": "cluster-id",
+    "timeout_seconds": 0,
+    "notebook_task": {
+      "notebook_path" : "/path/to/the/notebook"
+    },
+    "max_concurrent_runs": 1
+  }
+]
+```
+
+If you want to upsert just one of them try the `singleJob` argument:
+```json
+# Put myTeam/myFirstJob or myTeam/mySecondJob instead of jobNameSpecifiedInSettingsJsonFile
+mvn databricks:upsert-job databricks:import-workspace -DsingleJob=jobNameSpecifiedInSettingsJsonFile
+```
+
+### Use Case 7 - Control a Job (start, stop, restart)
 You can control a job (stop it, start it, restart it) via this mojo. 
 There is 1 required property:jobCommand. You can add it to your configuration section, or invoke manually, like so:
 
@@ -247,14 +281,14 @@ mvn databricks:job -Djob.command=START
 mvn databricks:job -Djob.command=RESTART
 ```
 
-### Use Case 6 - Control a Cluster (start, stop)
+### Use Case 8 - Control a Cluster (start, stop)
 You can control a cluster (stop it, start it) via this mojo. 
 ```bash
 mvn databricks:cluster -Dcluster.command=STOP -Dclusters=cluster_name1,cluster_name2
 mvn databricks:cluster -Dcluster.command=START -Dclusters=cluster_name1,cluster_name2
 ```
 
-### Use Case 7 - Upsert clusters
+### Use Case 9 - Upsert clusters
 You're able to create or recreate clusters. 
 To upsert cluster you should call the following command:
 ```bash

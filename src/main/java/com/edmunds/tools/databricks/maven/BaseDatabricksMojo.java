@@ -116,6 +116,12 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(name = "prefixToStrip", property = "prefixToStrip", defaultValue = "com\\.edmunds\\.")
     protected String prefixToStrip;
 
+    /**
+     * Whether you want to upsert a single databricks job.
+     */
+    @Parameter(name = "singleJob", property = "singleJob")
+    protected String singleJob;
+
     private DatabricksServiceFactory databricksServiceFactory;
 
     protected DatabricksServiceFactory getDatabricksServiceFactory() {
@@ -174,6 +180,13 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
      */
     void setEnvironment(String environment) {
         this.environment = environment;
+    }
+
+    /**
+     * NOTE - only for unit testing.
+     */
+    void setSingleJob(String singleJob) {
+        this.singleJob = singleJob;
     }
 
     /**

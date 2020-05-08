@@ -24,6 +24,8 @@ import com.edmunds.rest.databricks.DatabricksRestException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -45,6 +47,12 @@ public class UpsertJobMojo extends BaseDatabricksJobMojo {
     private void upsertJobSettings() throws MojoExecutionException {
         List<JobSettingsDTO> jobSettingsDTOS = getSettingsUtils().buildSettingsDTOsWithDefaults();
         for (JobSettingsDTO settingsDTO : jobSettingsDTOS) {
+            if (StringUtils.isNotBlank(singleJob) && !settingsDTO.getName().equals(singleJob)) {
+                getLog().info("The job is skipped: " + settingsDTO.getName());
+                continue;
+            }
+
+            getLog().info("The job is to be upserted: " + settingsDTO.getName());
             try {
                 getJobService().upsertJob(settingsDTO, failOnDuplicateJobName);
                 JobDTO job = getJobService().getJobByName(settingsDTO.getName(), failOnDuplicateJobName);

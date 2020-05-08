@@ -21,6 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.edmunds.rest.databricks.DTO.JobsDTO;
@@ -174,6 +175,28 @@ public class UpsertJobMojoTest extends DatabricksMavenPluginTestHarness {
 
         Long jobId = underTest.getJobId("fake-job");
         assertThat(jobId, nullValue());
+    }
+
+    @Test
+    public void testUpsertSingleJob() throws Exception {
+        underTest = getNoOverridesMojo(GOAL);
+        underTest.setSingleJob("unit-test-group/unit-test-artifact");
+        Mockito.when(jobService.getJobByName("unit-test-group/unit-test-artifact", true)).thenReturn(createJobDTO
+                ("unit-test-group/unit-test-artifact", 1));
+        underTest.execute();
+
+        ArgumentCaptor<JobSettingsDTO> jobCaptor = ArgumentCaptor.forClass(JobSettingsDTO.class);
+        verify(jobService, Mockito.times(1)).upsertJob(jobCaptor.capture(), anyBoolean());
+        assertEquals("unit-test-group/unit-test-artifact", jobCaptor.getValue().getName());
+    }
+
+    @Test
+    public void testUpsertSingleJobSkipJobs() throws Exception {
+        underTest = getNoOverridesMojo(GOAL);
+        underTest.setSingleJob("a-not-existing-single-job-name-to-upsert");
+        underTest.execute();
+
+        verifyNoMoreInteractions(jobService);
     }
 
 
