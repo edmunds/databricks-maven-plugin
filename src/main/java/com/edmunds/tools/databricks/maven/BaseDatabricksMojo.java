@@ -127,15 +127,8 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     protected DatabricksServiceFactory getDatabricksServiceFactory() {
 
         if (databricksServiceFactory == null) {
-
             loadPropertiesFromSystemEnvironment();
-
-            if (user != null && password != null) {
-                return DatabricksServiceFactory
-                    .Builder
-                    .createUserPasswordAuthentication(user, password, host)
-                    .build();
-            } else if (token != null) {
+            if (token != null) {
                 return DatabricksServiceFactory
                     .Builder
                     .createTokenAuthentication(token, host)
@@ -157,14 +150,6 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     }
 
     private void loadPropertiesFromSystemEnvironment() {
-        String envUser = System.getenv(DB_USER);
-        if (isBlank(user) && isNotBlank(envUser)) {
-            this.user = envUser;
-        }
-        String envPassword = System.getenv(DB_PASSWORD);
-        if (isBlank(password) && isNotBlank(envPassword)) {
-            this.password = envPassword;
-        }
         String envUrl = System.getenv(DB_URL);
         if (isBlank(host) && isNotBlank(envUrl)) {
             this.host = envUrl;

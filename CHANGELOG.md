@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Version 1.10.1]
+- Removed user/password authentication per databricks deprecation.
+
 ## [Version 1.9.2]
  - export-workspace now is a first level mojo
  - deprecated workspace-tool, suggest we remove it in a new 2.0.1 version to come later
