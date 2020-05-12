@@ -126,7 +126,8 @@ public class LibraryMojo extends BaseLibraryMojo {
         clusterService, LibraryService libraryService)
         throws IOException, DatabricksRestException, MojoExecutionException {
 
-        if (project.getArtifact().getType().equals(JAR)) {
+        // Need to check artifactPath as we can't guarantee that this will be run with knowledge of the project
+        if (artifactPath.endsWith("jar")) {
             ClusterStateDTO originalState = startCluster(clusterId, clusterService);
             if (libraryCommand == LibraryCommand.INSTALL) {
                 uninstallPreviousVersions(clusterId, libraryService);
@@ -138,7 +139,7 @@ public class LibraryMojo extends BaseLibraryMojo {
             listLibraryStatus(clusterId, libraryService);
             manageClusterState(clusterId, originalState, clusterService, restart);
         } else {
-            getLog().warn(String.format("skipping install for non-jar artifact: [%s]", project.getArtifact()));
+            getLog().warn(String.format("skipping install for non-jar artifact: [%s]", artifactPath));
         }
 
     }
