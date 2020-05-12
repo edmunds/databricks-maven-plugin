@@ -219,6 +219,8 @@ public class LibraryMojo extends BaseLibraryMojo {
             default:
                 clusterService.start(clusterId);
                 getLog().info(String.format("cluster: [%s] previous state: [%s], starting.", clusterId, originalState));
+                //We sleep for 5 seconds so that subsequent commands are guaranteed to work.
+                Uninterruptibles.sleepUninterruptibly(5, TimeUnit.SECONDS);
                 break;
         }
 
