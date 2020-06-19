@@ -34,12 +34,12 @@ import org.testng.annotations.Test;
  * <p>
  * For these tests, the regex as part of the expected exceptions no longer works.
  */
-public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
+public class UploadToS3MojoTest extends DatabricksMavenPluginTestHarness {
 
     private static final String GOAL = "upload-to-s3";
     @Mock
     AmazonS3Client s3Client;
-    private UploadMojo underTest;
+    private UploadToS3Mojo underTest;
 
     @BeforeClass
     public void initClass() throws Exception {
