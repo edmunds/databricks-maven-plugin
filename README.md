@@ -17,7 +17,10 @@ For Users:
 - You have an s3 bucket (we will call databricksRepo) that you will use to store your artifacts. 
 - You have AWS keys that can write to this s3 bucket
 - Databricks has access to an IAM Role that can read from this bucket.
-
+  
+&nbsp;If you want to use your DBFS to store artifacts:
+  - You have Databricks token with write access to the folder in your DBFS.  
+  
 For Contributors:
 - You need to be able execute an integration test that will actually do things on your databricks account.
 
@@ -59,7 +62,8 @@ NOTE: if you define like below, you cannot override via CLI args unless you use 
                          <artifactId>databricks-maven-plugin</artifactId>
                          <version>${oss-databricks-maven-plugin-version}</version>
                          <configuration>
-                             <databricksRepo>${which bucket you want to use to store databricks artifacts}</databricksRepo>
+                             <databricksRepo>${which bucket/dbfs folder you want to use to store databricks artifacts}</databricksRepo>
+                             <databricksRepoType>${allowed s3 or dbfs}</databricksRepoType>
                              <!-- This is used to be able to allow for conditional configuration in job settings -->
                              <environment>QA</environment>
                              <host>${qa-host-here}</host>
@@ -91,7 +95,12 @@ mvn clean deploy
 mvn databricks:upload-to-s3
 ```
 
-### Use Case 2 - Attaching a Jar to a Cluster
+### Use Case 2 - Uploading an Artifact to DBFS, for Databricks
+```bash
+mvn databricks:upload-to-dbfs
+```
+
+### Use Case 3 - Attaching a Jar to a Cluster
 This will install a library on a databricks cluster, taking care of any restarts necessary.
 ```bash
 mvn clean install databricks:upload-to-s3 \
@@ -102,7 +111,7 @@ Here is how you can install a library to a cluster WITHOUT restarting.
 mvn databricks:library -Dlibrary.command=INSTALL -Dclusters=data_engineering -Drestart=false
 ```
 
-### Use Case 3 - Exporting Notebooks to a Workspace
+### Use Case 4 - Exporting Notebooks to a Workspace
 This command demonstrates exporting notebooks to a workspace
 as well as uploading a jar and attaching it to a cluster, which is a common
 operation when you have a notebook that also depends on library code.
@@ -112,7 +121,7 @@ databricks:library databricks:import-workspace \
 -Dlibrary.command=INSTALL -Dclusters=sam_test
 ```
 
-### Use Case 4 - Exporting Notebooks from a Workspace
+### Use Case 5 - Exporting Notebooks from a Workspace
 This command demonstrates how you can export notebooks from a databricks workspace to local.
 
 By default, it uses your maven groupId and artifactId as the databricks workspace prefix:
@@ -125,7 +134,7 @@ If you need to override the default prefix, you can do so here:
 mvn databricks:export-workspace -DworkspacePrefix=deployments/eas-pipeline
 ```
 
-### Use Case 5 - Upsert a Job to a Workspace
+### Use Case 6 - Upsert a Job to a Workspace
 You must have a job definition file. This file should be in the resources directory named databricks-plugin/databricks-job-settings.json and should be a serialized form of an array of type JobSettingsDTO. 
 Note that this file is a template, that has access to both the java system properties, as well as the maven project data. It uses freemarker to merge this file, with that data.
 
@@ -236,7 +245,7 @@ https://docs.databricks.com/api/latest/jobs.html#create
 And the JobSettingsDTO in:
 https://www.javadoc.io/doc/com.edmunds/databricks-rest-client/
 
-### Use Case 6 - Multiple Jobs Definition
+### Use Case 7 - Multiple Jobs Definition
 To process several jobs in one repo (for example, a set of notebooks),
 you can describe all of them in the in your databricks-job-settings.json:
 ```json
@@ -270,7 +279,7 @@ If you want to upsert just one of them try the `singleJob` argument:
 mvn databricks:upsert-job databricks:import-workspace -DsingleJob=jobNameSpecifiedInSettingsJsonFile
 ```
 
-### Use Case 7 - Control a Job (start, stop, restart)
+### Use Case 8 - Control a Job (start, stop, restart)
 You can control a job (stop it, start it, restart it) via this mojo. 
 There is 1 required property:jobCommand. You can add it to your configuration section, or invoke manually, like so:
 
@@ -281,14 +290,14 @@ mvn databricks:job -Djob.command=START
 mvn databricks:job -Djob.command=RESTART
 ```
 
-### Use Case 8 - Control a Cluster (start, stop)
+### Use Case 9 - Control a Cluster (start, stop)
 You can control a cluster (stop it, start it) via this mojo. 
 ```bash
 mvn databricks:cluster -Dcluster.command=STOP -Dclusters=cluster_name1,cluster_name2
 mvn databricks:cluster -Dcluster.command=START -Dclusters=cluster_name1,cluster_name2
 ```
 
-### Use Case 9 - Upsert clusters
+### Use Case 10 - Upsert clusters
 You're able to create or recreate clusters. 
 To upsert cluster you should call the following command:
 ```bash
