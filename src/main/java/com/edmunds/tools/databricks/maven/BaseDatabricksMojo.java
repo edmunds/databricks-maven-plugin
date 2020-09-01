@@ -20,6 +20,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.edmunds.rest.databricks.DatabricksServiceFactory;
+import java.util.Arrays;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -31,7 +33,7 @@ import org.apache.maven.project.MavenProject;
  */
 public abstract class BaseDatabricksMojo extends AbstractMojo {
 
-    private static final String DEFAULT_DBFS_ROOT_FORMAT = "s3://";
+    private static final List<String> ALLOWED_REPO_TYPES = Arrays.asList("s3", "dbfs");
 
     private static final String DB_USER = "DB_USER";
     private static final String DB_PASSWORD = "DB_PASSWORD";
@@ -40,6 +42,17 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
+
+    /**
+     * The repo type.
+     * Allowed "s3" and "dbfs" types.
+     * In case when the parameter is s3:
+     *  method createDeployedArtifactPath() will return path with prefix "s3://"
+     * In case when the parameter is dbfs:
+     *  method createDeployedArtifactPath() will return path with prefix "dbfs://"
+     */
+    @Parameter(name = "databricksRepoType", property = "databricks.repo.type", defaultValue = "s3")
+    protected String databricksRepoType;
 
     //TODO validate even with required=true? How does that play with the env properties
     /**
@@ -132,6 +145,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
                 return DatabricksServiceFactory
                     .Builder
                     .createTokenAuthentication(token, host)
+                    .withSoTimeout(1000 * 60 * 30)
                     .build();
             } else {
                 throw new IllegalArgumentException("Must either specify user/password or token!");
@@ -182,6 +196,9 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     }
 
     protected void validateRepoProperties() throws MojoExecutionException {
+        if (!ALLOWED_REPO_TYPES.contains(databricksRepoType)) {
+            throw new MojoExecutionException("Corrupted parameter: ${databricksRepoType}");
+        }
         if (StringUtils.isBlank(databricksRepo)) {
             throw new MojoExecutionException("Missing mandatory parameter: ${databricksRepo}");
         }
@@ -193,6 +210,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     String createDeployedArtifactPath() throws MojoExecutionException {
         //TODO if we want databricksRepo to be specified via system properties, this is where it could happen.
         validateRepoProperties();
+        String modifiedDatabricksRepoType = databricksRepoType + "://";
         String modifiedDatabricksRepo = databricksRepo;
         String modifiedDatabricksRepoKey = databricksRepoKey;
         if (databricksRepo.endsWith("/")) {
@@ -201,6 +219,6 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
         if (databricksRepoKey.startsWith("/")) {
             modifiedDatabricksRepoKey = databricksRepoKey.substring(1);
         }
-        return String.format("%s%s/%s", DEFAULT_DBFS_ROOT_FORMAT, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
+        return String.format("%s%s/%s", modifiedDatabricksRepoType, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
     }
 }

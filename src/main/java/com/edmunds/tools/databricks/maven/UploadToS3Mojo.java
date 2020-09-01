@@ -37,7 +37,7 @@ import org.apache.maven.plugins.annotations.Parameter;
  * Uploads an artifact to s3.
  */
 @Mojo(name = "upload-to-s3", defaultPhase = LifecyclePhase.DEPLOY)
-public class UploadMojo extends BaseDatabricksMojo {
+public class UploadToS3Mojo extends BaseDatabricksMojo {
 
     protected AmazonS3 s3Client;
     /**

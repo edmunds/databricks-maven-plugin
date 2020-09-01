@@ -19,8 +19,8 @@ package com.edmunds.tools.databricks.maven;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.edmunds.rest.databricks.service.DbfsService;
+import java.io.InputStream;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -30,16 +30,15 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
- * Tests for @{@link UpsertJobMojo}.
- * <p>
- * For these tests, the regex as part of the expected exceptions no longer works.
+ * Tests for @{@link UploadToDbfsMojo}.
  */
-public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
+public class UploadToDbfsMojoTest extends DatabricksMavenPluginTestHarness {
 
-    private static final String GOAL = "upload-to-s3";
+    private static final String GOAL = "upload-to-dbfs";
+
     @Mock
-    AmazonS3Client s3Client;
-    private UploadMojo underTest;
+    DbfsService service;
+    private UploadToDbfsMojo underTest;
 
     @BeforeClass
     public void initClass() throws Exception {
@@ -54,14 +53,14 @@ public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
     @Test
     public void testDefaultExecute() throws Exception {
         underTest = getNoOverridesMojo(GOAL);
-        underTest.s3Client = s3Client;
+        underTest.service = service;
         underTest.execute();
     }
 
     @Test
     public void testMissingProperties() throws Exception {
         underTest = getMissingMandatoryMojo(GOAL);
-        underTest.s3Client = s3Client;
+        underTest.service = service;
         try {
             underTest.execute();
         } catch (MojoExecutionException e) {
@@ -74,14 +73,14 @@ public class UploadMojoTest extends DatabricksMavenPluginTestHarness {
     @Test
     public void testOverridesExecute() throws Exception {
         underTest = getOverridesMojo(GOAL);
-        underTest.s3Client = s3Client;
+        underTest.service = service;
         underTest.execute();
 
-        ArgumentCaptor<PutObjectRequest> putRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
-        Mockito.verify(s3Client).putObject(putRequestCaptor.capture());
-        assertEquals("myBucket", putRequestCaptor.getValue().getBucketName());
-        assertEquals("repo/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar",
-            putRequestCaptor.getValue().getKey());
-        assertEquals("myFile.csv", putRequestCaptor.getValue().getFile().getName());
+        ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<InputStream> streamCaptor = ArgumentCaptor.forClass(InputStream.class);
+        ArgumentCaptor<Boolean> overwriteCaptor = ArgumentCaptor.forClass(Boolean.class);
+        Mockito.verify(service).write(pathCaptor.capture(), streamCaptor.capture(), overwriteCaptor.capture());
+        assertEquals("dbfs:///dbfsFolder/testFolder/myFile.csv", pathCaptor.getValue());
+        assertTrue(overwriteCaptor.getValue());
     }
 }
