@@ -30,17 +30,29 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+
 
 /**
  * A mojo that is responsible for taking care of importing notebooks into databricks.
  */
 @Mojo(name = "import-workspace", requiresProject = true)
 public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
+
+    /**
+     * The number of threads to use during import.<br>
+     */
+    @Parameter(property = "import.threads")
+    private int threads = 20;
+
+    private ExecutorService executorService = Executors.newFixedThreadPool(threads);
 
     /**
      * Execute ImportWorkspaceMojo.
@@ -54,7 +66,7 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
             importWorkspace(sourceWorkspacePath);
         } catch (DatabricksRestException | IOException e) {
             throw new MojoExecutionException(String.format("Could not execute workspace command: [%s]. Local Path: "
-                + "[%s] TO DB: [%s]", "IMPORT", packagedWorkspacePath, workspacePrefix), e);
+                    + "[%s] TO DB: [%s]", "IMPORT", packagedWorkspacePath, workspacePrefix), e);
         }
     }
 
@@ -64,36 +76,42 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
             // Oh just no notebooks. Warn just incase user wasn't expecting this.
             getLog().warn(String.format("No notebooks found at [%s]", workspacePath.getPath()));
         } else {
-            getLog().info("Working on copying [" + workspacePath + "]");
+            getLog().info("Working on copying [" + workspacePath + "] on [" + threads + "] threads.");
             Collection<File> files = FileUtils.listFiles(workspacePath,
-                new SuffixFileFilter(DATABRICKS_SOURCE_EXTENSIONS),
-                DirectoryFileFilter.DIRECTORY);
+                    new SuffixFileFilter(DATABRICKS_SOURCE_EXTENSIONS),
+                    DirectoryFileFilter.DIRECTORY);
 
             for (File file : files) {
                 // e.g. the path under the local root, not the full path to it
                 String relativePath = substringAfter(file.getParentFile().getPath(), workspacePath.getPath())
-                    .replaceAll("[.\\\\]", "/");
+                        .replaceAll("[.\\\\]", "/");
                 String remoteFilePath = relativePath + "/" + getBaseName(file.getName());
 
                 createRemoteDir(relativePath);
 
                 LanguageDTO languageDTO = getLanguageDTO(file);
                 getLog().info(
-                    String.format("writing remote file: [%s] with source type: [%s]", remoteFilePath, languageDTO));
+                        String.format("writing remote file: [%s] with source type: [%s]", remoteFilePath, languageDTO));
 
                 String source = readFileToString(file, StandardCharsets.UTF_8);
                 getLog().debug(String.format("file path: [%s] has source:%n%s", file.getPath(), source));
 
                 ImportWorkspaceRequest importWorkspaceRequest =
-                    new ImportWorkspaceRequest.ImportWorkspaceRequestBuilder(
-                        remoteFilePath)
-                        .withContent(source.getBytes(StandardCharsets.UTF_8))
-                        .withFormat(ExportFormatDTO.SOURCE)
-                        .withLanguage(languageDTO)
-                        .withOverwrite(true)
-                        .build();
+                        new ImportWorkspaceRequest.ImportWorkspaceRequestBuilder(
+                                remoteFilePath)
+                                .withContent(source.getBytes(StandardCharsets.UTF_8))
+                                .withFormat(ExportFormatDTO.SOURCE)
+                                .withLanguage(languageDTO)
+                                .withOverwrite(true)
+                                .build();
 
-                getWorkspaceService().importWorkspace(importWorkspaceRequest);
+                executorService.execute(() -> {
+                    try {
+                        getWorkspaceService().importWorkspace(importWorkspaceRequest);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
         }
     }
