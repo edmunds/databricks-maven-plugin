@@ -49,6 +49,7 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
     @Test
     public void execute_whenDefaultPrefixIsSet_importsWorkspace() throws Exception {
         ImportWorkspaceMojo underTest = getNoOverridesMojo(GOAL);
+        underTest.setThreads(1);
 
         File workspacePath = new File(this.getClass().getResource("/notebooks").getPath());
 
@@ -58,19 +59,20 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
         underTest.execute();
 
         verify(workspaceService).importWorkspace(
-            argThat(getMatcher("/test/mycoolartifact/test1/myFile", LanguageDTO.SQL, "select * from mytable")));
+                argThat(getMatcher("/test/mycoolartifact/test1/myFile", LanguageDTO.SQL, "select * from mytable")));
         verify(workspaceService).importWorkspace(
-            argThat(getMatcher("/test/mycoolartifact/test2/myFile", LanguageDTO.SCALA, "println(\"scala is cool\")")));
+                argThat(getMatcher("/test/mycoolartifact/test2/myFile", LanguageDTO.SCALA, "println(\"scala is cool\")")));
         verify(workspaceService).importWorkspace(argThat(
-            getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
+                getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
     }
 
     @Test(expectedExceptions = MojoExecutionException.class, expectedExceptionsMessageRegExp =
-        "JOB NAME VALIDATION FAILED \\[ILLEGAL VALUE\\]:.*" +
-            "Expected: \\[failed-test\\] but found: \\[test\\]")
+            "JOB NAME VALIDATION FAILED \\[ILLEGAL VALUE\\]:.*" +
+                    "Expected: \\[failed-test\\] but found: \\[test\\]")
     public void execute_whenDefaultPrefixIsSetAndDoesNotMatchGroupId_failsValidation() throws Exception {
 
         ImportWorkspaceMojo underTest = getNoOverridesMojo(GOAL, "_fails_validation");
+        underTest.setThreads(1);
 
         File workspacePath = new File(this.getClass().getResource("/notebooks").getPath());
         underTest.validate = true;
@@ -82,9 +84,10 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
     @Test
     public void execute_whenDefaultPrefixIsSetAndMatchesGroupId_importsWorkspace() throws Exception {
         ImportWorkspaceMojo underTest = getOverridesMojo(GOAL);
+        underTest.setThreads(1);
 
         File workspacePath = new File(this.getClass().getResource("/notebooks")
-            .getPath());
+                .getPath());
 
         underTest.validate = true;
         underTest.setSourceWorkspacePath(workspacePath);
@@ -92,20 +95,20 @@ public class ImportWorkspaceMojoTest extends DatabricksMavenPluginTestHarness {
         underTest.execute();
 
         verify(workspaceService).importWorkspace(
-            argThat(getMatcher("/test/mycoolartifact/test1/myFile", LanguageDTO.SQL, "select * from mytable")));
+                argThat(getMatcher("/test/mycoolartifact/test1/myFile", LanguageDTO.SQL, "select * from mytable")));
         verify(workspaceService).importWorkspace(
-            argThat(getMatcher("/test/mycoolartifact/test2/myFile", LanguageDTO.SCALA, "println(\"scala is cool\")")));
+                argThat(getMatcher("/test/mycoolartifact/test2/myFile", LanguageDTO.SCALA, "println(\"scala is cool\")")));
         verify(workspaceService).importWorkspace(argThat(
-            getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
+                getMatcher("/test/mycoolartifact/test2/test3/myFile", LanguageDTO.SCALA, "println(\"scala rocks\")")));
     }
 
     private ImportWorkspaceRequestMatcher getMatcher(String path, LanguageDTO languageDTO, String content) {
         ImportWorkspaceRequest importWorkspaceRequest = new ImportWorkspaceRequest.ImportWorkspaceRequestBuilder(path)
-            .withFormat(ExportFormatDTO.SOURCE)
-            .withLanguage(languageDTO)
-            .withOverwrite(true)
-            .withContent(content.getBytes(StandardCharsets.UTF_8))
-            .build();
+                .withFormat(ExportFormatDTO.SOURCE)
+                .withLanguage(languageDTO)
+                .withOverwrite(true)
+                .withContent(content.getBytes(StandardCharsets.UTF_8))
+                .build();
         return new ImportWorkspaceRequestMatcher(importWorkspaceRequest);
     }
 

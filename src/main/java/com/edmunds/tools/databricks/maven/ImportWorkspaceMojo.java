@@ -132,4 +132,11 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
     private WorkspaceService getWorkspaceService() {
         return getDatabricksServiceFactory().getWorkspaceService();
     }
+
+    /**
+     * NOTE: for unit testing only
+     */
+    void setThreads(int threads) {
+        this.threads = threads;
+    }
 }
