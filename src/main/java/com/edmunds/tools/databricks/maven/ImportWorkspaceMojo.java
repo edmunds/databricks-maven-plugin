@@ -105,13 +105,18 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
                                 .withOverwrite(true)
                                 .build();
 
-                executorService.execute(() -> {
-                    try {
-                        getWorkspaceService().importWorkspace(importWorkspaceRequest);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                // slightly hacky way, to make sure that unit test calls are ran serially
+                if (threads == 1) {
+                    getWorkspaceService().importWorkspace(importWorkspaceRequest);
+                } else {
+                    executorService.execute(() -> {
+                        try {
+                            getWorkspaceService().importWorkspace(importWorkspaceRequest);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }
             }
         }
     }
