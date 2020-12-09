@@ -134,7 +134,7 @@ public class ImportWorkspaceMojo extends BaseWorkspaceMojo {
     }
 
     /**
-     * NOTE: for unit testing only
+     * NOTE: for unit testing only.
      */
     void setThreads(int threads) {
         this.threads = threads;
