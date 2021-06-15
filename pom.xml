@@ -101,7 +101,7 @@
         <build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
         <nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
 
-        <checkstyle-version>8.18</checkstyle-version>
+        <checkstyle-version>8.29</checkstyle-version>
         <plexus-version>3.3.0</plexus-version>
 
         <databricks-rest-client-version>[3.0.5, 4.0.0)</databricks-rest-client-version>
