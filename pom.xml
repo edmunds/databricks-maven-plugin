@@ -19,7 +19,7 @@
 
     <groupId>com.edmunds</groupId>
     <artifactId>databricks-maven-plugin</artifactId>
-    <version>1.11.3</version>
+    <version>1.11.4-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
 
@@ -69,7 +69,7 @@
         <connection>scm:git:git@github.com:edmunds/databricks-maven-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:edmunds/databricks-maven-plugin.git</developerConnection>
         <url>https://github.com/edmunds/databricks-maven-plugin</url>
-        <tag>databricks-maven-plugin-1.11.3</tag>
+        <tag>databricks-maven-plugin-1.11.2</tag>
     </scm>
 
     <properties>
