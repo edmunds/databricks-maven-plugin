@@ -47,10 +47,14 @@ public class UploadToS3Mojo extends BaseDatabricksMojo {
         defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
     private File file;
 
+    protected String createSourceFilePath() throws MojoExecutionException {
+        return createDeployedArtifactPath();
+    }
+
     @Override
     public void execute() throws MojoExecutionException {
         if (file.exists()) {
-            AmazonS3URI uri = new AmazonS3URI(createDeployedArtifactPath());
+            AmazonS3URI uri = new AmazonS3URI(createSourceFilePath());
             String bucket = uri.getBucket();
             String key = uri.getKey();
             try {
