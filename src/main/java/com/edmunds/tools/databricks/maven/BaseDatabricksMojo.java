@@ -84,7 +84,7 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     protected String databricksRepoRegion;
 
     /**
-     * The environment name. Is used in freemarker templating for conditional job settings.
+     * The logical environment name. Is used in freemarker templating for conditional job settings.
      */
     @Parameter(name = "environment", property = "environment")
     protected String environment;
