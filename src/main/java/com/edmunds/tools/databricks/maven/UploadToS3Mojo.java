@@ -16,19 +16,7 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.event.ProgressEvent;
-import com.amazonaws.event.ProgressListener;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import java.io.File;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -44,7 +32,7 @@ public class UploadToS3Mojo extends BaseDatabricksS3Mojo {
      */
     @Parameter(property = "file", required = true,
         defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
-    protected File file;
+    private File file;
 
     @Override
     protected File getSourceFile() {

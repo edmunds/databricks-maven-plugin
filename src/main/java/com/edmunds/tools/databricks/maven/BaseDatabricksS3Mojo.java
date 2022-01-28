@@ -1,19 +1,3 @@
-/*
- *  Copyright 2018 Edmunds.com, Inc.
- *
- *      Licensed under the Apache License, Version 2.0 (the "License");
- *      you may not use this file except in compliance with the License.
- *      You may obtain a copy of the License at
- *
- *          http://www.apache.org/licenses/LICENSE-2.0
- *
- *      Unless required by applicable law or agreed to in writing, software
- *      distributed under the License is distributed on an "AS IS" BASIS,
- *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *      See the License for the specific language governing permissions and
- *      limitations under the License.
- */
-
 package com.edmunds.tools.databricks.maven;
 
 import com.amazonaws.SdkClientException;
@@ -26,16 +10,14 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
-import java.io.File;
-
 public abstract class BaseDatabricksS3Mojo extends BaseDatabricksMojo {
-
-    abstract protected File getSourceFile();
-
     protected AmazonS3 s3Client;
+
+    protected abstract File getSourceFile();
 
     protected String createSourceFilePath() throws MojoExecutionException {
         return createDeployedArtifactPath();
@@ -43,27 +25,28 @@ public abstract class BaseDatabricksS3Mojo extends BaseDatabricksMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        File file = getSourceFile();
-        if (file.exists()) {
+        if (getSourceFile().exists()) {
             AmazonS3URI uri = new AmazonS3URI(createSourceFilePath());
             String bucket = uri.getBucket();
             String key = uri.getKey();
             try {
                 PutObjectRequest putObjectRequest =
-                        new PutObjectRequest(bucket, key, file)
+                        new PutObjectRequest(bucket, key, getSourceFile())
                                 .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
-                putObjectRequest.setGeneralProgressListener(new LoggingProgressListener(getLog(), file.length()));
+                putObjectRequest.setGeneralProgressListener(
+                        new LoggingProgressListener(getLog(), getSourceFile().length()));
 
                 getLog().info(String.format("Starting upload for bucket: [%s] key: [%s], file: [%s]",
-                        bucket, key, file.getPath()));
+                        bucket, key, getSourceFile().getPath()));
 
                 getS3Client().putObject(putObjectRequest);
             } catch (SdkClientException e) {
                 throw new MojoExecutionException(String.format("Could not upload file: [%s] to bucket: [%s] with "
-                        + "remote prefix: [%s]", file.getPath(), bucket, key), e);
+                        + "remote prefix: [%s]", getSourceFile().getPath(), bucket, key), e);
             }
         } else {
-            getLog().warn(String.format("Target upload file does not exist, skipping: [%s]", file.getPath()));
+            getLog().warn(
+                    String.format("Target upload file does not exist, skipping: [%s]", getSourceFile().getPath()));
         }
     }
 
@@ -72,7 +55,7 @@ public abstract class BaseDatabricksS3Mojo extends BaseDatabricksMojo {
             AWSCredentialsProvider credentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
             s3Client = AmazonS3ClientBuilder
                     .standard()
-                    .withRegion(databricksRepoRegion)
+                    .withRegion(getDatabricksRepoRegion())
                     .withCredentials(credentialsProvider)
                     .build();
 
@@ -80,7 +63,7 @@ public abstract class BaseDatabricksS3Mojo extends BaseDatabricksMojo {
         return s3Client;
     }
 
-    protected static class LoggingProgressListener implements ProgressListener {
+    private static class LoggingProgressListener implements ProgressListener {
 
         private final Log log;
         private final long size;
@@ -101,8 +84,8 @@ public abstract class BaseDatabricksS3Mojo extends BaseDatabricksMojo {
             double percent = (progress / size) * 100;
             long now = System.currentTimeMillis();
             if (now - lastTimeLogged > 2000) {
-                log.info(
-                        String.format("Transferred %.2f%% to s3, total run time: %ss.", percent, (now - startTime) / 1000));
+                log.info(String.format("Transferred %.2f%% to s3, total run time: %ss.",
+                        percent, (now - startTime) / 1000));
                 lastTimeLogged = now;
             }
 

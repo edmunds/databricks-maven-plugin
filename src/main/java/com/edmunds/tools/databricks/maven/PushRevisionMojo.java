@@ -18,8 +18,6 @@ package com.edmunds.tools.databricks.maven;
 
 import java.io.File;
 
-import com.amazonaws.services.s3.AmazonS3;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -27,53 +25,27 @@ import org.apache.maven.plugins.annotations.Parameter;
  * Uploads resource artifact to an S3 environment path that can be used as CodeDeploy revision.
  */
 @Mojo(name = "push-revision")
-public class PushRevisionMojo extends BaseDatabricksMojo {
-
-    protected AmazonS3 s3Client;
+public class PushRevisionMojo extends BaseDatabricksS3Mojo {
 
     @Parameter(property = "file", required = true,
             defaultValue = "${project.build.directory}/${project.build.finalName}.zip")
-    protected File file;
+    private File file;
+
+    @Override
+    protected File getSourceFile() {
+        return file;
+    }
 
     /**
-     * The prefix to upload revision to in order for CodeDeploy to pick up the resources and deploy
+     * The prefix to upload revision to in order for CodeDeploy to pick up the resources and deploy.
      */
     @Parameter(name = "codeDeployRevisionKey", property = "code.deploy.revision.key",
             defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}"
                     + ".zip")
     protected String codeDeployRevisionKey;
 
-    protected String createSourceFilePath() throws MojoExecutionException {
-        return createDeployedAliasPath();
-    }
-
-    String createDeployedAliasPath() throws MojoExecutionException {
-        validateRepoProperties();
-        String modifiedDatabricksRepoType = databricksRepoType + "://";
-        String modifiedDatabricksRepo = databricksRepo;
-        String modifiedDatabricksRepoKey = codeDeployRevisionKey;
-        if (databricksRepo.endsWith("/")) {
-            modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length() - 1);
-        }
-        if (codeDeployRevisionKey.startsWith("/")) {
-            modifiedDatabricksRepoKey = codeDeployRevisionKey.substring(1);
-        }
-        return String.format("%s%s/%s", modifiedDatabricksRepoType, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
-    }
-
     @Override
-    public void execute() throws MojoExecutionException {
-        if (file.exists()) {
-            S3MojoUtils.uploadFile(createSourceFilePath(), file, getLog(), getS3Client());
-        } else {
-            getLog().warn(String.format("Target upload file does not exist, skipping: [%s]", file.getPath()));
-        }
-    }
-
-    protected AmazonS3 getS3Client() {
-        if (s3Client == null) {
-            s3Client = S3MojoUtils.getS3Client(databricksRepoRegion);
-        }
-        return s3Client;
+    protected String getDatabricksRepoKey() {
+        return codeDeployRevisionKey;
     }
 }

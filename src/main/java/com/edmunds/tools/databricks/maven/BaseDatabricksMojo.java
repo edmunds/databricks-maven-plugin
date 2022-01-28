@@ -54,6 +54,10 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(name = "databricksRepoType", property = "databricks.repo.type", defaultValue = "s3")
     protected String databricksRepoType;
 
+    protected String getDatabricksRepoType() {
+        return databricksRepoType;
+    }
+
     //TODO validate even with required=true? How does that play with the env properties
     /**
      * The repo location on s3 that you want to upload your jar to.
@@ -67,21 +71,33 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
     @Parameter(name = "databricksRepo", property = "databricks.repo")
     protected String databricksRepo;
 
+    protected String getDatabricksRepo() {
+        return databricksRepo;
+    }
+
     /**
      * The prefix to load to. This is appended to the databricksRepo property.
      * This is an artifact specific key and will by default be the maven style qualifier:
      * groupId/artifactId/version/artifact-version.jar
      */
     @Parameter(name = "databricksRepoKey", property = "databricks.repo.key",
-        defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}"
-            + ".${project.packaging}")
+            defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}"
+                    + ".${project.packaging}")
     protected String databricksRepoKey;
+
+    protected String getDatabricksRepoKey() {
+        return databricksRepoKey;
+    }
 
     /**
      * The aws databricksRepoRegion that the bucket is located in.
      */
     @Parameter(property = "databricksRepoRegion", defaultValue = "us-east-1")
     protected String databricksRepoRegion;
+
+    protected String getDatabricksRepoRegion() {
+        return databricksRepoRegion;
+    }
 
     /**
      * The logical environment name. Is used in freemarker templating for conditional job settings.
@@ -143,10 +159,10 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
             loadPropertiesFromSystemEnvironment();
             if (token != null) {
                 return DatabricksServiceFactory
-                    .Builder
-                    .createTokenAuthentication(token, host)
-                    .withSoTimeout(1000 * 60 * 30)
-                    .build();
+                        .Builder
+                        .createTokenAuthentication(token, host)
+                        .withSoTimeout(1000 * 60 * 30)
+                        .build();
             } else {
                 throw new IllegalArgumentException("Must either specify user/password or token!");
             }
@@ -207,17 +223,17 @@ public abstract class BaseDatabricksMojo extends AbstractMojo {
         }
     }
 
-    String createDeployedArtifactPath() throws MojoExecutionException {
+    protected String createDeployedArtifactPath() throws MojoExecutionException {
         //TODO if we want databricksRepo to be specified via system properties, this is where it could happen.
         validateRepoProperties();
-        String modifiedDatabricksRepoType = databricksRepoType + "://";
-        String modifiedDatabricksRepo = databricksRepo;
-        String modifiedDatabricksRepoKey = databricksRepoKey;
-        if (databricksRepo.endsWith("/")) {
-            modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length() - 1);
+        String modifiedDatabricksRepoType = getDatabricksRepoType() + "://";
+        String modifiedDatabricksRepo = getDatabricksRepo();
+        String modifiedDatabricksRepoKey = getDatabricksRepoKey();
+        if (getDatabricksRepo().endsWith("/")) {
+            modifiedDatabricksRepo = getDatabricksRepo().substring(0, getDatabricksRepo().length() - 1);
         }
-        if (databricksRepoKey.startsWith("/")) {
-            modifiedDatabricksRepoKey = databricksRepoKey.substring(1);
+        if (getDatabricksRepoKey().startsWith("/")) {
+            modifiedDatabricksRepoKey = getDatabricksRepoKey().substring(1);
         }
         return String.format("%s%s/%s", modifiedDatabricksRepoType, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
     }

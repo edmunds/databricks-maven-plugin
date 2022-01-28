@@ -16,7 +16,7 @@
 
 package com.edmunds.tools.databricks.maven;
 
-import org.apache.maven.plugin.MojoExecutionException;
+import java.io.File;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -25,7 +25,19 @@ import org.apache.maven.plugins.annotations.Parameter;
  * as hardcoded environment paths.
  */
 @Mojo(name = "deploy-to-s3")
-public class DeployToS3Mojo extends UploadToS3Mojo {
+public class DeployToS3Mojo extends BaseDatabricksS3Mojo {
+
+    /**
+     * The local file to upload.
+     */
+    @Parameter(property = "file", required = true,
+            defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
+    private File file;
+
+    @Override
+    protected File getSourceFile() {
+        return null;
+    }
 
     /**
      * The prefix to deploy to. This allows for jobs to have hardcoded s3 paths.
@@ -37,22 +49,9 @@ public class DeployToS3Mojo extends UploadToS3Mojo {
                     + "${environment}/DEPLOYED.${project.packaging}")
     protected String databricksRepoDeployKey;
 
-    protected String createSourceFilePath() throws MojoExecutionException {
-        return createDeployedAliasPath();
+    @Override
+    protected String getDatabricksRepoKey() {
+        return databricksRepoDeployKey;
     }
 
-    String createDeployedAliasPath() throws MojoExecutionException {
-        //TODO if we want databricksRepo to be specified via system properties, this is where it could happen.
-        validateRepoProperties();
-        String modifiedDatabricksRepoType = databricksRepoType + "://";
-        String modifiedDatabricksRepo = databricksRepo;
-        String modifiedDatabricksRepoKey = databricksRepoDeployKey;
-        if (databricksRepo.endsWith("/")) {
-            modifiedDatabricksRepo = databricksRepo.substring(0, databricksRepo.length() - 1);
-        }
-        if (databricksRepoDeployKey.startsWith("/")) {
-            modifiedDatabricksRepoKey = databricksRepoDeployKey.substring(1);
-        }
-        return String.format("%s%s/%s", modifiedDatabricksRepoType, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
-    }
 }
