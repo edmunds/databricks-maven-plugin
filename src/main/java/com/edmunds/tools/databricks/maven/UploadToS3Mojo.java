@@ -45,7 +45,7 @@ public class UploadToS3Mojo extends BaseDatabricksMojo {
      */
     @Parameter(property = "file", required = true,
         defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
-    private File file;
+    protected File file;
 
     protected String createSourceFilePath() throws MojoExecutionException {
         return createDeployedArtifactPath();

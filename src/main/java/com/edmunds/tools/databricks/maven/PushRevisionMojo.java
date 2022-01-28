@@ -16,6 +16,7 @@
 
 package com.edmunds.tools.databricks.maven;
 
+import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -27,6 +28,13 @@ import org.apache.maven.plugins.annotations.Parameter;
 public class PushRevisionMojo extends UploadToS3Mojo {
 
     /**
+     * The revision zip to upload.
+     */
+    @Parameter(property = "file", required = true,
+            defaultValue = "${project.build.directory}/${project.build.finalName}.zip")
+    protected File file;
+
+    /**
      * The prefix to deploy to. This allows for jobs to have hardcoded s3 paths.
      * Its especially useful for airflow dags.
      * The default value is an example of how this could be structured.
@@ -36,7 +44,11 @@ public class PushRevisionMojo extends UploadToS3Mojo {
                     + ".zip")
     protected String codeDeployRevisionKey;
 
-    String createDeployAliasPath() throws MojoExecutionException {
+    protected String createSourceFilePath() throws MojoExecutionException {
+        return createDeployedAliasPath();
+    }
+
+    String createDeployedAliasPath() throws MojoExecutionException {
         validateRepoProperties();
         String modifiedDatabricksRepoType = databricksRepoType + "://";
         String modifiedDatabricksRepo = databricksRepo;
