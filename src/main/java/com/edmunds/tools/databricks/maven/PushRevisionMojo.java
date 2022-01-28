@@ -17,6 +17,8 @@
 package com.edmunds.tools.databricks.maven;
 
 import java.io.File;
+
+import com.amazonaws.services.s3.AmazonS3;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -25,19 +27,16 @@ import org.apache.maven.plugins.annotations.Parameter;
  * Uploads resource artifact to an S3 environment path that can be used as CodeDeploy revision.
  */
 @Mojo(name = "push-revision")
-public class PushRevisionMojo extends UploadToS3Mojo {
+public class PushRevisionMojo extends BaseDatabricksMojo {
 
-    /**
-     * The revision zip to upload.
-     */
+    protected AmazonS3 s3Client;
+
     @Parameter(property = "file", required = true,
             defaultValue = "${project.build.directory}/${project.build.finalName}.zip")
     protected File file;
 
     /**
-     * The prefix to deploy to. This allows for jobs to have hardcoded s3 paths.
-     * Its especially useful for airflow dags.
-     * The default value is an example of how this could be structured.
+     * The prefix to upload revision to in order for CodeDeploy to pick up the resources and deploy
      */
     @Parameter(name = "codeDeployRevisionKey", property = "code.deploy.revision.key",
             defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}"
@@ -60,5 +59,21 @@ public class PushRevisionMojo extends UploadToS3Mojo {
             modifiedDatabricksRepoKey = codeDeployRevisionKey.substring(1);
         }
         return String.format("%s%s/%s", modifiedDatabricksRepoType, modifiedDatabricksRepo, modifiedDatabricksRepoKey);
+    }
+
+    @Override
+    public void execute() throws MojoExecutionException {
+        if (file.exists()) {
+            S3MojoUtils.uploadFile(createSourceFilePath(), file, getLog(), getS3Client());
+        } else {
+            getLog().warn(String.format("Target upload file does not exist, skipping: [%s]", file.getPath()));
+        }
+    }
+
+    protected AmazonS3 getS3Client() {
+        if (s3Client == null) {
+            s3Client = S3MojoUtils.getS3Client(databricksRepoRegion);
+        }
+        return s3Client;
     }
 }
