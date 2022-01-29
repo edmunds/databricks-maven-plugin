@@ -25,8 +25,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 /**
  * Uploads resource artifact to an S3 environment path that can be used during deployment.
  */
-@Mojo(name = "push-revision", defaultPhase = LifecyclePhase.DEPLOY)
-public class PushRevisionMojo extends BaseDatabricksS3Mojo {
+@Mojo(name = "push-resource", defaultPhase = LifecyclePhase.DEPLOY)
+public class PushResourceMojo extends BaseDatabricksS3Mojo {
 
     @Parameter(property = "file", required = true,
             defaultValue = "${project.build.directory}/${project.build.finalName}.zip")

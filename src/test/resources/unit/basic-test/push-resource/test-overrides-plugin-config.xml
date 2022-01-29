@@ -36,7 +36,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>push-revision</goal>
+                            <goal>push-resource</goal>
                         </goals>
                         <configuration></configuration>
                     </execution>

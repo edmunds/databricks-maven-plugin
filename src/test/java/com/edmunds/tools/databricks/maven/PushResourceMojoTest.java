@@ -30,15 +30,15 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
- * Tests for @{@link PushRevisionMojo}.
+ * Tests for @{@link PushResourceMojo}.
  * <p>
  * For these tests, the regex as part of the expected exceptions no longer works.
  */
-public class PushRevisionMojoTest extends DatabricksMavenPluginTestHarness {
-    private static final String GOAL = "push-revision";
+public class PushResourceMojoTest extends DatabricksMavenPluginTestHarness {
+    private static final String GOAL = "push-resource";
     @Mock
     AmazonS3Client s3Client;
-    private PushRevisionMojo underTest;
+    private PushResourceMojo underTest;
 
     @BeforeClass
     public void initClass() throws Exception {

@@ -29,14 +29,13 @@
                 <artifactId>databricks-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
-                    <databricksRepo>my-bucket</databricksRepo>
+                    <file>myFile.csv</file>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>push-revision</goal>
+                            <goal>push-resource</goal>
                         </goals>
-                        <configuration></configuration>
                     </execution>
                 </executions>
             </plugin>
