@@ -18,13 +18,14 @@ package com.edmunds.tools.databricks.maven;
 
 import java.io.File;
 
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Uploads resource artifact to an S3 environment path that can be used as CodeDeploy revision.
  */
-@Mojo(name = "push-revision")
+@Mojo(name = "push-revision", defaultPhase = LifecyclePhase.DEPLOY)
 public class PushRevisionMojo extends BaseDatabricksS3Mojo {
 
     @Parameter(property = "file", required = true,
