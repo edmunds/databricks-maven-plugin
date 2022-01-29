@@ -38,6 +38,8 @@ public class PushRevisionMojo extends BaseDatabricksS3Mojo {
 
     /**
      * The prefix to upload revision to in order for CodeDeploy to pick up the resources and deploy.
+     * NOTE: We cannot use a same param name to any of the params in parent classes
+     * or our parameter will not be injected correctly.
      */
     @Parameter(name = "codeDeployRevisionKey", property = "code.deploy.revision.key",
             defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}"

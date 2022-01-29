@@ -43,6 +43,8 @@ public class DeployToS3Mojo extends BaseDatabricksS3Mojo {
      * The prefix to deploy to. This allows for jobs to have hardcoded s3 paths.
      * Its especially useful for airflow dags.
      * The default value is an example of how this could be structured.
+     * NOTE: We cannot use a same param name to any of the params in parent classes
+     * or our parameter will not be injected correctly.
      */
     @Parameter(name = "databricksRepoDeployKey", property = "databricks.repo.deploy.key",
             defaultValue = "${project.groupId}/${project.artifactId}/DEPLOYED/"
