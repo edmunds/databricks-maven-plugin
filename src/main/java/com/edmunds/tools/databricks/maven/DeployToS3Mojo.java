@@ -36,7 +36,7 @@ public class DeployToS3Mojo extends BaseDatabricksS3Mojo {
 
     @Override
     protected File getSourceFile() {
-        return null;
+        return file;
     }
 
     /**

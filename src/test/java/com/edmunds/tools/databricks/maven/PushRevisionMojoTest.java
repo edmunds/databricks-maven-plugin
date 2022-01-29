@@ -79,8 +79,7 @@ public class PushRevisionMojoTest extends DatabricksMavenPluginTestHarness {
         ArgumentCaptor<PutObjectRequest> putRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         Mockito.verify(s3Client).putObject(putRequestCaptor.capture());
         assertEquals("myBucket", putRequestCaptor.getValue().getBucketName());
-        assertEquals("repo/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.zip",
-                putRequestCaptor.getValue().getKey());
         assertEquals("myFile.csv", putRequestCaptor.getValue().getFile().getName());
+        assertEquals("repo/dummyRevisionKey.zip", putRequestCaptor.getValue().getKey());
     }
 }

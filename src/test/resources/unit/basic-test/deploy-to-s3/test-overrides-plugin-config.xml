@@ -30,6 +30,7 @@
                 <version>${project.version}</version>
                 <configuration>
                     <file>myFile.csv</file>
+                    <databricksRepoDeployKey>deployToS3Key.csv</databricksRepoDeployKey>
                     <databricksRepo>myBucket/repo</databricksRepo>
                 </configuration>
                 <executions>

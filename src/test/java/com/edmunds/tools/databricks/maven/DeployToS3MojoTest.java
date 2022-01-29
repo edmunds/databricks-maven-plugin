@@ -13,6 +13,11 @@ import org.testng.annotations.Test;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+/**
+ * Tests for @{@link DeployToS3Mojo}.
+ * <p>
+ * For these tests, the regex as part of the expected exceptions no longer works.
+ */
 public class DeployToS3MojoTest extends DatabricksMavenPluginTestHarness {
 
     private static final String GOAL = "deploy-to-s3";
@@ -59,8 +64,7 @@ public class DeployToS3MojoTest extends DatabricksMavenPluginTestHarness {
         ArgumentCaptor<PutObjectRequest> putRequestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         Mockito.verify(s3Client).putObject(putRequestCaptor.capture());
         assertEquals("myBucket", putRequestCaptor.getValue().getBucketName());
-        assertEquals("repo/unit-test-group/unit-test-artifact/1.0.0-SNAPSHOT/unit-test-artifact-1.0.0-SNAPSHOT.jar",
-                putRequestCaptor.getValue().getKey());
         assertEquals("myFile.csv", putRequestCaptor.getValue().getFile().getName());
+        assertEquals("repo/deployToS3Key.csv", putRequestCaptor.getValue().getKey());
     }
 }
