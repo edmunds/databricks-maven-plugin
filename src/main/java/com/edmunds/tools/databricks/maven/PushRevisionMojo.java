@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- * Uploads resource artifact to an S3 environment path that can be used as CodeDeploy revision.
+ * Uploads resource artifact to an S3 environment path that can be used during deployment.
  */
 @Mojo(name = "push-revision", defaultPhase = LifecyclePhase.DEPLOY)
 public class PushRevisionMojo extends BaseDatabricksS3Mojo {
@@ -38,17 +38,17 @@ public class PushRevisionMojo extends BaseDatabricksS3Mojo {
     }
 
     /**
-     * The prefix to upload revision to in order for CodeDeploy to pick up the resources and deploy.
+     * The prefix to upload revision to in order for deployment app to pick up the resources and deploy.
      * NOTE: We cannot use a same param name to any of the params in parent classes
      * or our parameter will not be injected correctly.
      */
-    @Parameter(name = "codeDeployRevisionKey", property = "code.deploy.revision.key",
+    @Parameter(name = "deploymentResourceKey", property = "deployment.resource.key",
             defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}"
                     + ".zip")
-    protected String codeDeployRevisionKey;
+    protected String deploymentResourceKey;
 
     @Override
     protected String getDatabricksRepoKey() {
-        return codeDeployRevisionKey;
+        return deploymentResourceKey;
     }
 }

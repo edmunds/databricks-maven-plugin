@@ -31,7 +31,7 @@
                 <configuration>
                     <file>myFile.csv</file>
                     <databricksRepo>myBucket/repo</databricksRepo>
-                    <codeDeployRevisionKey>dummyRevisionKey.zip</codeDeployRevisionKey>
+                    <deploymentResourceKey>dummyRevisionKey.zip</deploymentResourceKey>
                 </configuration>
                 <executions>
                     <execution>
