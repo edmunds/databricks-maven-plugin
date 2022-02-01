@@ -17,21 +17,19 @@
 package com.edmunds.tools.databricks.maven;
 
 import java.io.File;
+
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- * Uploads an artifact to an s3 environment path that can be used by databricks jobs (or airflow)
- * as hardcoded environment paths.
+ * Uploads resource artifact to an S3 environment path that can be used during deployment.
  */
-@Mojo(name = "deploy-to-s3")
-public class DeployToS3Mojo extends BaseDatabricksS3Mojo {
+@Mojo(name = "push-resource", defaultPhase = LifecyclePhase.DEPLOY)
+public class PushResourceMojo extends BaseDatabricksS3Mojo {
 
-    /**
-     * The local file to upload.
-     */
     @Parameter(property = "file", required = true,
-            defaultValue = "${project.build.directory}/${project.build.finalName}.${project.packaging}")
+            defaultValue = "${project.build.directory}/${project.build.finalName}.zip")
     private File file;
 
     @Override
@@ -40,20 +38,17 @@ public class DeployToS3Mojo extends BaseDatabricksS3Mojo {
     }
 
     /**
-     * The prefix to deploy to. This allows for jobs to have hardcoded s3 paths.
-     * Its especially useful for airflow dags.
-     * The default value is an example of how this could be structured.
+     * The prefix to upload revision to in order for deployment app to pick up the resources and deploy.
      * NOTE: We cannot use a same param name to any of the params in parent classes
      * or our parameter will not be injected correctly.
      */
-    @Parameter(name = "databricksRepoDeployKey", property = "databricks.repo.deploy.key",
-            defaultValue = "${project.groupId}/${project.artifactId}/DEPLOYED/"
-                    + "${environment}/DEPLOYED.${project.packaging}")
-    protected String databricksRepoDeployKey;
+    @Parameter(name = "deploymentResourceKey", property = "deployment.resource.key",
+            defaultValue = "${project.groupId}/${project.artifactId}/${project.version}/${project.build.finalName}"
+                    + ".zip")
+    protected String deploymentResourceKey;
 
     @Override
     protected String getDatabricksRepoKey() {
-        return databricksRepoDeployKey;
+        return deploymentResourceKey;
     }
-
 }
