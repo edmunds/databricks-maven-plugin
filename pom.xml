@@ -19,7 +19,7 @@
 
     <groupId>com.edmunds</groupId>
     <artifactId>databricks-maven-plugin</artifactId>
-    <version>1.12.3-SNAPSHOT</version>
+    <version>1.12.4-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
 
