@@ -26,7 +26,6 @@ import com.edmunds.rest.databricks.service.JobService;
 import com.edmunds.rest.databricks.service.LibraryService;
 import com.edmunds.rest.databricks.service.WorkspaceService;
 import java.util.Properties;
-import org.apache.log4j.Logger;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
@@ -38,9 +37,6 @@ import org.powermock.modules.testng.PowerMockTestCase;
 
 @PrepareForTest({DatabricksServiceFactory.class})
 public class BaseDatabricksMojoTest extends PowerMockTestCase {
-
-    //Apparently needed for jenkins tests...
-    private static Logger log = Logger.getLogger(BaseDatabricksMojoTest.class);
 
     protected DatabricksServiceFactory databricksServiceFactory;
 
