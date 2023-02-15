@@ -77,7 +77,7 @@
         <javadoc.opts>-Xdoclint:none</javadoc.opts>
 
         <freemarker-version>2.3.29</freemarker-version>
-        <aws-java-sdk-s3-version>1.11.699</aws-java-sdk-s3-version>
+        <aws-java-sdk-s3-version>1.12.261</aws-java-sdk-s3-version>
         <commons-lang-version>3.9</commons-lang-version>
         <commons-collections-version>3.2.2</commons-collections-version>
         <sisu-guice-version>3.2.3</sisu-guice-version>
