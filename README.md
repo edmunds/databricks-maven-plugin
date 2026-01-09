@@ -1,5 +1,10 @@
 # Databricks Maven Plugin
 
+> [!WARNING]
+> **This project is deprecated and will be archived on March 2, 2026.**
+>
+> This repository is no longer actively maintained. We recommend users migrate to alternative solutions for accessing the Databricks REST API. No new features will be added.
+
 _This is the maven databricks plugin, which uses the databricks rest api._
 
 ## Build Status
